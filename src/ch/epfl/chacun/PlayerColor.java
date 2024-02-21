@@ -2,6 +2,12 @@ package ch.epfl.chacun;
 
 import java.util.List;
 
+/**
+ * PlayerColor enumerator
+ *
+ * @author Mattia Metzler (372025)
+ * @author Leoluca Bernardi (???)
+ */
 public enum PlayerColor {
     RED, BLUE, GREEN, YELLOW, PURPLE;
 
