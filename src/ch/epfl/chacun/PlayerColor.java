@@ -6,7 +6,7 @@ import java.util.List;
  * PlayerColor enumerator
  *
  * @author Mattia Metzler (372025)
- * @author Leoluca Bernardi (???)
+ * @author Leoluca Bernardi (374107)
  */
 public enum PlayerColor {
     RED, BLUE, GREEN, YELLOW, PURPLE;

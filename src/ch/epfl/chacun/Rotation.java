@@ -6,7 +6,7 @@ import java.util.List;
  * Rotation enumerator
  *
  * @author Mattia Metzler (372025)
- * @author Leoluca Bernardi (???)
+ * @author Leoluca Bernardi (374107)
  */
 public enum Rotation {
     NONE,
@@ -25,7 +25,7 @@ public enum Rotation {
         return ALL.get((this.ordinal() + (COUNT / 2)) % COUNT);
     }
 
-    public int QuarterTurnsCW() {
+    public int quarterTurnsCW() {
         return this.ordinal();
     }
 
