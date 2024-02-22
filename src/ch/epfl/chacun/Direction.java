@@ -10,14 +10,14 @@ import java.util.List;
  */
 public enum Direction {
     N, E, S, W;
-    public static final List<Direction> All = List.of(Direction.values());
-    public static final int COUNT = All.size();
+    public static final List<Direction> ALL = List.of(Direction.values());
+    public static final int COUNT = ALL.size();
 
     public Direction rotated(Rotation rotation) {
-        return All.get((this.ordinal() + rotation.quarterTurnsCW()) % COUNT);
+        return ALL.get((this.ordinal() + rotation.quarterTurnsCW()) % COUNT);
     }
 
     public Direction opposite() {
-        return All.get((this.ordinal() + (COUNT / 2)) % COUNT);
+        return ALL.get((this.ordinal() + (COUNT / 2)) % COUNT);
     }
 }

@@ -22,7 +22,7 @@ public enum Rotation {
     }
 
     public Rotation negated() {
-        return ALL.get((this.ordinal() + (COUNT / 2)) % COUNT);
+        return ALL.get((COUNT - this.ordinal()) % COUNT);
     }
 
     public int quarterTurnsCW() {

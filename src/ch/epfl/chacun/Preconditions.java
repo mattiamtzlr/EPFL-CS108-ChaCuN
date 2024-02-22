@@ -10,7 +10,7 @@ public class Preconditions {
     private Preconditions() {}
 
     /**
-     * Used to check if the arguments to a function are correct.
+     * Used to check if the arguments to a method are correct.
      * @param shouldBeTrue Condition which needs to be true for an argument to be true. e.g. (a.length > 0)
      * @throws IllegalArgumentException if the passed condition is false.
      */

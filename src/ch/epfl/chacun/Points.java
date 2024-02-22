@@ -23,12 +23,12 @@ public final class Points {
         return tileCount + fishCount;
     }
 
-    public static int forMeadow(int mammothCount, int aurochCount, int deerCount) {
+    public static int forMeadow(int mammothCount, int aurochsCount, int deerCount) {
         Preconditions.checkArgument(mammothCount >= 0);
-        Preconditions.checkArgument(aurochCount >= 0);
+        Preconditions.checkArgument(aurochsCount >= 0);
         Preconditions.checkArgument(deerCount >= 0);
 
-        return (mammothCount * 3) + (aurochCount * 2) + deerCount;
+        return (mammothCount * 3) + (aurochsCount * 2) + deerCount;
     }
 
     public static int forRiverSystem(int fishCount) {
