@@ -57,6 +57,13 @@ public record TileDecks(List<Tile> startTiles, List<Tile> normalTiles, List<Tile
     }
     //==================================================================================================================
     // TODO this is hacky at best, test thoroughly :)
+
+    /**
+     * 
+     * @param kind
+     * @param predicate
+     * @return
+     */
     public TileDecks withTopTileDrawnUntil(Tile.Kind kind, Predicate<Tile> predicate) {
         TileDecks temp = new TileDecks(startTiles, normalTiles, menhirTiles);
         while (!predicate.test(temp.topTile(kind))) {
