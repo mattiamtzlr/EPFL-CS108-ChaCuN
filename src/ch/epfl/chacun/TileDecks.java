@@ -5,17 +5,32 @@ import java.util.NoSuchElementException;
 import java.util.function.Predicate;
 
 /**
- * TODO Description
+ * Record to keep track of the three different decks.
+ * - startDeck: contains start tile
+ * - normalDeck: contains all normal tiles
+ * - menhirDeck: contains menhir tiles
  *
  * @author Mattia Metzler (372025)
  * @author Leoluca Bernardi (374107)
  */
 public record TileDecks(List<Tile> startTiles, List<Tile> normalTiles, List<Tile> menhirTiles) {
+    /**
+     * Compact constructor to ensure immutability
+     * @param startTiles startTiles list
+     * @param normalTiles normalTiles list
+     * @param menhirTiles menhirTiles list
+     */
     public TileDecks {
         startTiles = List.copyOf(startTiles);
         normalTiles = List.copyOf(normalTiles);
         menhirTiles = List.copyOf(menhirTiles);
     }
+
+    /**
+     * Method to calculate the size of a chosen deck
+     * @param kind Deck kind
+     * @return the number of cards in the chosen deck
+     */
     public int deckSize(Tile.Kind kind) {
         return switch (kind) {
             case START -> startTiles.size();
@@ -25,6 +40,11 @@ public record TileDecks(List<Tile> startTiles, List<Tile> normalTiles, List<Tile
 
     }
 
+    /**
+     * Method to get the top Tile in a chosen deck
+     * @param kind Deck kind
+     * @return the Tile on the top of a chosen deck
+     */
     public Tile topTile(Tile.Kind kind) {
         try {
             return switch (kind) {
@@ -37,6 +57,11 @@ public record TileDecks(List<Tile> startTiles, List<Tile> normalTiles, List<Tile
         }
     }
 
+    /**
+     * Method to get the deck triplet without one top tile
+     * @param kind Deck kind
+     * @return a TileDecks instance with one tile missing from a chosen deck
+     */
     public TileDecks withTopTileDrawn(Tile.Kind kind) {
         Preconditions.checkArgument(deckSize(kind) != 0);
         return switch(kind) {
@@ -59,10 +84,11 @@ public record TileDecks(List<Tile> startTiles, List<Tile> normalTiles, List<Tile
     // TODO this is hacky at best, test thoroughly :)
 
     /**
-     * 
-     * @param kind
-     * @param predicate
-     * @return
+     * Method that allows to batch remove tiles from the top of a chosen deck
+     * @param kind Deck kind
+     * @param predicate Condition to be checked on the top tiles of the chosen deck
+     * @return a TileDecks instance with every tile on the top of (kind)Tiles that does not pass the
+     * predicate test removed
      */
     public TileDecks withTopTileDrawnUntil(Tile.Kind kind, Predicate<Tile> predicate) {
         TileDecks temp = new TileDecks(startTiles, normalTiles, menhirTiles);
