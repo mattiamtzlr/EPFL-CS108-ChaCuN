@@ -12,15 +12,35 @@ import java.util.Set;
 public record PlacedTile(
         Tile tile, PlayerColor placer, Rotation rotation, Pos pos, Occupant occupant
     ) {
+    /**
+     * TODO adjust this constructor + JavaDoc
+     * @param tile tile to be placed
+     * @param placer color of the player placing the tile
+     * @param rotation rotation in which the tile is to be placed
+     * @param pos position on the board where the tile should be placed
+     * @param occupant TODO specify occupant
+     */
     public PlacedTile {
         Preconditions.checkArgument(tile != null);
         Preconditions.checkArgument(rotation != null);
         Preconditions.checkArgument(pos != null);
     }
 
+    /**
+     * Constructor that can be called without specifying an occupant
+     * @param tile tile to be placed
+     * @param placer color of the player placing the tile
+     * @param rotation rotation in which the tile is to be placed
+     * @param pos position on the board where the tile should be placed
+     */
     public PlacedTile(Tile tile, PlayerColor placer, Rotation rotation, Pos pos) {
         this(tile, placer, rotation, pos, null);
     }
+
+    /**
+     * Getter for the tile id
+     * @return  id of the tile
+     */
     public int id() {
         return tile.id();
     }
@@ -28,10 +48,23 @@ public record PlacedTile(
         return tile.kind();
     }
 
+    /**
+     * Method to get the tile side in a given direction. This direction is in respect to the way the tile was
+     * placed down onto the playing area.
+     * @param direction a direction
+     * @return the TileSide of the direction we specified
+     */
+
     public TileSide side(Direction direction) {
         // TODO Write a test for this
         return tile.sides().get(direction.rotated(rotation.negated()).ordinal());
     }
+
+    /**
+     * Method to search zones by id
+     * @param id id of the zone we are looking for
+     * @return zone corresponding to the id
+     */
     public Zone zoneWithId(int id) {
         for (Zone zone : tile.zones()) {
             if (zone.id() == id)
@@ -39,6 +72,11 @@ public record PlacedTile(
         }
         throw new IllegalArgumentException("illegal id");
     }
+
+    /**
+     * Method to get the special power zone of a tile
+     * @return the special power zone, or null if there is none
+     */
     public Zone specialPowerZone() {
         for (Zone zone : tile.zones()) {
             if (zone.specialPower() != null)
@@ -46,6 +84,10 @@ public record PlacedTile(
         }
         return null;
     }
+    /**
+     * Method to get a set containing all unique forest zones
+     * @return a set containing all forest zones
+     */
     public Set<Zone.Forest> forestZones() {
         HashSet<Zone.Forest> forests = new HashSet<>();
         for (Zone zone : tile.zones()) {
@@ -54,6 +96,10 @@ public record PlacedTile(
         }
         return forests;
     }
+    /**
+     * Method to get a set containing all unique meadow zones
+     * @return a set containing all meadow zones
+     */
     public Set<Zone.Meadow> meadowZones() {
         HashSet<Zone.Meadow> meadows = new HashSet<>();
         for (Zone zone : tile.zones()) {
@@ -62,6 +108,11 @@ public record PlacedTile(
         }
         return meadows;
     }
+
+    /**
+     * Method to get a set containing all unique river zones
+     * @return a set containing all river zones
+     */
     public Set<Zone.River> riverZones() {
         HashSet<Zone.River> rivers = new HashSet<>();
         for (Zone zone : tile.zones()) {
@@ -70,6 +121,11 @@ public record PlacedTile(
         }
         return rivers;
     }
+
+    /**
+     * Method to find pieces that are possible to place on this tile
+     * @return a set of the pieces that are placeable
+     */
     public Set<Occupant> potentialOccupants() {
         // TODO Write extensive tests for this, this is crucial for rules
         if (placer == null)
@@ -102,9 +158,9 @@ public record PlacedTile(
     //==================================================================================================================
 
     /**
-     *
-     * @param occupantKind
-     * @return
+     * Method to find the id of a zone that is occupied by a piece
+     * @param occupantKind the piece we want to find the zone id for
+     * @return the zone id of the zone the piece we passed occupies
      */
     public int idOfZoneOccupiedBy(Occupant.Kind occupantKind) {
         if (this.occupant == null || occupantKind != this.occupant.kind())

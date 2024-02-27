@@ -16,9 +16,9 @@ import java.util.function.Predicate;
 public record TileDecks(List<Tile> startTiles, List<Tile> normalTiles, List<Tile> menhirTiles) {
     /**
      * Compact constructor to ensure immutability
-     * @param startTiles startTiles list
-     * @param normalTiles normalTiles list
-     * @param menhirTiles menhirTiles list
+     * @param startTiles the starting tile
+     * @param normalTiles a collection containing all normal tiles
+     * @param menhirTiles a collection containing all menhir tiles
      */
     public TileDecks {
         startTiles = List.copyOf(startTiles);

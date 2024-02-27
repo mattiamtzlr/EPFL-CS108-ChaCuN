@@ -15,7 +15,7 @@ public enum Direction {
 
     /**
      * Method to change a direction by rotation
-     * @param rotation
+     * @param rotation rotation to be applied
      * @return new direction with applied rotation
      */
     public Direction rotated(Rotation rotation) {

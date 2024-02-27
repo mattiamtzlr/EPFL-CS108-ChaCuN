@@ -14,7 +14,7 @@ public sealed interface TileSide {
 
     /**
      * Forest record representing the forest type tile border
-     * @param forest
+     * @param forest a forest zone
      */
     record Forest(Zone.Forest forest) implements TileSide {
         @Override
@@ -30,7 +30,7 @@ public sealed interface TileSide {
 
     /**
      * Forest record representing the meadow type tile border
-     * @param forest
+     * @param meadow a meadow zone
      */
     record Meadow(Zone.Meadow meadow) implements TileSide {
         @Override
@@ -46,9 +46,9 @@ public sealed interface TileSide {
 
     /**
      * Forest record representing the river type tile border
-     * @param meadow1
-     * @param river
-     * @param meadow2
+     * @param meadow1 the first meadow zone (counterclockwise of the river)
+     * @param river the river zone
+     * @param meadow2 the second meadow zone (clockwise of the river)
      */
     record River(Zone.Meadow meadow1, Zone.River river, Zone.Meadow meadow2) implements TileSide {
         @Override

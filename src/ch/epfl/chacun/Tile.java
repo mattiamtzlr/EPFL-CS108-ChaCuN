@@ -10,12 +10,12 @@ import java.util.Set;
  * @author Mattia Metzler (372025)
  * @author Leoluca Bernardi (374107)
  *
- * @param id
- * @param kind
- * @param n
- * @param e
- * @param s
- * @param w
+ * @param id the id of the tile
+ * @param kind the kind of the tile (start, normal or menhir)
+ * @param n the northern tile side
+ * @param e the eastern tile side
+ * @param s the southern tile side
+ * @param w the western tile side
  */
 public record Tile(
         int id, Kind kind, TileSide n, TileSide e, TileSide s, TileSide w
