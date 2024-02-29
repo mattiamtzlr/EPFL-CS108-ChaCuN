@@ -48,9 +48,9 @@ public record TileDecks(List<Tile> startTiles, List<Tile> normalTiles, List<Tile
     public Tile topTile(Tile.Kind kind) {
         try {
             return switch (kind) {
-                case START -> startTiles.getFirst();
-                case NORMAL -> normalTiles.getFirst();
-                case MENHIR -> menhirTiles.getFirst();
+                case START -> startTiles.get(0);
+                case NORMAL -> normalTiles.get(0);
+                case MENHIR -> menhirTiles.get(0);
             };
         } catch(NoSuchElementException e) {
             return null;
