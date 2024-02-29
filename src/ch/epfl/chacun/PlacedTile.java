@@ -1,6 +1,7 @@
 package ch.epfl.chacun;
 
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -21,9 +22,9 @@ public record PlacedTile(
      * @param occupant TODO specify occupant
      */
     public PlacedTile {
-        Preconditions.checkArgument(tile != null);
-        Preconditions.checkArgument(rotation != null);
-        Preconditions.checkArgument(pos != null);
+        Objects.requireNonNull(tile);
+        Objects.requireNonNull(rotation);
+        Objects.requireNonNull(pos);
     }
 
     /**

@@ -71,6 +71,11 @@ public sealed interface Zone {
      * @param kind (Zone.Forest.Kind) kind of forest
      */
     record Forest(int id, Kind kind) implements Zone {
+        /**
+         * Forest record used to represent a forest zone
+         * @param id (int) The global id of the forest
+         * @param kind (Zone.Forest.Kind) kind of forest
+         */
         public enum Kind {
             PLAIN, WITH_MENHIR, WITH_MUSHROOMS
         }
@@ -83,6 +88,12 @@ public sealed interface Zone {
      * @param specialPower (Zone.SpecialPower) special power of this meadow, may be null
      */
     record Meadow(int id, List<Animal> animals, SpecialPower specialPower) implements Zone {
+        /**
+         * Meadow record used to represent a meadow zone
+         * @param id (int) the global id of the meadow
+         * @param animals (List<Animal>) list of animals living in that meadow
+         * @param specialPower (Zone.SpecialPower) special power of this meadow, may be null
+         */
         public Meadow {
             animals = List.copyOf(animals);
         }
@@ -107,6 +118,13 @@ public sealed interface Zone {
      * @param specialPower (Zone.SpecialPower) special power of the lake, may be null
      */
     record Lake(int id, int fishCount, SpecialPower specialPower) implements Water {
+        /**
+         * Lake record used to represent a lake zone
+         *
+         * @param id           (int) global id of the lake
+         * @param fishCount    (int) number of fish in the lake
+         * @param specialPower (Zone.SpecialPower) special power of the lake, may be null
+         */
         public Lake {
             Preconditions.checkArgument(fishCount >= 0);
         }
@@ -120,6 +138,13 @@ public sealed interface Zone {
      *             connect to a river
      */
     record River(int id, int fishCount, Lake lake) implements Zone {
+        /**
+         * River record used to represent a river zone
+         * @param id (int) global id of the river
+         * @param fishCount (int) number of fish in the river
+         * @param lake (Zone.Lake) lake that this river connects to, may be null, if it doesn't
+         *             connect to a river
+         */
         public River {
             Preconditions.checkArgument(fishCount >= 0);
         }
