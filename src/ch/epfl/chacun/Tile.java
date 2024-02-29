@@ -23,7 +23,7 @@ public record Tile(
     /**
      * enum for the kind of the tile
      */
-    enum Kind {
+    public enum Kind {
         START, NORMAL, MENHIR
     }
 
