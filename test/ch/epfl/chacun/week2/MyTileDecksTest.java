@@ -30,22 +30,27 @@ class MyTileDecksTest {
     TileDecks emptyDeck = new TileDecks(List.of(), List.of(), List.of());
 
     @Test
-    void deckSize() {
+    void deckSizeWorksForTrivialDeck() {
         assertEquals(1, trivialDeck.deckSize(Tile.Kind.START));
         assertEquals(1, trivialDeck.deckSize(Tile.Kind.NORMAL));
         assertEquals(2, trivialDeck.deckSize(Tile.Kind.MENHIR));
-
+        }
+    @Test
+    void deckSizeWorksForEmptyDeck() {
         assertEquals(0, emptyDeck.deckSize(Tile.Kind.START));
         assertEquals(0, emptyDeck.deckSize(Tile.Kind.NORMAL));
         assertEquals(0, emptyDeck.deckSize(Tile.Kind.MENHIR));
     }
 
     @Test
-    void topTile() {
+    void topTileWorksForTrivialDeck() {
         assertEquals(startTile, trivialDeck.topTile(Tile.Kind.START));
         assertEquals(trivialNormalTile, trivialDeck.topTile(Tile.Kind.NORMAL));
         assertEquals(trivialMenhirTile, trivialDeck.topTile(Tile.Kind.MENHIR));
 
+    }
+    @Test
+    void topTileWorksForEmptyDeck() {
         assertNull(emptyDeck.topTile(Tile.Kind.MENHIR));
     }
 
@@ -54,21 +59,29 @@ class MyTileDecksTest {
         TileDecks expectedDeck = new TileDecks(List.of(startTile), List.of(), List.of(trivialMenhirTile, specialMenhirTile));
         assertEquals(expectedDeck, trivialDeck.withTopTileDrawn(Tile.Kind.NORMAL));
 
-        expectedDeck = new TileDecks(List.of(startTile), List.of(trivialNormalTile), List.of(specialMenhirTile));
+    }
+    @Test
+    void withTopTileDrawnWorksTrivialDeck() {
+        TileDecks expectedDeck = new TileDecks(List.of(startTile), List.of(trivialNormalTile), List.of(specialMenhirTile));
         assertEquals(expectedDeck, trivialDeck.withTopTileDrawn(Tile.Kind.MENHIR));
 
+    }
+    @Test
+    void withTopTileDrawnFailsOnEmptySet() {
         assertThrows(IllegalArgumentException.class, () -> emptyDeck.withTopTileDrawn(Tile.Kind.NORMAL));
     }
 
     @Test
-    void withTopTileDrawnUntil() {
+    void withTopTileDrawnUntilWorksOnTrivialDeck() {
         TileDecks expectedDeck = new TileDecks(List.of(startTile), List.of(trivialNormalTile), List.of(specialMenhirTile));
         Predicate<Tile> predicate = t -> (t.sides().equals(List.of(w, e, e, e)));
         assertEquals(expectedDeck, trivialDeck.withTopTileDrawnUntil(Tile.Kind.MENHIR, predicate));
-
-
+    }
+    // Checking for an edge case where more tiles should be drawn than are on the stack
+    @Test
+    void withTopTileDrawnUntilWorksWithTrivialPredicate() {
         Predicate<Tile> trivialPredicate = t -> false;
-        expectedDeck = new TileDecks(List.of(startTile), List.of(trivialNormalTile), List.of());
+        TileDecks expectedDeck = new TileDecks(List.of(startTile), List.of(trivialNormalTile), List.of());
         assertEquals(expectedDeck, trivialDeck.withTopTileDrawnUntil(Tile.Kind.MENHIR, trivialPredicate));
     }
 
