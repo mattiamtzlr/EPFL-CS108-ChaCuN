@@ -149,6 +149,11 @@ public sealed interface Zone {
             Preconditions.checkArgument(fishCount >= 0);
         }
 
+        /**
+         * Tests whether the river object is connected to a river *on the same tile*.
+         * The starting tile river would return true.
+         * @return Boolean value whether there exists a lake on the same tile
+         */
         public boolean hasLake() {
             return lake != null;
         }

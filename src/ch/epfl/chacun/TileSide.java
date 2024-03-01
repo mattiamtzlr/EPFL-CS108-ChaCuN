@@ -17,11 +17,20 @@ public sealed interface TileSide {
      * @param forest a forest zone
      */
     record Forest(Zone.Forest forest) implements TileSide {
+        /**
+         * Returns a list of the zone on this side of the tile
+         * @return (List) list of zone on this TileSide
+         */
         @Override
         public List<Zone> zones() {
             return List.of(forest);
         }
 
+        /**
+         * Method to check whether two TileSides are of the same kind
+         * @param that (TileSide) Side of a tile we want to compare
+         * @return Boolean value if "that" is a forest tile side
+         */
         @Override
         public boolean isSameKindAs(TileSide that) {
             return that instanceof TileSide.Forest;
@@ -33,11 +42,20 @@ public sealed interface TileSide {
      * @param meadow a meadow zone
      */
     record Meadow(Zone.Meadow meadow) implements TileSide {
+        /**
+         * Returns a list of the zone on this side of the tile
+         * @return (List) list of zone on this TileSide
+         */
         @Override
         public List<Zone> zones() {
             return List.of(meadow);
         }
 
+        /**
+         * Method to check whether two TileSides are of the same kind
+         * @param that (TileSide) Side of a tile we want to compare
+         * @return Boolean value if "that" is a meadow tile side
+         */
         @Override
         public boolean isSameKindAs(TileSide that) {
             return that instanceof TileSide.Meadow;
@@ -51,11 +69,20 @@ public sealed interface TileSide {
      * @param meadow2 the second meadow zone (clockwise of the river)
      */
     record River(Zone.Meadow meadow1, Zone.River river, Zone.Meadow meadow2) implements TileSide {
+        /**
+         * Returns a list of the zones on this side of the tile
+         * @return (List) list of zones on this TileSide
+         */
         @Override
         public List<Zone> zones() {
             return List.of(meadow1, river, meadow2);
         }
 
+        /**
+         * Method to check whether two TileSides are of the same kind
+         * @param that (TileSide) Side of a tile we want to compare
+         * @return Boolean value if "that" is a river tile side
+         */
         @Override
         public boolean isSameKindAs(TileSide that) {
             return that instanceof TileSide.River;
