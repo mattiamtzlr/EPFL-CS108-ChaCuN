@@ -92,7 +92,7 @@ public record TileDecks(List<Tile> startTiles, List<Tile> normalTiles, List<Tile
      */
     public TileDecks withTopTileDrawnUntil(Tile.Kind kind, Predicate<Tile> predicate) {
         TileDecks temp = new TileDecks(startTiles, normalTiles, menhirTiles);
-        while (!predicate.test(temp.topTile(kind))) {
+        while (temp.topTile(kind) != null && !predicate.test(temp.topTile(kind))) {
             temp = temp.withTopTileDrawn(kind);
         }
         return temp;
