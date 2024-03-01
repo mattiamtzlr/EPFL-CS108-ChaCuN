@@ -80,8 +80,6 @@ public record TileDecks(List<Tile> startTiles, List<Tile> normalTiles, List<Tile
             );
         };
     }
-    //==================================================================================================================
-    // TODO this is hacky at best, test thoroughly :)
 
     /**
      * Method that allows to batch remove tiles from the top of a chosen deck
@@ -97,5 +95,4 @@ public record TileDecks(List<Tile> startTiles, List<Tile> normalTiles, List<Tile
         }
         return temp;
     }
-    //==================================================================================================================
 }
