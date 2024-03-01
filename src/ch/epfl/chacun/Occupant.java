@@ -12,6 +12,9 @@ import java.util.Objects;
  * @param zoneId (int) the id of the zone in which the occupant lives
  */
 public record Occupant(Kind kind, int zoneId) {
+    /**
+     * Enumerator for the occupant kind
+     */
     public enum Kind {
         PAWN, HUT
     }

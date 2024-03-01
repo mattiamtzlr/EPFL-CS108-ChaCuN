@@ -91,6 +91,7 @@ public record PlacedTile(
         }
         return null;
     }
+
     /**
      * Method to get a set containing all unique forest zones
      * @return a set containing all forest zones
@@ -103,6 +104,7 @@ public record PlacedTile(
         }
         return forests;
     }
+
     /**
      * Method to get a set containing all unique meadow zones
      * @return a set containing all meadow zones
@@ -138,18 +140,18 @@ public record PlacedTile(
             return new HashSet<>();
         HashSet<Occupant> occupants = new HashSet<>();
         for (Zone zone : tile.zones()) {
-            if (zone instanceof Zone.Forest || zone instanceof Zone.Meadow)
+            if (!(zone instanceof Zone.Lake)) {
+                // Pawns are always possible if the zone isn't a lake.
                 occupants.add(new Occupant(Occupant.Kind.PAWN, zone.id()));
-            if (zone instanceof Zone.River) {
-                if (((Zone.River) zone).hasLake())
-                    occupants.add(new Occupant(Occupant.Kind.PAWN, zone.id()));
-                else {
+
+                // If a river does not have a lake, a hut is possible
+                if (zone instanceof Zone.River && !((Zone.River) zone).hasLake())
                     occupants.add(new Occupant(Occupant.Kind.HUT, zone.id()));
-                    occupants.add(new Occupant(Occupant.Kind.PAWN, zone.id()));
-                }
             }
-            if (zone instanceof Zone.Lake)
+            else {
+                // lakes can always have huts
                 occupants.add(new Occupant(Occupant.Kind.HUT, zone.id()));
+            }
         }
         return occupants;
     }
@@ -160,6 +162,7 @@ public record PlacedTile(
      * @return (PlacedTile) The new PlacedTile with the occupant
      */
     public PlacedTile withOccupant(Occupant occupant) {
+        // check whether there isn't already a occupant
         Preconditions.checkArgument(this.occupant == null);
         return new PlacedTile(this.tile, this.placer, this.rotation, this.pos, occupant);
     }

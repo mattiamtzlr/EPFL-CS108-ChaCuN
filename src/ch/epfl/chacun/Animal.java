@@ -10,6 +10,9 @@ package ch.epfl.chacun;
  * @param kind (Animal.Kind) the kind of the animal
  */
 public record Animal(int id, Kind kind) {
+    /**
+     * Enumerator for the animal kind
+     */
     public enum Kind {
         MAMMOTH, AUROCHS, DEER, TIGER
     }

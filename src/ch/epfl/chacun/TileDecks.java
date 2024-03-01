@@ -43,7 +43,7 @@ public record TileDecks(List<Tile> startTiles, List<Tile> normalTiles, List<Tile
     /**
      * Method to get the top Tile in a chosen deck
      * @param kind Deck kind
-     * @return the Tile on the top of a chosen deck
+     * @return the Tile on the top of a chosen deck, null if the deck is empty
      */
     public Tile topTile(Tile.Kind kind) {
         try {
@@ -52,7 +52,7 @@ public record TileDecks(List<Tile> startTiles, List<Tile> normalTiles, List<Tile
                 case NORMAL -> normalTiles.getFirst();
                 case MENHIR -> menhirTiles.getFirst();
             };
-        } catch(NoSuchElementException e) {
+        } catch (NoSuchElementException e) {
             return null;
         }
     }
