@@ -6,9 +6,9 @@
 
 ## Todo  
 - [ ] Week two:
-  - [ ] write Tests for:
+  - [x] write Tests for:
     - PlacedTile
     - Tile
-    - TileDecks
+    - TileDecks 
     - TileSide
   - [ ] Complete JavaDoc in multiple files
