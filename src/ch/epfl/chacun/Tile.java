@@ -53,7 +53,7 @@ public record Tile(
      */
     public Set<Zone> zones() {
         HashSet<Zone> zones = (HashSet<Zone>) this.sideZones();
-        for (Zone zone : zones) {
+        for (Zone zone : this.sideZones()) {
             if (zone instanceof Zone.River river)
                 if (river.hasLake())
                     zones.add(river.lake());
