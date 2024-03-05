@@ -72,9 +72,7 @@ public sealed interface Zone {
      */
     record Forest(int id, Kind kind) implements Zone {
         /**
-         * Forest record used to represent a forest zone
-         * @param id (int) The global id of the forest
-         * @param kind (Zone.Forest.Kind) kind of forest
+         * Kind enum for the forest
          */
         public enum Kind {
             PLAIN, WITH_MENHIR, WITH_MUSHROOMS
