@@ -1,6 +1,7 @@
 package ch.epfl.chacun;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -27,5 +28,26 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
         throw new IllegalArgumentException(String.format("Partition does not contain %s", zone));
     }
 
+    public static final class Builder<Z extends Zone> {
+        private HashSet<Area<Z>> areas = new HashSet<>();
+
+        public Builder(ZonePartition<Z> partition) {
+            areas.addAll(partition.areas());
+        }
+        void addSingleton(Z zone, int openConnections) {
+            areas.add(new Area<Z>(
+                    Collections.singleton(zone), Collections.emptyList() ,openConnections));
+        }
+        void addInitialOccupant(Z zone, PlayerColor color) {
+            Area<Z> area = new ZonePartition<>(areas).areaContaining(zone);
+            areas.remove(area);
+            areas.add(area.withInitialOccupant(color));
+        }
+        void removeOccupant(Z zone, PlayerColor color) {
+            Area<Z> area = new ZonePartition<>(areas). areaContaining(zone);
+            areas.remove(area);
+            areas.add(area.withoutOccupant(color));
+        }
+    }
 
 }
