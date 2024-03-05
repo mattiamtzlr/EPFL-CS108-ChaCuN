@@ -9,7 +9,7 @@ import java.util.*;
  * @author Mattia Metzler (372025)
  * @author Leoluca Bernardi (374107)
  */
-public record Area<Z>(Set<Z> zones, List<PlayerColor> occupants, int openConnections) {
+public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, int openConnections) {
     /**
      * Constructs a new area with the given params, copies the zones and copies & sorts the
      * occupants. Also checks that the openConnections param is >= 0

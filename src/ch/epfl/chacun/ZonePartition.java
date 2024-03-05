@@ -9,7 +9,7 @@ import java.util.Set;
  * @author Mattia Metzler (372025)
  * @author Leoluca Bernardi (374107)
  */
-public record ZonePartition<Z>(Set<Area<Z>> areas) {
+public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
     public ZonePartition {
         areas = Set.copyOf(areas);
     }
