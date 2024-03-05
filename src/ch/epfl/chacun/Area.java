@@ -141,7 +141,7 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
      */
     public Set<PlayerColor> majorityOccupants() {
         Set<PlayerColor> majorityOccupants = new HashSet<>();
-        int[] counts = new int[5];
+        int[] counts = new int[PlayerColor.ALL.size()];
 
         for (PlayerColor occupant : occupants) {
             counts[occupant.ordinal()] += 1;
@@ -173,12 +173,15 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
                     this.zones, this.occupants, this.openConnections - 2
             );
         else {
-            this.zones.addAll(that.zones);
-            this.occupants.addAll(that.occupants);
+            Set<Z> newZones = new HashSet<>(Set.copyOf(this.zones));
+            newZones.addAll(that.zones);
+
+            List<PlayerColor> newOccupants = new ArrayList<>(List.copyOf(this.occupants));
+            newOccupants.addAll(that.occupants);
 
             return new Area<>(
-                    this.zones,
-                    this.occupants,
+                    newZones,
+                    newOccupants,
                     this.openConnections + that.openConnections - 2
             );
         }
