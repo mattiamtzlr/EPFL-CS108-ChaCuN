@@ -1,5 +1,6 @@
 package ch.epfl.chacun;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -137,7 +138,7 @@ public record PlacedTile(
      */
     public Set<Occupant> potentialOccupants() {
         if (placer == null)
-            return new HashSet<>();
+            return Collections.emptySet();
         HashSet<Occupant> occupants = new HashSet<>();
         for (Zone zone : tile.zones()) {
             if (!(zone instanceof Zone.Lake)) {
@@ -162,7 +163,7 @@ public record PlacedTile(
      * @return (PlacedTile) The new PlacedTile with the occupant
      */
     public PlacedTile withOccupant(Occupant occupant) {
-        // check whether there isn't already a occupant
+        // check whether there isn't already an occupant
         Preconditions.checkArgument(this.occupant == null);
         return new PlacedTile(this.tile, this.placer, this.rotation, this.pos, occupant);
     }

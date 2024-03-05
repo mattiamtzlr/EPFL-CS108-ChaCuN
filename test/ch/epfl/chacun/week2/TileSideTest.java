@@ -1,4 +1,6 @@
-package ch.epfl.chacun;
+package ch.epfl.chacun.week2;
+
+import ch.epfl.chacun.*;
 
 import org.junit.jupiter.api.Test;
 
