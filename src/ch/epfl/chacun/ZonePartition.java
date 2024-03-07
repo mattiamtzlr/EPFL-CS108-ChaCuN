@@ -32,21 +32,38 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
         private HashSet<Area<Z>> areas = new HashSet<>();
 
         public Builder(ZonePartition<Z> partition) {
-            areas.addAll(partition.areas());
+            Set<Area<Z>> temp = Set.copyOf(partition.areas());
+            areas.addAll(temp);
         }
-        void addSingleton(Z zone, int openConnections) {
+
+        public void addSingleton(Z zone, int openConnections) {
             areas.add(new Area<Z>(
                     Collections.singleton(zone), Collections.emptyList() ,openConnections));
         }
-        void addInitialOccupant(Z zone, PlayerColor color) {
+
+        // TODO test the absolute shit out of the following two methods :)
+
+        /**
+         *
+         * @param zone
+         * @param color
+         */
+        public void addInitialOccupant(Z zone, PlayerColor color) {
             Area<Z> area = new ZonePartition<>(areas).areaContaining(zone);
             areas.remove(area);
             areas.add(area.withInitialOccupant(color));
         }
-        void removeOccupant(Z zone, PlayerColor color) {
-            Area<Z> area = new ZonePartition<>(areas). areaContaining(zone);
+
+        public void removeOccupant(Z zone, PlayerColor color) {
+            Area<Z> area = new ZonePartition<>(areas).areaContaining(zone);
             areas.remove(area);
             areas.add(area.withoutOccupant(color));
+        }
+
+        public void removeAllOccupantsOf(Area<Z> area) {
+            Preconditions.checkArgument(areas.contains(area));
+            areas.remove(area);
+            areas.add(area.withoutOccupants());
         }
     }
 
