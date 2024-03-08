@@ -21,7 +21,6 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
     public ZonePartition {
         areas = Set.copyOf(areas);
     }
-    // TODO test if types are correct if we use this consturctor
 
     /**
      * Constructs a new ZonePartition with an empty set of areas
@@ -49,7 +48,7 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
      * @param <Z> a generic Zone
      */
     public static final class Builder<Z extends Zone> {
-         private Set<Area<Z>> areas = new HashSet<>();
+         private final Set<Area<Z>> areas = new HashSet<>();
 
         /**
          * Constructs a new Builder for ZonePartition
@@ -70,8 +69,6 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
                     Collections.singleton(zone), Collections.emptyList(), openConnections));
         }
 
-        // TODO test the absolute shit out of the following two methods :)
-
         /**
          * Adds an occupant to the given zone of the given color
          * @param zone the zone to add the occupant to
@@ -90,6 +87,7 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
          */
         public void removeOccupant(Z zone, PlayerColor color) {
             Area<Z> area = new ZonePartition<>(areas).areaContaining(zone);
+            Preconditions.checkArgument(area.occupants().contains(color));
             areas.remove(area);
             areas.add(area.withoutOccupant(color));
         }
@@ -114,8 +112,6 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
             Area<Z> area1 = new ZonePartition<>(areas).areaContaining(zone1);
             Area<Z> area2 = new ZonePartition<>(areas).areaContaining(zone2);
 
-            // handout says to remember that area1 and area2 could be the same area, however
-            // that is handled in connectTo() I guess? However TODO: Test extensively
             if (area1.equals(area2)) {
                 areas.remove(area1);
                 areas.add(area1.connectTo(area2));
