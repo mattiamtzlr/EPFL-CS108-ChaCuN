@@ -49,7 +49,7 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
      * @param <Z> a generic Zone
      */
     public static final class Builder<Z extends Zone> {
-        private HashSet<Area<Z>> areas = new HashSet<>();
+         private Set<Area<Z>> areas = new HashSet<>();
 
         /**
          * Constructs a new Builder for ZonePartition
@@ -116,7 +116,13 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
 
             // handout says to remember that area1 and area2 could be the same area, however
             // that is handled in connectTo() I guess? However TODO: Test extensively
-            area1.connectTo(area2);
+            if (area1.equals(area2)) {
+                areas.remove(area1);
+                areas.add(area1.connectTo(area2));
+            } else {
+                areas.removeAll(Set.of(area1, area2));
+                areas.add(area1.connectTo(area2));
+            }
         }
 
         /**
