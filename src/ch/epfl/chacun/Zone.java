@@ -135,7 +135,7 @@ public sealed interface Zone {
      * @param lake (Zone.Lake) lake that this river connects to, may be null, if it doesn't
      *             connect to a river
      */
-    record River(int id, int fishCount, Lake lake) implements Zone {
+    record River(int id, int fishCount, Lake lake) implements Water {
         /**
          * River record used to represent a river zone
          * @param id (int) global id of the river
