@@ -65,9 +65,8 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
     public static Set<Animal> animals(Area<Zone.Meadow> meadow, Set<Animal> cancelledAnimals) {
         Set<Animal> animals = new HashSet<>();
         for (Zone.Meadow zone : meadow.zones()) {
-            animals.addAll(zone.animals());
+            animals.addAll(Set.copyOf(zone.animals()));
         }
-        // TODO test if this .removeAll affects zone.animals
         animals.removeAll(cancelledAnimals);
         return animals;
     }
@@ -94,8 +93,6 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
      * @return (int) number of fish in the river system
      */
     public static int riverSystemFishCount(Area<Zone.Water> riverSystem) {
-        // TODO: Doesn't this just do the same thing as riverFishCount() ?
-        // -> yes but on a bigger scale
         int count = 0;
         for (Zone.Water zone : riverSystem.zones()) {
             count += zone.fishCount();
@@ -144,13 +141,15 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
     public Set<PlayerColor> majorityOccupants() {
         Set<PlayerColor> majorityOccupants = new HashSet<>();
         int[] counts = new int[PlayerColor.ALL.size()];
+        int max = 0;
 
         for (PlayerColor occupant : occupants) {
-            counts[occupant.ordinal()] += 1;
+            int index = occupant.ordinal();
+
+            counts[index] += 1;
+            if (counts[index] > max)
+                max = counts[index];
         }
-        /* TODO test this: Inspection info: Reports calls to get() on an Optional without checking that it has a value.
-           TODO Calling Optional.get() on an empty Optional instance will throw an exception */
-        int max = Arrays.stream(counts).max().getAsInt();
 
         for (int i = 0; i < counts.length; i++) {
             if (counts[i] == max)
@@ -171,18 +170,15 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
         if (this.openConnections() == 0 || that.openConnections() == 0)
             return this;
 
-        // I think this is all that needs to be done, but TODO test extensively, especially for mutability :)
         if (this.equals(that))
             return new Area<>(
                     this.zones, this.occupants, this.openConnections - 2
             );
         Set<Z> newZones = new HashSet<>(Set.copyOf(this.zones));
-        // TODO mutability check
-        newZones.addAll(that.zones);
+        newZones.addAll(Set.copyOf(that.zones));
 
         List<PlayerColor> newOccupants = new ArrayList<>(List.copyOf(this.occupants));
-        // TODO mutability check
-        newOccupants.addAll(that.occupants);
+        newOccupants.addAll(Set.copyOf(that.occupants));
 
         return new Area<>(
                 newZones,
@@ -243,8 +239,15 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
      */
     public Zone zoneWithSpecialPower(Zone.SpecialPower specialPower) {
         for (Z z : zones) {
-            if (z instanceof Zone zone && zone.specialPower() != null)
+            if (
+                    z instanceof Zone zone &&
+                    zone.specialPower() != null &&
+                    zone.specialPower().equals(specialPower)
+            ) {
+                if (zone instanceof Zone.River || zone instanceof Zone.Forest)
+                    return null;
                 return zone;
+            }
         }
 
         return null;
