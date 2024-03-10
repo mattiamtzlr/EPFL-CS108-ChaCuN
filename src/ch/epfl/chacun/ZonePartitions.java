@@ -29,15 +29,41 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests,
             riverBuilder = new ZonePartition.Builder<>(initial.rivers);
             riverSystemsBuilder = new ZonePartition.Builder<>(initial.riverSystems);
         }
+        public void addTile(Tile tile) {
+            /* Step 1: Determine the number of open connections for each zone
+                - I am assuming that by "zone" they are referring to the zones on the tile that is passed
+                - If a river would be connected to a lake, consider this connection to be open
+             */
+             int[] openConnections = new int[10];
+             //==============================================================
+             // Frog nid was das isch oder was das macht, es funktioniert glaub villicht eventuell e bizeli maybe :D
 
-        public void addTile(Tile tile) {}
+            for (TileSide side : tile.sides()) {
+                if (side instanceof TileSide.River) {
+                    openConnections[((TileSide.River) side).river().localId()] += 1;
+
+                    if (((TileSide.River) side).river().hasLake())
+                        openConnections[((TileSide.River) side).river().lake().localId()] += 1;
+                }
+                for (Zone zone : side.zones()) {
+                    openConnections[zone.localId()] += 1;
+                }
+            }
+            //==============================================================
+
+            /* Stage 2: Electric Bogaloo, add all of the zones to their correct partition
+                 - We have to add them as singleton areas without occupants I think
+                 - The number of open connections is needed and will be correct, except if we are adding
+                   a river or a lake (I have no idea why we needed to do the weird thing that causes this :D)
+            */
+        }
         public void connectSides(TileSide s1, TileSide s2) {}
         public void addInitialOccupant(PlayerColor player, Occupant.Kind occupantKind,
                                        Zone occupiedZone) {}
         public void removePawn(PlayerColor player, Zone occupiedZone){}
         public void clearGatherers(Area<Zone.Forest> forest) {}
         public void clearFishers(Area<Zone.River> river) {}
-        public ZonePartitions build() {}
+        public void build() {}
 
     }
 }
