@@ -36,14 +36,10 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests,
              */
              int[] openConnections = new int[10];
              //==============================================================
-             // Frog nid was das isch oder was das macht, es funktioniert glaub villicht eventuell e bizeli maybe :D
-
             for (TileSide side : tile.sides()) {
-                if (side instanceof TileSide.River) {
+                if (side instanceof TileSide.River && ((TileSide.River) side).river().hasLake()) {
                     openConnections[((TileSide.River) side).river().localId()] += 1;
-
-                    if (((TileSide.River) side).river().hasLake())
-                        openConnections[((TileSide.River) side).river().lake().localId()] += 1;
+                    openConnections[((TileSide.River) side).river().lake().localId()] += 1;
                 }
                 for (Zone zone : side.zones()) {
                     openConnections[zone.localId()] += 1;
