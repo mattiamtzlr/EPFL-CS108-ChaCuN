@@ -1,5 +1,7 @@
 package ch.epfl.chacun;
 
+import java.util.List;
+
 /**
  * TODO Description
  *
@@ -23,7 +25,7 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests,
         private ZonePartition.Builder<Zone.Water> riverSystemsBuilder;
 
         public Builder(ZonePartitions initial) {
-            // Not sure if this is sufficiently careful with immutable things involved,
+            // Not sure if this is sufficiently careful with immutable things involved
             forestBuilder = new ZonePartition.Builder<>(initial.forests);
             meadowBuilder = new ZonePartition.Builder<>(initial.meadows);
             riverBuilder = new ZonePartition.Builder<>(initial.rivers);
@@ -53,33 +55,60 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests,
                    a river or a lake (I have no idea why we needed to do the weird thing that causes this :D)
             */
             for (Zone zone : tile.zones()) {
-                if (zone instanceof Zone.Forest)
-                    forestBuilder.addSingleton((Zone.Forest) zone,
-                            openConnections[zone.localId()]);
+                // redo this using the pattern matching tricks from connectSides
 
-                else if (zone instanceof Zone.Meadow)
-                    meadowBuilder.addSingleton((Zone.Meadow) zone,
+                switch (zone) {
+                    case Zone.Forest(int id, Zone.Forest.Kind kind) -> {
+                        forestBuilder.addSingleton((Zone.Forest) zone,
+                                openConnections[zone.localId()]);
+                    }
+                    case Zone.Meadow(
+                            int id, List<Animal> animals, Zone.SpecialPower specialPower
+                    ) -> meadowBuilder.addSingleton((Zone.Meadow) zone,
                             openConnections[zone.localId()]);
+                    case Zone.River(int id, int fishCount, Zone.Lake lake) -> {
+                        riverBuilder.addSingleton((Zone.River) zone, (((Zone.River)zone).hasLake())
+                                ? openConnections[zone.localId()]-1
+                                : openConnections[zone.localId()]);
 
-                else if (zone instanceof Zone.River) {
-                    // The ternary operator in this expression checks if the river connects to a lake and adjusts the number of open connections passed to addSingleton
-                    riverBuilder.addSingleton((Zone.River) zone, (((Zone.River)zone).hasLake()) ?
-                            openConnections[zone.localId()]-1 : openConnections[zone.localId()]);
-
-                    riverSystemsBuilder.addSingleton((Zone.Water) zone,
-                            openConnections[zone.localId()]);
-                }
-                else if (zone instanceof Zone.Lake) {
-                    riverSystemsBuilder.addSingleton((Zone.Water) zone,
-                            openConnections[zone.localId()]);
+                        riverSystemsBuilder.addSingleton((Zone.Water) zone,
+                                openConnections[zone.localId()]);
+                    }
+                    case Zone.Lake(int id, int fishCount, Zone.SpecialPower specialPower) ->
+                            riverSystemsBuilder.addSingleton((Zone.Water) zone,
+                                    openConnections[zone.localId()]);
                 }
             }
+
             for (Zone zone : tile.zones()) {
                 if (zone instanceof Zone.River && ((Zone.River) zone).hasLake())
                     riverSystemsBuilder.union((Zone.Water) zone, ((Zone.River) zone).lake());
             }
         }
-        public void connectSides(TileSide s1, TileSide s2) {}
+        public void connectSides(TileSide s1, TileSide s2) {
+            switch (s1) {
+                case TileSide.Forest(Zone.Forest f1)
+                        when s2 instanceof TileSide.Forest(Zone.Forest f2) -> {
+                    forestBuilder.union(f1, f2);
+                }
+                case TileSide.Meadow(Zone.Meadow m1)
+                        when s2 instanceof TileSide.Meadow(Zone.Meadow m2) -> {
+                    meadowBuilder.union(m1, m2);
+                }
+                case TileSide.River(Zone.Meadow m11, Zone.River r1, Zone.Meadow m12)
+                        when s2 instanceof TileSide.River(
+                                Zone.Meadow m21, Zone.River r2, Zone.Meadow m22) -> {
+                    meadowBuilder.union(m11, m22);
+                    riverBuilder.union(r1, r2);
+                    meadowBuilder.union(m12, m21);
+
+                }
+                default -> {
+                    throw new IllegalArgumentException("Not matching TileSide");
+                }
+
+            }
+        }
         public void addInitialOccupant(PlayerColor player, Occupant.Kind occupantKind,
                                        Zone occupiedZone) {}
         public void removePawn(PlayerColor player, Zone occupiedZone){}
