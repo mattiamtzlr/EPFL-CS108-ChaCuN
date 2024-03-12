@@ -48,33 +48,89 @@ class MyZonePartitionsTest {
     Tile t61 = new Tile(61, Tile.Kind.NORMAL, t61N, t61E, t61S, t61W);
     PlacedTile t61Placed = new PlacedTile(t61, PlayerColor.GREEN, Rotation.NONE,
             startTilePlacedRotNone.pos().neighbor(Direction.N), new Occupant(Occupant.Kind.PAWN, m610.id()));
+    Tile[] tiles = {startTile, t88, t61};
     ZonePartitions initialSetup = ZonePartitions.EMPTY;
     @Test
     void addTileWorksForTrivialCase() {
 
+        // TODO How should this method work, if we call it multiple times ?  ?
+
         ZonePartitions.Builder builder = new ZonePartitions.Builder(initialSetup);
         builder.addTile(startTile);
-        ZonePartitions actualPartitions = builder.build();
+        ZonePartitions actualPartitionsStartTile = builder.build();
+        ZonePartitions.Builder builder1 = new ZonePartitions.Builder(initialSetup);
+        builder1.addTile(t88);
+        ZonePartitions actualPartitionsTile88 = builder1.build();
+        ZonePartitions.Builder builder2 = new ZonePartitions.Builder(initialSetup);
+        builder2.addTile(t61);
+        ZonePartitions actualPartitionsTile61 = builder2.build();
 
-        Area<Zone.Forest> forestArea = new Area<>(Set.of(f561), Collections.emptyList(), 2);
-        Area<Zone.Meadow> meadowArea1 = new Area<>(Set.of(m560), Collections.emptyList(), 2);
-        Area<Zone.Meadow> meadowArea2 = new Area<>(Set.of(m562), Collections.emptyList(), 1);
-        Area<Zone.River> riverArea = new Area<>(Set.of(r563), Collections.emptyList(), 1);
+        Area<Zone.Forest> forestArea56 = new Area<>(Set.of(f561), Collections.emptyList(), 2);
+        Area<Zone.Meadow> meadowArea156 = new Area<>(Set.of(m560), Collections.emptyList(), 2);
+        Area<Zone.Meadow> meadowArea256 = new Area<>(Set.of(m562), Collections.emptyList(), 1);
+        Area<Zone.River> riverArea56 = new Area<>(Set.of(r563), Collections.emptyList(), 1);
 
-        Area<Zone.Water> waterArea = new Area<>(Set.of(r563, l568), Collections.emptyList(), 1);
+        Area<Zone.Water> waterArea56 = new Area<>(Set.of(r563, l568), Collections.emptyList(), 1);
 
-        ZonePartition<Zone.Forest> forestPart = new ZonePartition<>(Set.of(forestArea));
-        ZonePartition<Zone.Meadow> meadowPart = new ZonePartition<>(Set.of(meadowArea1, meadowArea2));
-        ZonePartition<Zone.River> riverPart = new ZonePartition<>(Set.of(riverArea));
-        ZonePartition<Zone.Water> waterPart = new ZonePartition<>(Set.of(waterArea));
+        ZonePartition<Zone.Forest> expectedForestPart56 = new ZonePartition<>(Set.of(forestArea56));
+        ZonePartition<Zone.Meadow> expectedMeadowPart56 = new ZonePartition<>(Set.of(meadowArea156, meadowArea256));
+        ZonePartition<Zone.River> expectedRiverPart56 = new ZonePartition<>(Set.of(riverArea56));
+        ZonePartition<Zone.Water> expectedWaterPart56 = new ZonePartition<>(Set.of(waterArea56));
 
-        assertEquals(forestPart, actualPartitions.forests());
-        assertEquals(meadowPart, actualPartitions.meadows());
-        assertEquals(riverPart, actualPartitions.rivers());
-        assertEquals(waterPart, actualPartitions.riverSystems());
+        assertEquals(expectedForestPart56, actualPartitionsStartTile.forests());
+        assertEquals(expectedMeadowPart56, actualPartitionsStartTile.meadows());
+        assertEquals(expectedRiverPart56, actualPartitionsStartTile.rivers());
+        assertEquals(expectedWaterPart56, actualPartitionsStartTile.riverSystems());
+
+        Area<Zone.Forest> forestArea88 = new Area<>(Set.of(f883), Collections.emptyList(), 1);
+        Area<Zone.Meadow> meadowArea188 = new Area<>(Set.of(m880), Collections.emptyList(), 3);
+        Area<Zone.Meadow> meadowArea288 = new Area<>(Set.of(m882), Collections.emptyList(), 2);
+        Area<Zone.River> riverArea88 = new Area<>(Set.of(r881), Collections.emptyList(), 2);
+
+        ZonePartition<Zone.Forest> expectedForestPart88 = new ZonePartition<>(Set.of(forestArea88));
+        ZonePartition<Zone.Meadow> expectedMeadowPart88 = new ZonePartition<>(Set.of(meadowArea188, meadowArea288));
+        ZonePartition<Zone.River> expectedRiverPart88 = new ZonePartition<>(Set.of(riverArea88));
+
+
+        assertEquals(expectedForestPart88, actualPartitionsTile88.forests());
+        assertEquals(expectedMeadowPart88, actualPartitionsTile88.meadows());
+        assertEquals(expectedRiverPart88, actualPartitionsTile88.rivers());
+
+        Area<Zone.Meadow> meadowArea61 = new Area<>(Set.of(m610), Collections.emptyList(), 4);
+
+        ZonePartition<Zone.Meadow> expectedMeadowPart61 = new ZonePartition<>(Set.of(meadowArea61));
+
+        assertEquals(expectedMeadowPart61, actualPartitionsTile61.meadows());
     }
     @Test
-   void connectSidesWorksForTrivialCase() {}
+   void connectSidesWorksForTrivialCase() {
+
+        ZonePartitions.Builder builder = new ZonePartitions.Builder(ZonePartitions.EMPTY);
+
+        builder.addTile(startTile);
+        builder.addTile(t88);
+
+        TileSide eastSide88 = new TileSide.River(m882, r881, m880);
+        TileSide westSide56 = new TileSide.River(m562, r563, m560);
+
+        builder.connectSides(eastSide88, westSide56);
+
+        Area<Zone.Forest> forestArea56 = new Area<>(Set.of(f561), Collections.emptyList(), 2);
+        Area<Zone.Forest> forestArea88 = new Area<>(Set.of(f883), Collections.emptyList(), 1);
+        Area<Zone.Meadow> meadowArea156 = new Area<>(Set.of(m560, m882), Collections.emptyList(), 2);
+        Area<Zone.Meadow> meadowArea256 = new Area<>(Set.of(m562, m880), Collections.emptyList(), 2);
+        Area<Zone.River> riverArea56 = new Area<>(Set.of(r563, r881), Collections.emptyList(), 1);
+        Area<Zone.Water> waterArea56 = new Area<>(Set.of(r881, l568, r563), Collections.emptyList(), 1);
+
+        ZonePartition<Zone.Forest> expectedForestPart = new ZonePartition<>(Set.of(forestArea56, forestArea88));
+        ZonePartition<Zone.Meadow> expectedMeadowPart = new ZonePartition<>(Set.of(meadowArea256, meadowArea156));
+        ZonePartition<Zone.River> expectedRiverPart = new ZonePartition<>(Set.of(riverArea56));
+        ZonePartition<Zone.Water> expectedWaterPart = new ZonePartition<>(Set.of(waterArea56));
+
+        ZonePartitions expectedPartition = new ZonePartitions(expectedForestPart, expectedMeadowPart, expectedRiverPart, expectedWaterPart);
+
+        assertEquals(expectedPartition.riverSystems(), builder.build().riverSystems());
+    }
     @Test
    void addInitialOccupantWorksForTrivialCase() {}
     @Test

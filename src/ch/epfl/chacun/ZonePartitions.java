@@ -12,7 +12,6 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests,
                              ZonePartition<Zone.Meadow> meadows,
                              ZonePartition<Zone.River> rivers,
                              ZonePartition<Zone.Water> riverSystems ) {
-    // TODO there is no way this is right, this is just way too stupid
     public final static ZonePartitions EMPTY = new ZonePartitions(
             new ZonePartition<>(), new ZonePartition<>(),
             new ZonePartition<>(), new ZonePartition<>()
@@ -129,10 +128,12 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests,
                 }
                 case HUT -> {
                     switch (occupiedZone) {
+                        /* This code should be irrelevant
                         case Zone.River(int id, int fishCount, Zone.Lake lake) -> {
+
                             if (!((Zone.River) occupiedZone).hasLake())
                                 riverBuilder.addInitialOccupant((Zone.River) occupiedZone, player);
-                        }
+                        }*/
                         case Zone.Lake(int id, int fishCount, Zone.SpecialPower specialPower) -> {
                             riverSystemsBuilder.addInitialOccupant(
                                     (Zone.Water) occupiedZone, player);
@@ -144,7 +145,6 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests,
             }
         }
 
-        // TODO The following three methods should only remove Pawn occupants but I have no idea how to implement his
         public void removePawn(PlayerColor player, Zone occupiedZone){
             switch (occupiedZone) {
                 case Zone.Forest(int id, Zone.Forest.Kind kind) -> {
@@ -160,11 +160,9 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests,
                 default -> throw new IllegalArgumentException("Lake cannot be occupied by pawn");
             }
         }
-        // TODO This is probably erroneous
         public void clearGatherers(Area<Zone.Forest> forest) {
             forestBuilder.removeAllOccupantsOf(forest);
         }
-        // TODO This is probably erroneous
         public void clearFishers(Area<Zone.River> river) {
             riverBuilder.removeAllOccupantsOf(river);
         }
