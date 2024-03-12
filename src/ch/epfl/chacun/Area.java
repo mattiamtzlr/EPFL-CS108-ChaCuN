@@ -23,7 +23,7 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
         zones = Set.copyOf(zones);
         List<PlayerColor> sortedOccupants = new ArrayList<>(occupants);
         Collections.sort(sortedOccupants);
-        occupants = sortedOccupants;
+        occupants = List.copyOf(sortedOccupants);
     }
 
     // ================================================================== Static Methods
@@ -141,7 +141,7 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
     public Set<PlayerColor> majorityOccupants() {
         Set<PlayerColor> majorityOccupants = new HashSet<>();
         int[] counts = new int[PlayerColor.ALL.size()];
-        int max = 0;
+        int max = -1;
 
         for (PlayerColor occupant : occupants) {
             int index = occupant.ordinal();
@@ -178,7 +178,7 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
         newZones.addAll(Set.copyOf(that.zones));
 
         List<PlayerColor> newOccupants = new ArrayList<>(List.copyOf(this.occupants));
-        newOccupants.addAll(Set.copyOf(that.occupants));
+        newOccupants.addAll(List.copyOf(that.occupants));
 
         return new Area<>(
                 newZones,
@@ -195,8 +195,7 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
      */
     public Area<Z> withInitialOccupant(PlayerColor occupant) {
         Preconditions.checkArgument(!this.isOccupied());
-        this.occupants.add(occupant);
-        return new Area<>(this.zones, this.occupants, this.openConnections);
+        return new Area<>(this.zones, Collections.singletonList(occupant), this.openConnections);
     }
 
     /**
@@ -206,8 +205,9 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
      */
     public Area<Z> withoutOccupant(PlayerColor occupant) {
         Preconditions.checkArgument(this.occupants.contains(occupant));
-        this.occupants.remove(occupant);
-        return new Area<>(this.zones, this.occupants, this.openConnections);
+        List<PlayerColor> newOccupants = new ArrayList<>(List.copyOf(this.occupants));
+        newOccupants.remove(occupant);
+        return new Area<>(this.zones, newOccupants, this.openConnections);
     }
 
     /**
