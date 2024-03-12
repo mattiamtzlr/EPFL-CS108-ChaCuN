@@ -1,8 +1,6 @@
 package ch.epfl.chacun;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 /**
  * TODO DESCRIPTION and JavaDoc
@@ -39,5 +37,15 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages) {
         messages = List.copyOf(messages);
     }
 
-    // other methods
+    public Map<PlayerColor, Integer> points() {
+        Map<PlayerColor, Integer> points = new HashMap<>();
+
+        for (Message message : messages) {
+            for (PlayerColor scorer : message.scorers) {
+                points.merge(scorer, message.points(), Integer::sum);
+            }
+        }
+
+        return points;
+    }
 }
