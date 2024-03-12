@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -50,7 +51,27 @@ class MyZonePartitionsTest {
     ZonePartitions initialSetup = ZonePartitions.EMPTY;
     @Test
     void addTileWorksForTrivialCase() {
+
         ZonePartitions.Builder builder = new ZonePartitions.Builder(initialSetup);
+        builder.addTile(startTile);
+        ZonePartitions actualPartitions = builder.build();
+
+        Area<Zone.Forest> forestArea = new Area<>(Set.of(f561), Collections.emptyList(), 2);
+        Area<Zone.Meadow> meadowArea1 = new Area<>(Set.of(m560), Collections.emptyList(), 2);
+        Area<Zone.Meadow> meadowArea2 = new Area<>(Set.of(m562), Collections.emptyList(), 1);
+        Area<Zone.River> riverArea = new Area<>(Set.of(r563), Collections.emptyList(), 1);
+
+        Area<Zone.Water> waterArea = new Area<>(Set.of(r563, l568), Collections.emptyList(), 1);
+
+        ZonePartition<Zone.Forest> forestPart = new ZonePartition<>(Set.of(forestArea));
+        ZonePartition<Zone.Meadow> meadowPart = new ZonePartition<>(Set.of(meadowArea1, meadowArea2));
+        ZonePartition<Zone.River> riverPart = new ZonePartition<>(Set.of(riverArea));
+        ZonePartition<Zone.Water> waterPart = new ZonePartition<>(Set.of(waterArea));
+
+        assertEquals(forestPart, actualPartitions.forests());
+        assertEquals(meadowPart, actualPartitions.meadows());
+        assertEquals(riverPart, actualPartitions.rivers());
+        assertEquals(waterPart, actualPartitions.riverSystems());
     }
     @Test
    void connectSidesWorksForTrivialCase() {}

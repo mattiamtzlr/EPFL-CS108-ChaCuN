@@ -52,6 +52,32 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests,
                  - The number of open connections is needed and will be correct, except if we are adding
                    a river or a lake (I have no idea why we needed to do the weird thing that causes this :D)
             */
+            for (Zone zone : tile.zones()) {
+                if (zone instanceof Zone.Forest)
+                    forestBuilder.addSingleton((Zone.Forest) zone,
+                            openConnections[zone.localId()]);
+
+                else if (zone instanceof Zone.Meadow)
+                    meadowBuilder.addSingleton((Zone.Meadow) zone,
+                            openConnections[zone.localId()]);
+
+                else if (zone instanceof Zone.River) {
+                    // The ternary operator in this expression checks if the river connects to a lake and adjusts the number of open connections passed to addSingleton
+                    riverBuilder.addSingleton((Zone.River) zone, (((Zone.River)zone).hasLake()) ?
+                            openConnections[zone.localId()]-1 : openConnections[zone.localId()]);
+
+                    riverSystemsBuilder.addSingleton((Zone.Water) zone,
+                            openConnections[zone.localId()]);
+                }
+                else if (zone instanceof Zone.Lake) {
+                    riverSystemsBuilder.addSingleton((Zone.Water) zone,
+                            openConnections[zone.localId()]);
+                }
+            }
+            for (Zone zone : tile.zones()) {
+                if (zone instanceof Zone.River && ((Zone.River) zone).hasLake())
+                    riverSystemsBuilder.union((Zone.Water) zone, ((Zone.River) zone).lake());
+            }
         }
         public void connectSides(TileSide s1, TileSide s2) {}
         public void addInitialOccupant(PlayerColor player, Occupant.Kind occupantKind,
@@ -59,7 +85,12 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests,
         public void removePawn(PlayerColor player, Zone occupiedZone){}
         public void clearGatherers(Area<Zone.Forest> forest) {}
         public void clearFishers(Area<Zone.River> river) {}
-        public void build() {}
+        public ZonePartitions build() {
+            return new ZonePartitions(
+                    forestBuilder.build(), meadowBuilder.build(),
+                    riverBuilder.build(), riverSystemsBuilder.build()
+            );
+        }
 
     }
 }
