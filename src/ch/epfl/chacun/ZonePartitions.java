@@ -110,10 +110,64 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests,
             }
         }
         public void addInitialOccupant(PlayerColor player, Occupant.Kind occupantKind,
-                                       Zone occupiedZone) {}
-        public void removePawn(PlayerColor player, Zone occupiedZone){}
-        public void clearGatherers(Area<Zone.Forest> forest) {}
-        public void clearFishers(Area<Zone.River> river) {}
+                                       Zone occupiedZone) {
+            switch (occupantKind) {
+                case PAWN -> {
+                    switch (occupiedZone) {
+                        case Zone.Forest(int id, Zone.Forest.Kind kind) -> {
+                            forestBuilder.addInitialOccupant((Zone.Forest) occupiedZone, player);
+                        }
+                        case Zone.Meadow(
+                                int id, List<Animal> animals, Zone.SpecialPower specialPower) -> {
+                            meadowBuilder.addInitialOccupant((Zone.Meadow) occupiedZone, player);
+                        }
+                        case Zone.River(int id, int fishCount, Zone.Lake lake) -> {
+                            riverBuilder.addInitialOccupant((Zone.River) occupiedZone, player);
+                        }
+                        default -> throw new IllegalArgumentException("Cannot add pawn here");
+                    }
+                }
+                case HUT -> {
+                    switch (occupiedZone) {
+                        case Zone.River(int id, int fishCount, Zone.Lake lake) -> {
+                            if (!((Zone.River) occupiedZone).hasLake())
+                                riverBuilder.addInitialOccupant((Zone.River) occupiedZone, player);
+                        }
+                        case Zone.Lake(int id, int fishCount, Zone.SpecialPower specialPower) -> {
+                            riverSystemsBuilder.addInitialOccupant(
+                                    (Zone.Water) occupiedZone, player);
+                        }
+                        default -> throw new IllegalArgumentException("Cannot add Hutt here");
+                    }
+                }
+                default -> throw new IllegalArgumentException("Illegal occupant");
+            }
+        }
+
+        // TODO The following three methods should only remove Pawn occupants but I have no idea how to implement his
+        public void removePawn(PlayerColor player, Zone occupiedZone){
+            switch (occupiedZone) {
+                case Zone.Forest(int id, Zone.Forest.Kind kind) -> {
+                    forestBuilder.removeOccupant((Zone.Forest) occupiedZone, player);
+                }
+                case Zone.Meadow(
+                        int id, List<Animal> animals, Zone.SpecialPower specialPower) -> {
+                    meadowBuilder.removeOccupant((Zone.Meadow) occupiedZone, player);
+                }
+                case Zone.River(int id, int fishCount, Zone.Lake lake) -> {
+                    riverBuilder.removeOccupant((Zone.River) occupiedZone, player);
+                }
+                default -> throw new IllegalArgumentException("Lake cannot be occupied by pawn");
+            }
+        }
+        // TODO This is probably erroneous
+        public void clearGatherers(Area<Zone.Forest> forest) {
+            forestBuilder.removeAllOccupantsOf(forest);
+        }
+        // TODO This is probably erroneous
+        public void clearFishers(Area<Zone.River> river) {
+            riverBuilder.removeAllOccupantsOf(river);
+        }
         public ZonePartitions build() {
             return new ZonePartitions(
                     forestBuilder.build(), meadowBuilder.build(),
