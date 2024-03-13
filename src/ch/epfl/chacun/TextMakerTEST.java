@@ -137,7 +137,9 @@ public class TextMakerTEST implements TextMaker{
             playerSJ.add(this.playerName(winner));
         }
 
-        return sj.add("Players").add(playerSJ.toString()).add("have won the game! Congratulations!").toString();
+        boolean soleWinner = winners.size() == 1;
+        return sj.add(soleWinner ? "Player" : "Players").add(playerSJ.toString()).add(soleWinner ? "has" : "have")
+            .add("won the game with").add(Integer.toString(points)).add("points! Congratulations!").toString();
     }
 
     @Override
