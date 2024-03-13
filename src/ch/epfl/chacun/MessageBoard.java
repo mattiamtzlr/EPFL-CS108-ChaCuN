@@ -3,7 +3,7 @@ package ch.epfl.chacun;
 import java.util.*;
 
 /**
- * TODO DESCRIPTION and JavaDoc
+ * TODO DESCRIPTION and JavaDoc everything
  *
  * @author Mattia Metzler (372025)
  * @author Leoluca Bernardi (374107)
@@ -17,10 +17,10 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages) {
          * @param text    text of the message
          * @param points  number of points associated to the message >= 0
          * @param scorers set of players that got points, can be empty
-         * @param tileIds set of tile ids of the tiles which have a connection to this message, can be empty
+         * @param tileIds set of tile ids of the tiles which have a connection to this message,
+         *                can be empty
          */
         public Message {
-
             Objects.requireNonNull(text);
             Preconditions.checkArgument(points >= 0);
             scorers = Set.copyOf(scorers);
@@ -47,5 +47,118 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages) {
         }
 
         return points;
+    }
+
+    public MessageBoard withScoredForest(Area<Zone.Forest> forest) {
+        List<Message> newMessages = new ArrayList<>(Set.copyOf(this.messages));
+
+        if (forest.isOccupied()) {
+            int pointsGained = Points.forClosedForest(forest.tileIds().size(),
+                    Area.mushroomGroupCount(forest));
+
+            newMessages.add(new Message(
+                    this.textMaker.playersScoredForest(
+                            forest.majorityOccupants(), pointsGained,
+                            Area.mushroomGroupCount(forest), forest.tileIds().size()
+                    ), pointsGained, forest.majorityOccupants(), forest.tileIds())
+            );
+        }
+
+        return new MessageBoard(this.textMaker, newMessages);
+    }
+
+    public MessageBoard withClosedForestWithMenhir(PlayerColor player, Area<Zone.Forest> forest) {
+        List<Message> newMessages = new ArrayList<>(Set.copyOf(this.messages));
+
+        if (Area.hasMenhir(forest)) {
+            newMessages.add(new Message(
+                    this.textMaker.playerClosedForestWithMenhir(player),
+                    0, Collections.emptySet(), forest.tileIds())
+            );
+        }
+
+        return new MessageBoard(this.textMaker, newMessages);
+    }
+
+    public MessageBoard withScoredRiver(Area<Zone.River> river) {
+        List<Message> newMessages = new ArrayList<>(Set.copyOf(this.messages));
+
+        if (river.isOccupied()) {
+            int pointsGained = Points.forClosedRiver(river.tileIds().size(),
+                    Area.riverFishCount(river));
+
+            newMessages.add(new Message(
+                    this.textMaker.playersScoredRiver(
+                            river.majorityOccupants(), pointsGained,
+                            Area.riverFishCount(river), river.tileIds().size()
+                    ), pointsGained, river.majorityOccupants(), river.tileIds())
+            );
+        }
+
+        return new MessageBoard(this.textMaker, newMessages);
+    }
+
+    public MessageBoard withScoredHuntingTrap(PlayerColor scorer,
+                                              Area<Zone.Meadow> adjacentMeadow) {
+        List<Message> newMessages = new ArrayList<>(Set.copyOf(this.messages));
+
+        // READ CONSEILS DE PROGRAMMATION
+
+        // Rest of code
+
+        return new MessageBoard(this.textMaker, newMessages);
+    }
+
+    public MessageBoard withScoredLogboat(PlayerColor scorer, Area<Zone.Water> riverSystem) {
+        List<Message> newMessages = new ArrayList<>(Set.copyOf(this.messages));
+
+        // Rest of code
+
+        return new MessageBoard(this.textMaker, newMessages);
+    }
+
+    public MessageBoard withScoredMeadow(Area<Zone.Meadow> meadow, Set<Animal> cancelledAnimals) {
+        List<Message> newMessages = new ArrayList<>(Set.copyOf(this.messages));
+
+        // READ CONSEILS DE PROGRAMMATION
+
+        // Rest of code
+
+        return new MessageBoard(this.textMaker, newMessages);
+    }
+
+    public MessageBoard withScoredRiverSystem(Area<Zone.Water> riverSystem) {
+        List<Message> newMessages = new ArrayList<>(Set.copyOf(this.messages));
+
+        // Rest of code
+
+        return new MessageBoard(this.textMaker, newMessages);
+    }
+
+    public MessageBoard withScoredPitTrap(Area<Zone.Meadow> adjacentMeadow,
+                                          Set<Animal> cancelledAnimals) {
+        List<Message> newMessages = new ArrayList<>(Set.copyOf(this.messages));
+
+        // READ CONSEILS DE PROGRAMMATION
+
+        // Rest of code
+
+        return new MessageBoard(this.textMaker, newMessages);
+    }
+
+    public MessageBoard withScoredRaft(Area<Zone.Water> riverSystem) {
+        List<Message> newMessages = new ArrayList<>(Set.copyOf(this.messages));
+
+        // Rest of code
+
+        return new MessageBoard(this.textMaker, newMessages);
+    }
+
+    public MessageBoard withWinners(Set<PlayerColor> winners, int points) {
+        List<Message> newMessages = new ArrayList<>(Set.copyOf(this.messages));
+
+        // Rest of code
+
+        return new MessageBoard(this.textMaker, newMessages);
     }
 }
