@@ -37,4 +37,15 @@ class MyMessageBoardTest {
         assertEquals(new HashMap<PlayerColor, Integer>(),
                 new MessageBoard(null, Collections.emptyList()).points());
     }
+
+    @Test
+    void pointsWorksOnEmptyMessages() {
+        assertEquals(new HashMap<PlayerColor, Integer>(),
+                new MessageBoard(null, List.of(
+                        new MessageBoard.Message("Message", 0, Collections.emptySet(),
+                                Collections.emptySet()),
+                        new MessageBoard.Message("Message", 10, Collections.emptySet(),
+                                Collections.emptySet())
+                )).points());
+    }
 }

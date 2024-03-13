@@ -1,5 +1,7 @@
-package ch.epfl.chacun;
+package ch.epfl.chacun.week1;
 
+import ch.epfl.chacun.Animal;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -9,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class AnimalTest {
     @Test
     void animalKindIsDefinedCorrectly() {
-        assertEquals(0, Animal.Kind.MAMMOTH.ordinal());
+        Assertions.assertEquals(0, Animal.Kind.MAMMOTH.ordinal());
         assertEquals(1, Animal.Kind.AUROCHS.ordinal());
         assertEquals(2, Animal.Kind.DEER.ordinal());
         assertEquals(3, Animal.Kind.TIGER.ordinal());
