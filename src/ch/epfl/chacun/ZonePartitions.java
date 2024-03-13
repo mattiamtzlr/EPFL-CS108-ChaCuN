@@ -1,6 +1,7 @@
 package ch.epfl.chacun;
 
 import java.util.List;
+import java.util.Set;
 
 /**
  * TODO Description
@@ -24,6 +25,9 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests,
         private ZonePartition.Builder<Zone.Water> riverSystemsBuilder;
 
         public Builder(ZonePartitions initial) {
+
+
+
             // Not sure if this is sufficiently careful with immutable things involved
             forestBuilder = new ZonePartition.Builder<>(initial.forests);
             meadowBuilder = new ZonePartition.Builder<>(initial.meadows);
@@ -83,8 +87,10 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests,
                 if (zone instanceof Zone.River && ((Zone.River) zone).hasLake())
                     riverSystemsBuilder.union((Zone.Water) zone, ((Zone.River) zone).lake());
             }
+
         }
         public void connectSides(TileSide s1, TileSide s2) {
+            Preconditions.checkArgument(!s1.equals(s2));
             switch (s1) {
                 case TileSide.Forest(Zone.Forest f1)
                         when s2 instanceof TileSide.Forest(Zone.Forest f2) -> {
@@ -100,6 +106,7 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests,
                     meadowBuilder.union(m11, m22);
                     riverBuilder.union(r1, r2);
                     meadowBuilder.union(m12, m21);
+                    riverSystemsBuilder.union(r1, r2);
 
                 }
                 default -> {

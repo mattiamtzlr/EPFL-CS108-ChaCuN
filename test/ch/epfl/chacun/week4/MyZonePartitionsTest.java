@@ -102,6 +102,14 @@ class MyZonePartitionsTest {
 
         assertEquals(expectedMeadowPart61, actualPartitionsTile61.meadows());
     }
+    /*
+    @Test
+    void addTileThrowsWhenTileIsAlreadyPlayed() {
+        ZonePartitions.Builder builder = new ZonePartitions.Builder(initialSetup);
+        builder.addTile(startTile);
+        assertThrows(IllegalArgumentException.class, () -> builder.addTile(startTile));
+    }
+    */
     @Test
    void connectSidesWorksForTrivialCase() {
 
@@ -129,7 +137,58 @@ class MyZonePartitionsTest {
 
         ZonePartitions expectedPartition = new ZonePartitions(expectedForestPart, expectedMeadowPart, expectedRiverPart, expectedWaterPart);
 
-        assertEquals(expectedPartition.riverSystems(), builder.build().riverSystems());
+        assertEquals(expectedPartition, builder.build());
+
+        builder.addTile(t61);
+
+        TileSide eastSideT61 = new TileSide.Meadow(m610);
+        TileSide westSideT88 = new TileSide.Meadow(m880);
+
+        builder.connectSides(eastSideT61, westSideT88);
+
+        Area<Zone.Meadow> meadowArea618856 = new Area<>(Set.of(m880, m610, m562), Collections.emptyList(), 4);
+
+        ZonePartition<Zone.Meadow> expectedMeadowPartWith3Tiles = new ZonePartition<>(Set.of(meadowArea156, meadowArea618856));
+
+
+        ZonePartitions expectedPartition3Tiles = new ZonePartitions(expectedForestPart, expectedMeadowPartWith3Tiles, expectedRiverPart, expectedWaterPart);
+
+        assertEquals(expectedPartition3Tiles, builder.build());
+
+    }
+
+    @Test
+    void connectSidesThrowsOnMismatch() {
+        ZonePartitions.Builder builder = new ZonePartitions.Builder(ZonePartitions.EMPTY);
+
+        builder.addTile(startTile);
+        builder.addTile(t88);
+
+        TileSide southSide88 = new TileSide.Forest(f883);
+        TileSide northSide56 = new TileSide.Meadow(m560);
+
+        assertThrows(IllegalArgumentException.class, () -> builder.connectSides(northSide56, southSide88));
+    }
+    @Test
+    void connectSidesThrowsOnEmptySide() {
+        ZonePartitions.Builder builder = new ZonePartitions.Builder(ZonePartitions.EMPTY);
+
+        builder.addTile(startTile);
+        builder.addTile(t88);
+
+        TileSide northSide56 = new TileSide.Meadow(m560);
+
+        assertThrows(IllegalArgumentException.class, () -> builder.connectSides(northSide56, null));
+    }
+    @Test
+    void connectSidesThrowsOnTwiceSameSide() {
+        ZonePartitions.Builder builder = new ZonePartitions.Builder(ZonePartitions.EMPTY);
+
+        builder.addTile(startTile);
+
+        TileSide northSide56 = new TileSide.Meadow(m560);
+
+        assertThrows(IllegalArgumentException.class, () -> builder.connectSides(northSide56, northSide56));
     }
     @Test
    void addInitialOccupantWorksForTrivialCase() {}
