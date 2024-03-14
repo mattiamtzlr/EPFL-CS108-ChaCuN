@@ -106,7 +106,6 @@ class MyZonePartitionsTest {
     @Test
     void addTileWorksForTrivialCase() {
 
-        // TODO How should this method work, if we call it multiple times ?  ?
 
         ZonePartitions.Builder builder = new ZonePartitions.Builder(emptySetup);
         builder.addTile(startTile);
@@ -260,6 +259,27 @@ class MyZonePartitionsTest {
 
     }
     @Test
+    void addInitialOccupantThrowsOnAddingPawnToLake() {
+        ZonePartitions.Builder builder = new ZonePartitions.Builder(ZonePartitions.EMPTY);
+        builder.addTile(startTile);
+        assertThrows(IllegalArgumentException.class, ()->builder.addInitialOccupant(PlayerColor.RED, Occupant.Kind.PAWN, l568));
+    }
+    @Test
+    void addInitialOccupantThrowsOnAddingHutToIllegalZone() {
+        ZonePartitions.Builder builder = new ZonePartitions.Builder(ZonePartitions.EMPTY);
+        builder.addTile(startTile);
+        assertThrows(IllegalArgumentException.class, ()->builder.addInitialOccupant(PlayerColor.RED, Occupant.Kind.HUT, m560));
+        assertThrows(IllegalArgumentException.class, ()->builder.addInitialOccupant(PlayerColor.RED, Occupant.Kind.HUT, r563));
+        assertThrows(IllegalArgumentException.class, ()->builder.addInitialOccupant(PlayerColor.RED, Occupant.Kind.HUT, f561));
+    }
+    @Test
+    void addInitialOccupantThrowsIfAlreadyOccupied() {
+        ZonePartitions.Builder builder = new ZonePartitions.Builder(ZonePartitions.EMPTY);
+        builder.addTile(startTile);
+        builder.addInitialOccupant(PlayerColor.RED, Occupant.Kind.PAWN, m560);
+        assertThrows(IllegalArgumentException.class, ()->builder.addInitialOccupant(PlayerColor.RED, Occupant.Kind.PAWN, m560));
+    }
+    @Test
    void removePawnWorksForTrivialCase(){
 
         Area<Zone.Forest> forestArea56 = new Area<>(Set.of(f561), Collections.emptyList(), 2);
@@ -279,20 +299,24 @@ class MyZonePartitionsTest {
 
         builder.removePawn(PlayerColor.PURPLE, m610);
 
-        Area<Zone.Meadow> meadowArea156WithoutOnePurple= new Area<>(Set.of(m560, m610), List.of(PlayerColor.PURPLE, PlayerColor.PURPLE), 4);
+        Area<Zone.Meadow> meadowArea156WithoutOnePurple= new Area<>(Set.of(m560, m610), List.of(PlayerColor.PURPLE), 4);
         ZonePartition<Zone.Meadow> expectedMeadowPartWithoutOnePurple = new ZonePartition<>(Set.of(meadowArea156WithoutOnePurple, meadowArea256));
         ZonePartitions expectedPartitionWithoutOnePurple = new ZonePartitions(expectedForestPart, expectedMeadowPartWithoutOnePurple, expectedRiverPart, expectedWaterPart);
 
         assertEquals(expectedPartitionWithoutOnePurple, builder.build());
 
-        builder.removePawn(PlayerColor.PURPLE, r563);
+        try {
+            builder.removePawn(PlayerColor.PURPLE, r563);
+        } catch (IllegalArgumentException e) {
+            // expected
+        }
 
         assertEquals(expectedPartitionWithoutOnePurple, builder.build());
 
         builder.removePawn(PlayerColor.BLUE, r563);
 
         Area<Zone.River> riverArea56WithoutBlue = new Area<>(Set.of(r563), List.of(), 1);
-        ZonePartition<Zone.River> expectedRiverPartWithoutBlue = new ZonePartition<>(Set.of(riverArea56));
+        ZonePartition<Zone.River> expectedRiverPartWithoutBlue = new ZonePartition<>(Set.of(riverArea56WithoutBlue));
         ZonePartitions expectedPartitionWithoutOnePurpleAndWithoutBlue = new ZonePartitions(expectedForestPart, expectedMeadowPartWithoutOnePurple, expectedRiverPartWithoutBlue, expectedWaterPart);
 
         assertEquals(expectedPartitionWithoutOnePurpleAndWithoutBlue, builder.build());
@@ -319,9 +343,59 @@ class MyZonePartitionsTest {
         assertThrows(IllegalArgumentException.class, () -> builder.removePawn(PlayerColor.PURPLE, l568));
     }
     @Test
-   void clearGatherersWorksForTrivialCase() {}
+   void clearGatherersWorksForTrivialCase() {
+        ZonePartitions.Builder builder = new ZonePartitions.Builder(ZonePartitions.EMPTY);
+        builder.addTile(startTile);
+        builder.addTile(t88);
+
+
+        ZonePartitions expectedPartition = builder.build();
+
+        builder.addInitialOccupant(PlayerColor.RED, Occupant.Kind.PAWN, f561);
+        builder.addInitialOccupant(PlayerColor.RED, Occupant.Kind.PAWN, f883);
+
+        for (Area<Zone.Forest> area : builder.build().forests().areas()) {
+            builder.clearGatherers(area);
+        }
+
+        assertEquals(expectedPartition, builder.build());
+
+    }
     @Test
-   void clearFishersWorksForTrivialCase() {}
+   void clearFishersWorksForTrivialCase() {
+        ZonePartitions.Builder builder = new ZonePartitions.Builder(ZonePartitions.EMPTY);
+        builder.addTile(startTile);
+        builder.addTile(t88);
+
+
+        ZonePartitions expectedPartition = builder.build();
+
+        builder.addInitialOccupant(PlayerColor.RED, Occupant.Kind.PAWN, r563);
+        builder.addInitialOccupant(PlayerColor.RED, Occupant.Kind.PAWN, r881);
+
+        for (Area<Zone.River> area : builder.build().rivers().areas()) {
+            builder.clearFishers(area);
+        }
+
+        assertEquals(expectedPartition, builder.build());
+    }
     @Test
-    void buildWorksForTrivialCase() {}
+    void buildWorksForTrivialCase() {
+
+        Area<Zone.Forest> forestArea56 = new Area<>(Set.of(f561), Collections.emptyList(), 2);
+        Area<Zone.Meadow> meadowArea156 = new Area<>(Set.of(m560, m610), List.of(PlayerColor.PURPLE), 4);
+        Area<Zone.Meadow> meadowArea256 = new Area<>(Set.of(m562), Collections.emptyList(), 1);
+        Area<Zone.River> riverArea56 = new Area<>(Set.of(r563), Collections.emptyList(), 1);
+        Area<Zone.Water> waterArea56 = new Area<>(Set.of(r563, l568), Collections.emptyList(), 1);
+
+        ZonePartition<Zone.Forest> expectedForestPart = new ZonePartition<>(Set.of(forestArea56));
+        ZonePartition<Zone.River> expectedRiverPart = new ZonePartition<>(Set.of(riverArea56));
+        ZonePartition<Zone.Water> expectedWaterPart = new ZonePartition<>(Set.of(waterArea56));
+        ZonePartition<Zone.Meadow> expectedMeadowPart = new ZonePartition<>(Set.of(meadowArea156, meadowArea256));
+
+        ZonePartitions expectedPartition = new ZonePartitions(expectedForestPart, expectedMeadowPart, expectedRiverPart, expectedWaterPart);
+
+        ZonePartitions.Builder builder = new ZonePartitions.Builder(expectedPartition);
+        assertEquals(expectedPartition, builder.build());
+    }
 }
