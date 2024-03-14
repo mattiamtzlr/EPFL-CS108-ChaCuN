@@ -1,5 +1,8 @@
-package ch.epfl.chacun;
+package ch.epfl.chacun.week1;
 
+import ch.epfl.chacun.Direction;
+import ch.epfl.chacun.Pos;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -7,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class PosTest {
     @Test
     void posOriginIsCorrectlyDefined() {
-        assertEquals(0, Pos.ORIGIN.x());
+        Assertions.assertEquals(0, Pos.ORIGIN.x());
         assertEquals(0, Pos.ORIGIN.y());
     }
 

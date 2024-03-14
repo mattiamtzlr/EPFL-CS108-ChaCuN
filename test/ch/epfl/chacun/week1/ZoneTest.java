@@ -1,5 +1,8 @@
-package ch.epfl.chacun;
+package ch.epfl.chacun.week1;
 
+import ch.epfl.chacun.Animal;
+import ch.epfl.chacun.Zone;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -13,7 +16,7 @@ class ZoneTest {
         for (int tileId = 0; tileId < 95; tileId += 1) {
             for (int localZoneId = 0; localZoneId < 9; localZoneId += 1) {
                 var zoneId = tileId * 10 + localZoneId;
-                assertEquals(tileId, Zone.tileId(zoneId));
+                Assertions.assertEquals(tileId, Zone.tileId(zoneId));
             }
         }
     }

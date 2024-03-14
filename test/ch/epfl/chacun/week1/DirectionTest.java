@@ -1,5 +1,8 @@
-package ch.epfl.chacun;
+package ch.epfl.chacun.week1;
 
+import ch.epfl.chacun.Direction;
+import ch.epfl.chacun.Rotation;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -7,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class DirectionTest {
     @Test
     void directionAllIsCorrectlyDefined() {
-        assertEquals(4, Direction.ALL.size());
+        Assertions.assertEquals(4, Direction.ALL.size());
         assertEquals(Direction.N, Direction.ALL.get(0));
         assertEquals(Direction.E, Direction.ALL.get(1));
         assertEquals(Direction.S, Direction.ALL.get(2));

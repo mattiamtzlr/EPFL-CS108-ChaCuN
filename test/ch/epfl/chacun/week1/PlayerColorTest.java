@@ -1,5 +1,7 @@
-package ch.epfl.chacun;
+package ch.epfl.chacun.week1;
 
+import ch.epfl.chacun.PlayerColor;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -7,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class PlayerColorTest {
     @Test
     void playerColorAllIsCorrectlyDefined() {
-        assertEquals(5, PlayerColor.ALL.size());
+        Assertions.assertEquals(5, PlayerColor.ALL.size());
         assertEquals(PlayerColor.RED, PlayerColor.ALL.get(0));
         assertEquals(PlayerColor.BLUE, PlayerColor.ALL.get(1));
         assertEquals(PlayerColor.GREEN, PlayerColor.ALL.get(2));
