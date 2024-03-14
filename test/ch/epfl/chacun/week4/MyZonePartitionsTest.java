@@ -239,24 +239,85 @@ class MyZonePartitionsTest {
         ZonePartitions.Builder builder = new ZonePartitions.Builder(emptySetup);
         builder.addTile(startTile);
         builder.addTile(t61);
+        builder.addInitialOccupant(PlayerColor.PURPLE, Occupant.Kind.PAWN, m560);
         builder.connectSides(t61S, startN);
-        builder.addInitialOccupant(PlayerColor.PURPLE, Occupant.Kind.PAWN, m610);
 
 
         Area<Zone.Forest> forestArea56 = new Area<>(Set.of(f561), Collections.emptyList(), 2);
-        Area<Zone.Meadow> meadowArea156 = new Area<>(Set.of(m560), Collections.emptyList(), 2);
+        Area<Zone.Meadow> meadowArea156 = new Area<>(Set.of(m560, m610), List.of(PlayerColor.PURPLE), 4);
         Area<Zone.Meadow> meadowArea256 = new Area<>(Set.of(m562), Collections.emptyList(), 1);
         Area<Zone.River> riverArea56 = new Area<>(Set.of(r563), Collections.emptyList(), 1);
         Area<Zone.Water> waterArea56 = new Area<>(Set.of(r563, l568), Collections.emptyList(), 1);
 
-        ZonePartition<Zone.Forest> expectedForestPart56 = new ZonePartition<>(Set.of(forestArea56));
-        ZonePartition<Zone.River> expectedRiverPart56 = new ZonePartition<>(Set.of(riverArea56));
-        ZonePartition<Zone.Water> expectedWaterPart56 = new ZonePartition<>(Set.of(waterArea56));
+        ZonePartition<Zone.Forest> expectedForestPart = new ZonePartition<>(Set.of(forestArea56));
+        ZonePartition<Zone.River> expectedRiverPart = new ZonePartition<>(Set.of(riverArea56));
+        ZonePartition<Zone.Water> expectedWaterPart = new ZonePartition<>(Set.of(waterArea56));
+        ZonePartition<Zone.Meadow> expectedMeadowPart = new ZonePartition<>(Set.of(meadowArea156, meadowArea256));
 
-        ZonePartition<Zone.Meadow> expectedMeadowPart56 = new ZonePartition<>(Set.of(meadowArea156, meadowArea256));
+        ZonePartitions expectedPartition = new ZonePartitions(expectedForestPart, expectedMeadowPart, expectedRiverPart, expectedWaterPart);
+
+        assertEquals(expectedPartition, builder.build());
+
     }
     @Test
-   void removePawnWorksForTrivialCase(){}
+   void removePawnWorksForTrivialCase(){
+
+        Area<Zone.Forest> forestArea56 = new Area<>(Set.of(f561), Collections.emptyList(), 2);
+        Area<Zone.Meadow> meadowArea156 = new Area<>(Set.of(m560, m610), List.of(PlayerColor.PURPLE, PlayerColor.PURPLE), 4);
+        Area<Zone.Meadow> meadowArea256 = new Area<>(Set.of(m562), Collections.emptyList(), 1);
+        Area<Zone.River> riverArea56 = new Area<>(Set.of(r563), List.of(PlayerColor.BLUE), 1);
+        Area<Zone.Water> waterArea56 = new Area<>(Set.of(r563, l568), List.of(PlayerColor.BLUE), 1);
+
+        ZonePartition<Zone.Forest> expectedForestPart = new ZonePartition<>(Set.of(forestArea56));
+        ZonePartition<Zone.River> expectedRiverPart = new ZonePartition<>(Set.of(riverArea56));
+        ZonePartition<Zone.Water> expectedWaterPart = new ZonePartition<>(Set.of(waterArea56));
+        ZonePartition<Zone.Meadow> expectedMeadowPart = new ZonePartition<>(Set.of(meadowArea156, meadowArea256));
+
+        ZonePartitions startingPartition = new ZonePartitions(expectedForestPart, expectedMeadowPart, expectedRiverPart, expectedWaterPart);
+
+        ZonePartitions.Builder builder = new ZonePartitions.Builder(startingPartition);
+
+        builder.removePawn(PlayerColor.PURPLE, m610);
+
+        Area<Zone.Meadow> meadowArea156WithoutOnePurple= new Area<>(Set.of(m560, m610), List.of(PlayerColor.PURPLE, PlayerColor.PURPLE), 4);
+        ZonePartition<Zone.Meadow> expectedMeadowPartWithoutOnePurple = new ZonePartition<>(Set.of(meadowArea156WithoutOnePurple, meadowArea256));
+        ZonePartitions expectedPartitionWithoutOnePurple = new ZonePartitions(expectedForestPart, expectedMeadowPartWithoutOnePurple, expectedRiverPart, expectedWaterPart);
+
+        assertEquals(expectedPartitionWithoutOnePurple, builder.build());
+
+        builder.removePawn(PlayerColor.PURPLE, r563);
+
+        assertEquals(expectedPartitionWithoutOnePurple, builder.build());
+
+        builder.removePawn(PlayerColor.BLUE, r563);
+
+        Area<Zone.River> riverArea56WithoutBlue = new Area<>(Set.of(r563), List.of(), 1);
+        ZonePartition<Zone.River> expectedRiverPartWithoutBlue = new ZonePartition<>(Set.of(riverArea56));
+        ZonePartitions expectedPartitionWithoutOnePurpleAndWithoutBlue = new ZonePartitions(expectedForestPart, expectedMeadowPartWithoutOnePurple, expectedRiverPartWithoutBlue, expectedWaterPart);
+
+        assertEquals(expectedPartitionWithoutOnePurpleAndWithoutBlue, builder.build());
+
+    }
+    @Test
+    void removePawnThrowsOnPassingALake() {
+
+        Area<Zone.Forest> forestArea56 = new Area<>(Set.of(f561), Collections.emptyList(), 2);
+        Area<Zone.Meadow> meadowArea156 = new Area<>(Set.of(m560, m610), List.of(PlayerColor.PURPLE, PlayerColor.PURPLE), 4);
+        Area<Zone.Meadow> meadowArea256 = new Area<>(Set.of(m562), Collections.emptyList(), 1);
+        Area<Zone.River> riverArea56 = new Area<>(Set.of(r563), List.of(PlayerColor.BLUE), 1);
+        Area<Zone.Water> waterArea56 = new Area<>(Set.of(r563, l568), List.of(PlayerColor.BLUE), 1);
+
+        ZonePartition<Zone.Forest> expectedForestPart = new ZonePartition<>(Set.of(forestArea56));
+        ZonePartition<Zone.River> expectedRiverPart = new ZonePartition<>(Set.of(riverArea56));
+        ZonePartition<Zone.Water> expectedWaterPart = new ZonePartition<>(Set.of(waterArea56));
+        ZonePartition<Zone.Meadow> expectedMeadowPart = new ZonePartition<>(Set.of(meadowArea156, meadowArea256));
+
+        ZonePartitions startingPartition = new ZonePartitions(expectedForestPart, expectedMeadowPart, expectedRiverPart, expectedWaterPart);
+
+        ZonePartitions.Builder builder = new ZonePartitions.Builder(startingPartition);
+
+        assertThrows(IllegalArgumentException.class, () -> builder.removePawn(PlayerColor.PURPLE, l568));
+    }
     @Test
    void clearGatherersWorksForTrivialCase() {}
     @Test
