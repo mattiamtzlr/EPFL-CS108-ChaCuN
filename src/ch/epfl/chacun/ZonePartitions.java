@@ -1,6 +1,7 @@
 package ch.epfl.chacun;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -25,10 +26,6 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests,
         private ZonePartition.Builder<Zone.Water> riverSystemsBuilder;
 
         public Builder(ZonePartitions initial) {
-
-
-
-            // Not sure if this is sufficiently careful with immutable things involved
             forestBuilder = new ZonePartition.Builder<>(initial.forests);
             meadowBuilder = new ZonePartition.Builder<>(initial.meadows);
             riverBuilder = new ZonePartition.Builder<>(initial.rivers);
@@ -58,7 +55,6 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests,
                    a river or a lake (I have no idea why we needed to do the weird thing that causes this :D)
             */
             for (Zone zone : tile.zones()) {
-                // redo this using the pattern matching tricks from connectSides
 
                 switch (zone) {
                     case Zone.Forest(int id, Zone.Forest.Kind kind) -> {
@@ -134,18 +130,11 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests,
                     }
                 }
                 case HUT -> {
-                    switch (occupiedZone) {
-                        /* This code should be irrelevant
-                        case Zone.River(int id, int fishCount, Zone.Lake lake) -> {
-
-                            if (!((Zone.River) occupiedZone).hasLake())
-                                riverBuilder.addInitialOccupant((Zone.River) occupiedZone, player);
-                        }*/
-                        case Zone.Lake(int id, int fishCount, Zone.SpecialPower specialPower) -> {
-                            riverSystemsBuilder.addInitialOccupant(
-                                    (Zone.Water) occupiedZone, player);
-                        }
-                        default -> throw new IllegalArgumentException("Cannot add Hutt here");
+                    if (Objects.requireNonNull(occupiedZone) instanceof Zone.Lake) {
+                        riverSystemsBuilder.addInitialOccupant(
+                                (Zone.Water) occupiedZone, player);
+                    } else {
+                        throw new IllegalArgumentException("Cannot add Hutt here");
                     }
                 }
                 default -> throw new IllegalArgumentException("Illegal occupant");
