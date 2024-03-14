@@ -60,8 +60,8 @@ public class TextMakerTEST implements TextMaker{
     public String playerScoredHuntingTrap(PlayerColor scorer, int points, Map<Animal.Kind, Integer> animals) {
         StringJoiner sj = new StringJoiner(" ");
         return sj.add("Player").add(this.playerName(scorer)).add("has gained").add(this.points(points))
-            .add("by placing the hunting trap in a meadow with").add(Integer.toString(animals.size()))
-            .add("animals in it.").toString();
+            .add("by placing the hunting trap in a meadow with these animals:").add(animals.toString())
+            .add("in it.").toString();
     }
 
     @Override
@@ -82,8 +82,8 @@ public class TextMakerTEST implements TextMaker{
         }
 
         return sj.add("Players").add(playerSJ.toString()).add("have gained").add(this.points(points))
-            .add("by occupying a meadow with").add(Integer.toString(animals.size()))
-            .add("animals in it.").toString();
+            .add("by occupying a meadow with these animals:").add(animals.toString())
+            .add("in it.").toString();
     }
 
     @Override
@@ -110,8 +110,8 @@ public class TextMakerTEST implements TextMaker{
         }
 
         return sj.add("Players").add(playerSJ.toString()).add("have gained").add(this.points(points))
-            .add("by occupying a meadow containing the pit trap with").add(Integer.toString(animals.size()))
-            .add("animals in it.").toString();
+            .add("by occupying a meadow containing the pit trap with these animals:").add(animals.toString())
+            .add("in it.").toString();
     }
 
     @Override
