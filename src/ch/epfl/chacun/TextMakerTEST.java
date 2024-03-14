@@ -25,7 +25,7 @@ public class TextMakerTEST implements TextMaker{
     @Override
     public String playerClosedForestWithMenhir(PlayerColor player) {
         StringJoiner sj = new StringJoiner(" ");
-        return sj.add("Player").add(this.playerName(player)).add("closed a forest with a menhir.").toString();
+        return sj.add("Player").add(this.playerName(player)).add("closed a forest with a menhir and can thus play again.").toString();
     }
 
     @Override
