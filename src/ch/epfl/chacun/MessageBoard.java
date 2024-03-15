@@ -56,8 +56,6 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages) {
         return points;
     }
 
-    // ==================== TODO: test the absolute living shit out of the methods below
-
     /**
      * Returns a new message board identical to the current instance, unless the given forest is
      * occupied, in which case the board contains a new message indicating that its majority
@@ -72,12 +70,13 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages) {
             int pointsGained = Points.forClosedForest(forest.tileIds().size(),
                     Area.mushroomGroupCount(forest));
 
-            newMessages.add(new Message(
-                    this.textMaker.playersScoredForest(
-                            forest.majorityOccupants(), pointsGained,
-                            Area.mushroomGroupCount(forest), forest.tileIds().size()
-                    ), pointsGained, forest.majorityOccupants(), forest.tileIds()
-            ));
+            if (pointsGained > 0)
+                newMessages.add(new Message(
+                        this.textMaker.playersScoredForest(
+                                forest.majorityOccupants(), pointsGained,
+                                Area.mushroomGroupCount(forest), forest.tileIds().size()
+                        ), pointsGained, forest.majorityOccupants(), forest.tileIds()
+                ));
         }
 
         return new MessageBoard(this.textMaker, newMessages);
@@ -94,7 +93,7 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages) {
     public MessageBoard withClosedForestWithMenhir(PlayerColor player, Area<Zone.Forest> forest) {
         List<Message> newMessages = new ArrayList<>(Set.copyOf(this.messages));
 
-        if (Area.hasMenhir(forest)) {
+        if (forest.isClosed() && Area.hasMenhir(forest)) {
             newMessages.add(new Message(
                     this.textMaker.playerClosedForestWithMenhir(player),
                     0, Collections.emptySet(), forest.tileIds()
@@ -118,12 +117,13 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages) {
             int pointsGained = Points.forClosedRiver(river.tileIds().size(),
                     Area.riverFishCount(river));
 
-            newMessages.add(new Message(
-                    this.textMaker.playersScoredRiver(
-                            river.majorityOccupants(), pointsGained,
-                            Area.riverFishCount(river), river.tileIds().size()
-                    ), pointsGained, river.majorityOccupants(), river.tileIds()
-            ));
+            if (pointsGained > 0)
+                newMessages.add(new Message(
+                        this.textMaker.playersScoredRiver(
+                                river.majorityOccupants(), pointsGained,
+                                Area.riverFishCount(river), river.tileIds().size()
+                        ), pointsGained, river.majorityOccupants(), river.tileIds()
+                ));
         }
 
         return new MessageBoard(this.textMaker, newMessages);
@@ -146,7 +146,7 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages) {
         if (specialPowerZone != null) {
             Set<Animal> animals = Area.animals(
                     adjacentMeadow,
-                    Set.copyOf(specialPowerZone.animals())
+                    Collections.emptySet()
             );
 
             Map<Animal.Kind, Integer> animalCounts = new HashMap<>();
@@ -155,9 +155,9 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages) {
             }
 
             int pointsGained = Points.forMeadow(
-                    animalCounts.get(Animal.Kind.MAMMOTH),
-                    animalCounts.get(Animal.Kind.AUROCHS),
-                    animalCounts.get(Animal.Kind.DEER)
+                    animalCounts.getOrDefault(Animal.Kind.MAMMOTH, 0),
+                    animalCounts.getOrDefault(Animal.Kind.AUROCHS, 0),
+                    animalCounts.getOrDefault(Animal.Kind.DEER, 0)
             );
 
             if (pointsGained > 0)
@@ -213,9 +213,9 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages) {
         }
 
         int pointsGained = Points.forMeadow(
-                animalCounts.get(Animal.Kind.MAMMOTH),
-                animalCounts.get(Animal.Kind.AUROCHS),
-                animalCounts.get(Animal.Kind.DEER)
+                animalCounts.getOrDefault(Animal.Kind.MAMMOTH, 0),
+                animalCounts.getOrDefault(Animal.Kind.AUROCHS, 0),
+                animalCounts.getOrDefault(Animal.Kind.DEER, 0)
         );
 
         if (meadow.isOccupied() && pointsGained > 0)
@@ -279,9 +279,9 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages) {
             }
 
             int pointsGained = Points.forMeadow(
-                    animalCounts.get(Animal.Kind.MAMMOTH),
-                    animalCounts.get(Animal.Kind.AUROCHS),
-                    animalCounts.get(Animal.Kind.DEER)
+                    animalCounts.getOrDefault(Animal.Kind.MAMMOTH, 0),
+                    animalCounts.getOrDefault(Animal.Kind.AUROCHS, 0),
+                    animalCounts.getOrDefault(Animal.Kind.DEER, 0)
             );
 
             if (pointsGained > 0)
@@ -311,11 +311,12 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages) {
             int lakeCount = Area.lakeCount(riverSystem);
             int pointsGained = Points.forRaft(lakeCount);
 
-            newMessages.add(new Message(
-                    this.textMaker.playersScoredRaft(
-                            riverSystem.majorityOccupants(), pointsGained, lakeCount),
-                    pointsGained, riverSystem.majorityOccupants(), riverSystem.tileIds()
-            ));
+            if (pointsGained > 0)
+                newMessages.add(new Message(
+                        this.textMaker.playersScoredRaft(
+                                riverSystem.majorityOccupants(), pointsGained, lakeCount),
+                        pointsGained, riverSystem.majorityOccupants(), riverSystem.tileIds()
+                ));
         }
 
         return new MessageBoard(this.textMaker, newMessages);

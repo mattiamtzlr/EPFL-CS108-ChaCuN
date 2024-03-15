@@ -49,4 +49,9 @@ class MyMessageBoardTest {
                                 Collections.emptySet())
                 )).points());
     }
+
+    /* ==========================================================================================
+       |         Methods that only add a message based on a condition are not tested            |
+       |                            as that seems kind of unnecessary                           |
+       ========================================================================================== */
 }
