@@ -17,7 +17,7 @@ public class Board {
     public static final int REACH = 12;
     public static final Board EMPTY = new Board(
             new PlacedTile[625],
-            new int[95], ZonePartitions.EMPTY,
+            new int[]{}, ZonePartitions.EMPTY,
             Collections.emptySet()
     );
 
@@ -29,7 +29,11 @@ public class Board {
     }
 
     public PlacedTile tileAt(Pos pos) {
-        return placedTiles[(pos.x() + REACH) + (REACH + pos.y())*25];
+        return placedTiles[calculateTileIndex(pos)];
+    }
+
+    private static int calculateTileIndex(Pos pos) {
+        return (pos.x() + REACH) + (REACH + pos.y())*25;
     }
 
     public PlacedTile tileWithId(int tileId) {
@@ -148,14 +152,19 @@ public class Board {
 
     public PlacedTile lastPlacedTile() {
         // TODO testing much important yes
+        // This will never work like this like what
         if (this.equals(EMPTY))
             return null;
+
+        return placedTiles[placedTileIndices[placedTileIndices.length-1]];
+        /*
         List<PlacedTile> tileList = new ArrayList<>();
         for (int placedTileIndex : placedTileIndices) {
             if (placedTiles[placedTileIndex] != null)
                 tileList.add((placedTiles[placedTileIndex]));
         }
         return tileList.getLast();
+        */
     }
     public Set<Area<Zone.Forest>> forestsClosedByLastTile() {
         Set<Area<Zone.Forest>> closedForestAreas = new HashSet<>();
@@ -187,6 +196,72 @@ public class Board {
         return false;
     }
 
-    public boolean couldPlaceTile
+    public boolean couldPlaceTile(Tile tile) {
+        for (Pos insertionPosition : insertionPositions()) {
+            for (Rotation rotation : Rotation.ALL) {
+                if (canAddTile(new PlacedTile(tile, null, rotation , insertionPosition)))
+                    return true;
+            }
+        }
+        return false;
+    }
+
+    public Board withNewTile(PlacedTile tile) {
+        /* TODO The wording makes it seem like we should call couldPlaceTile,
+            but they pass a placedTile???
+            Why can they not just give clear instructions. Like do I have to add
+            to the zone partition too ??? Should this tile be connected  to any sides ????
+            What
+         */
+        //=======================================================================
+        //==                            VERSION 2                              ==
+        //==                      THE SWELTERING DISARRAY                      ==
+        //=======================================================================
+
+        // CouldPlaceTile makes no sense here as per the rules, a tile which cannot be added to
+        // The board is supposed to be imediately removed from the game
+        if (!couldPlaceTile(tile.tile()))
+            throw new IllegalArgumentException("This tile cannot be placed");
+        if (!canAddTile(tile))
+            throw new IllegalArgumentException("Cannot add tile at this position");
+
+        // This part seems pretty right to me, the cloning should be safe
+        PlacedTile[] placedTilesWithNewTile = placedTiles.clone();
+        placedTilesWithNewTile[calculateTileIndex(tile.pos())] = tile;
+
+        // This part might need refactoring since I changed the way placedTileIndices works
+        // in order to get this to work :)
+        int[] placedTileIndicesWithNewTile = new int[placedTileIndices.length+1];
+        System.arraycopy(
+                placedTileIndices, 0,
+                placedTileIndicesWithNewTile, 0,
+                placedTileIndices.length);
+        placedTileIndicesWithNewTile[placedTileIndicesWithNewTile.length-1] =
+                calculateTileIndex(tile.pos());
+
+        // I have no clue if this part is actually necessary, they do not mention anything
+        // but it would be very stupid to do this someplace else
+        ZonePartitions.Builder builder = new ZonePartitions.Builder(zonePartitions);
+        builder.addTile(tile.tile());
+        for (Direction direction : Direction.ALL) {
+            if (tile.pos().neighbor(direction) != null) {
+                builder.connectSides(
+                        tile.side(direction),
+                        tileAt(tile.pos().neighbor(direction)).side(direction.opposite()));
+            }
+        }
+
+        return new Board(
+                placedTilesWithNewTile, placedTileIndicesWithNewTile,
+                builder.build(), Set.copyOf(cancelledAnimals)
+        );
+
+    }
+
+    public Board withOccupant(Occupant occupant) {
+
+    }
+
+
 
 }
