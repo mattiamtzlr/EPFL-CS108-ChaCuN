@@ -259,6 +259,33 @@ public class Board {
     }
 
     public Board withOccupant(Occupant occupant) {
+        //                           ??? ●﹏● ???
+
+        /* Step 1:
+            Figure out which tile, zone and area we should add the occupant to
+            First only for tĥe case of pawns
+        */
+        PlacedTile targetTile = tileWithId(Zone.tileId(occupant.zoneId()));
+
+        Zone targetZone = targetTile.zoneWithId(occupant.zoneId());
+
+        // This might work ???????? no clue
+        Area targetArea;
+        switch(targetZone) {
+            case Zone.Forest(int id, Zone.Forest.Kind kind) -> {
+                targetArea = zonePartitions.forests().areaContaining((Zone.Forest) targetZone);
+            }
+            case Zone.Meadow(int id, List<Animal> animals, Zone.SpecialPower specialPower) -> {
+                targetArea = zonePartitions.meadows().areaContaining((Zone.Meadow) targetZone);
+            }
+            case Zone.River(int id, int fishCount, Zone.Lake lake) -> {
+                targetArea = zonePartitions.rivers().areaContaining((Zone.River) targetZone);
+            }
+            default -> throw new IllegalStateException("Unexpected value: " + targetZone.id());
+        }
+
+
+
 
     }
 
