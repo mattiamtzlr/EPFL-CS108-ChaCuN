@@ -174,20 +174,19 @@ public class Board {
         return closedRiverAreas;
     }
     public boolean canAddTile(PlacedTile tile) {
-        if (insertionPositions().contains(tile.pos())){
-            TileSide northSide = tileAt(tile.pos().neighbor(Direction.N)).side(Direction.S);
-            TileSide eastSide = tileAt(tile.pos().neighbor(Direction.E)).side(Direction.W);
-            TileSide southSide = tileAt(tile.pos().neighbor(Direction.S)).side(Direction.N);
-            TileSide westSide = tileAt(tile.pos().neighbor(Direction.W)).side(Direction.E);
-
-            return (tile.side(Direction.N).isSameKindAs(northSide) &&
-            tile.side(Direction.E).isSameKindAs(eastSide) &&
-            tile.side(Direction.S).isSameKindAs(southSide) &&
-            tile.side(Direction.W).isSameKindAs(westSide));
+        // TODO this might have to account for rotation and stuff, have to test
+        if (insertionPositions().contains(tile.pos())) {
+            for (Direction direction : Direction.ALL) {
+                if (!tile.side(direction).isSameKindAs(
+                        tileAt(tile.pos().neighbor(direction))
+                                .side(direction.opposite())))
+                    return false;
+            }
+            return true;
         }
-        // TODO es anders mau
-        // mit .ordinal und so
         return false;
-
     }
+
+    public boolean couldPlaceTile
+
 }
