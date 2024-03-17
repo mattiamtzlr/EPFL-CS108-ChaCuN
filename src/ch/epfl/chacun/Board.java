@@ -83,6 +83,8 @@ public class Board {
 
         return new Area<>(zones, meadowArea(meadowZone).occupants(), 0);
     }
+
+    // TODO This needs some improvements
     private Set<PlacedTile> getTileNeighbourhood(Pos pos) {
         return Set.of(
                 tileAt(pos),
@@ -158,6 +160,7 @@ public class Board {
 
         return placedTiles[placedTileIndices[placedTileIndices.length-1]];
         /*
+        ** NOW LEGACY DUE TO CHANGES TO PLACEDTILESINDICES **
         List<PlacedTile> tileList = new ArrayList<>();
         for (int placedTileIndex : placedTileIndices) {
             if (placedTiles[placedTileIndex] != null)
@@ -169,36 +172,37 @@ public class Board {
     public Set<Area<Zone.Forest>> forestsClosedByLastTile() {
         Set<Area<Zone.Forest>> closedForestAreas = new HashSet<>();
         for (Zone.Forest forestZone : lastPlacedTile().forestZones()) {
-            if (zonePartitions.forests().areaContaining(forestZone).isClosed())
-                closedForestAreas.add(zonePartitions.forests().areaContaining(forestZone));
+            if (forestArea(forestZone).isClosed())
+                closedForestAreas.add(forestArea(forestZone));
         }
         return closedForestAreas;
     }
     public Set<Area<Zone.River>> riversClosedByLastTile() {
         Set<Area<Zone.River>> closedRiverAreas = new HashSet<>();
         for (Zone.River riverZone : lastPlacedTile().riverZones()) {
-            if (zonePartitions.rivers().areaContaining(riverZone).isClosed())
-                closedRiverAreas.add(zonePartitions.rivers().areaContaining(riverZone));
+            if (riverArea(riverZone).isClosed())
+                closedRiverAreas.add(riverArea(riverZone));
         }
         return closedRiverAreas;
     }
     public boolean canAddTile(PlacedTile tile) {
         // TODO this might have to account for rotation and stuff, have to test
-        if (insertionPositions().contains(tile.pos())) {
-            for (Direction direction : Direction.ALL) {
-                if (!tile.side(direction).isSameKindAs(
-                        tileAt(tile.pos().neighbor(direction))
-                                .side(direction.opposite())))
-                    return false;
-            }
-            return true;
+        if (!insertionPositions().contains(tile.pos()))
+            return false;
+
+        for (Direction direction : Direction.ALL) {
+            if (!tile.side(direction).isSameKindAs(
+                    tileAt(tile.pos().neighbor(direction))
+                            .side(direction.opposite())))
+                return false;
         }
-        return false;
+        return true;
     }
 
     public boolean couldPlaceTile(Tile tile) {
         for (Pos insertionPosition : insertionPositions()) {
             for (Rotation rotation : Rotation.ALL) {
+                // TODO Check if the placer parameter really can be null without causing problems
                 if (canAddTile(new PlacedTile(tile, null, rotation , insertionPosition)))
                     return true;
             }
@@ -219,9 +223,10 @@ public class Board {
         //=======================================================================
 
         // CouldPlaceTile makes no sense here as per the rules, a tile which cannot be added to
-        // The board is supposed to be imediately removed from the game
+        /* The board is supposed to be imediately removed from the game
         if (!couldPlaceTile(tile.tile()))
             throw new IllegalArgumentException("This tile cannot be placed");
+         */
         if (!canAddTile(tile))
             throw new IllegalArgumentException("Cannot add tile at this position");
 
@@ -231,6 +236,7 @@ public class Board {
 
         // This part might need refactoring since I changed the way placedTileIndices works
         // in order to get this to work :)
+        // TODO Rename placedTileIndicesWithNewTile, this is too long
         int[] placedTileIndicesWithNewTile = new int[placedTileIndices.length+1];
         System.arraycopy(
                 placedTileIndices, 0,
@@ -253,7 +259,7 @@ public class Board {
 
         return new Board(
                 placedTilesWithNewTile, placedTileIndicesWithNewTile,
-                builder.build(), Set.copyOf(cancelledAnimals)
+                builder.build(), cancelledAnimals()
         );
 
     }
@@ -262,7 +268,7 @@ public class Board {
         //                           ??? ●﹏● ???
 
         /* Step 1:
-            Figure out which tile, zone and area we should add the occupant to
+            Figure out which tile and area we should add the occupant to
             First only for tĥe case of pawns
         */
         PlacedTile targetTile = tileWithId(Zone.tileId(occupant.zoneId()));
@@ -271,19 +277,37 @@ public class Board {
 
         // This might work ???????? no clue
         Area targetArea;
-        switch(targetZone) {
-            case Zone.Forest(int id, Zone.Forest.Kind kind) -> {
-                targetArea = zonePartitions.forests().areaContaining((Zone.Forest) targetZone);
+        if(occupant.kind() == Occupant.Kind.PAWN) {
+            switch(targetZone) {
+                case Zone.Forest(int id, Zone.Forest.Kind kind) -> {
+                    targetArea = forestArea((Zone.Forest) targetZone);
+                }
+                case Zone.Meadow(int id, List<Animal> animals, Zone.SpecialPower specialPower) -> {
+                    targetArea = meadowArea((Zone.Meadow) targetZone);
+                }
+                case Zone.River(int id, int fishCount, Zone.Lake lake) -> {
+                    targetArea = riverArea((Zone.River) targetZone);
+                }
+                default -> throw new IllegalStateException("Unexpected value: " + targetZone.id());
             }
-            case Zone.Meadow(int id, List<Animal> animals, Zone.SpecialPower specialPower) -> {
-                targetArea = zonePartitions.meadows().areaContaining((Zone.Meadow) targetZone);
-            }
-            case Zone.River(int id, int fishCount, Zone.Lake lake) -> {
-                targetArea = zonePartitions.rivers().areaContaining((Zone.River) targetZone);
-            }
-            default -> throw new IllegalStateException("Unexpected value: " + targetZone.id());
+        } else {
+            targetArea = riverSystemArea((Zone.Water) targetZone);
         }
 
+        /* Step 2:
+            Add the occupant to all the places it belongs to
+                - How should an occupant be added to the partition if we do not get the player ?
+            TODO this version is purposefully neither concise nor compact, but much more readable.
+             We need to refactor once all the logic is in place
+        */
+        PlayerColor occupantColor = PlayerColor.RED; // TODO here we have to find the color, this is wip
+
+        targetArea = targetArea.withInitialOccupant(occupantColor);
+
+        placedTiles[calculateTileIndex(targetTile.pos())].withOccupant(occupant);
+
+        // TODO return a new board while maintaining immutability
+        Board boardWithOccupant = new Board()
 
 
 
