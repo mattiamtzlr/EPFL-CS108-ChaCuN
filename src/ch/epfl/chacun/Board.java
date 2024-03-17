@@ -102,7 +102,7 @@ public class Board {
         int occupantCount = 0;
         switch (occupantKind) {
             case PAWN -> {
-                for (Area<Zone.Meadow> area : zonePartitions.meadows().areas()) {
+                for (Area<Zone.Meadow> area : meadowAreas()) {
                     for (PlayerColor occupantColor: area.occupants()) {
                         occupantCount += (occupantColor.equals(player)) ? 1 : 0;
                     }
@@ -119,7 +119,7 @@ public class Board {
                 }
             }
             case HUT -> {
-                for (Area<Zone.Water> area : zonePartitions.riverSystems().areas()) {
+                for (Area<Zone.Water> area : riverSystemAreas()) {
                     for (PlayerColor occupantColor: area.occupants()) {
                         occupantCount += (occupantColor.equals(player)) ? 1 : 0;
                     }
@@ -151,6 +151,11 @@ public class Board {
                 tileAt(pos.neighbor(Direction.W))
         );
     }
+
+    //==============================================================================================
+    //==                       BEWARE OF BRAIN ROT SPAGHETTI CODE                                 ==
+    //==                          !!! PROCEED WITH CAUTION !!!                                    ==
+    //==============================================================================================
 
     public PlacedTile lastPlacedTile() {
         // TODO testing much important yes
@@ -210,6 +215,23 @@ public class Board {
         return false;
     }
 
+    /*  TODO I just found this part of the instructions, feeling stupid now, will have to implement
+         
+        All "derivation" methods - those whose name begins with with and which allow you to obtain a
+        new array derived from the receiver - must take care to copy the arrays before modifying
+        them and then passing them to the constructor, otherwise the immutability of the class would
+        not be guaranteed.
+
+        When arrays do not change size, this can be done using the clone method. When they do change
+        size, Arrays' copyOf method is preferable, as it copies an array into a new array of a
+        different size from the original.
+
+        Derivation methods must also ensure that zone partitions always match the contents of the
+        tray. To do this, they must always calculate not only the new arrays containing the tiles
+        and their indices, but also the corresponding new partitions.
+
+     */
+
     public Board withNewTile(PlacedTile tile) {
         /* TODO The wording makes it seem like we should call couldPlaceTile,
             but they pass a placedTile???
@@ -268,31 +290,11 @@ public class Board {
         //                           ??? ●﹏● ???
 
         /* Step 1:
-            Figure out which tile and area we should add the occupant to
-            First only for tĥe case of pawns
+            Figure out which tile and zone we should add the occupant to
         */
         PlacedTile targetTile = tileWithId(Zone.tileId(occupant.zoneId()));
-
         Zone targetZone = targetTile.zoneWithId(occupant.zoneId());
-
-        // This might work ???????? no clue
-        Area targetArea;
-        if(occupant.kind() == Occupant.Kind.PAWN) {
-            switch(targetZone) {
-                case Zone.Forest(int id, Zone.Forest.Kind kind) -> {
-                    targetArea = forestArea((Zone.Forest) targetZone);
-                }
-                case Zone.Meadow(int id, List<Animal> animals, Zone.SpecialPower specialPower) -> {
-                    targetArea = meadowArea((Zone.Meadow) targetZone);
-                }
-                case Zone.River(int id, int fishCount, Zone.Lake lake) -> {
-                    targetArea = riverArea((Zone.River) targetZone);
-                }
-                default -> throw new IllegalStateException("Unexpected value: " + targetZone.id());
-            }
-        } else {
-            targetArea = riverSystemArea((Zone.Water) targetZone);
-        }
+        ZonePartitions.Builder builder = new ZonePartitions.Builder(zonePartitions);
 
         /* Step 2:
             Add the occupant to all the places it belongs to
@@ -302,17 +304,77 @@ public class Board {
         */
         PlayerColor occupantColor = PlayerColor.RED; // TODO here we have to find the color, this is wip
 
-        targetArea = targetArea.withInitialOccupant(occupantColor);
+        // Am really quite confused how much of this needs to remain immutable and how much is ok like this
 
-        placedTiles[calculateTileIndex(targetTile.pos())].withOccupant(occupant);
+        builder.addInitialOccupant(occupantColor, occupant.kind(), targetZone);
+
+        placedTiles[calculateTileIndex(targetTile.pos())] =
+                placedTiles[calculateTileIndex(targetTile.pos())].withOccupant(occupant);
 
         // TODO return a new board while maintaining immutability
-        Board boardWithOccupant = new Board()
-
-
-
+         return new Board(placedTiles.clone(), placedTileIndices.clone(),
+                 builder.build(), cancelledAnimals());
     }
 
+    public Board withoutOccupant(Occupant occupant) {
 
+        PlacedTile targetTile = tileWithId(Zone.tileId(occupant.zoneId()));
+        Zone targetZone = targetTile.zoneWithId(occupant.zoneId());
+        ZonePartitions.Builder builder = new ZonePartitions.Builder(zonePartitions);
+        PlayerColor occupantColor = PlayerColor.RED; // TODO here we have to find the color, this is wip
 
+        builder.removePawn(occupantColor, targetZone);
+
+        placedTiles[calculateTileIndex(targetTile.pos())] =
+                placedTiles[calculateTileIndex(targetTile.pos())].withNoOccupant();
+
+        return new Board(placedTiles.clone(), placedTileIndices.clone(),
+                builder.build(), cancelledAnimals());
+    }
+
+    public Board withoutGatherersOrFishersIn(
+            Set<Area<Zone.Forest>> forests, Set<Area<Zone.River>> rivers) {
+        ZonePartitions.Builder builder = new ZonePartitions.Builder(zonePartitions);
+
+        for (Area<Zone.Forest> forest : forests) {
+            builder.clearGatherers(forest);
+            for (Integer tileId : forest.tileIds()) {
+                // THis is overkill, it would not only remove the pawns we want to remove but also hunters
+                // TODO I have no clue how to do this in any other way
+                placedTiles[calculateTileIndex(tileWithId(tileId).pos())].withNoOccupant();
+            }
+
+        }
+        for (Area<Zone.River> river : rivers) {
+            builder.clearFishers(river);
+        }
+        return new Board(placedTiles.clone(), placedTileIndices.clone(),
+                builder.build(), cancelledAnimals());
+    }
+
+    public Board withMoreCancelledAnimals(Set<Animal> newlyCancelledAnimals) {
+        ZonePartitions.Builder builder = new ZonePartitions.Builder(zonePartitions);
+        Set<Animal> freshCancelledAnimals = cancelledAnimals();
+        freshCancelledAnimals.addAll(newlyCancelledAnimals);
+        return new Board(placedTiles.clone(), placedTileIndices.clone(),
+                builder.build(), freshCancelledAnimals);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+
+        if (obj instanceof Board) {
+                return (this.cancelledAnimals.equals(((Board) obj).cancelledAnimals) &&
+                Arrays.equals(this.placedTiles, ((Board) obj).placedTiles) &&
+                Arrays.equals(this.placedTileIndices, ((Board) obj).placedTileIndices) &&
+                this.zonePartitions.equals(((Board) obj).zonePartitions));
+        }
+        return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(Arrays.hashCode(placedTiles), Arrays.hashCode(placedTileIndices),
+                zonePartitions, cancelledAnimals);
+    }
 }
