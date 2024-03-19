@@ -8,15 +8,17 @@ import java.util.*;
  * @author Mattia Metzler (372025)
  * @author Leoluca Bernardi (374107)
  */
-public class Board {
+public final class Board {
     private final PlacedTile[] placedTiles;
     private final int[] placedTileIndices;
     private final ZonePartitions zonePartitions;
     private final Set<Animal> cancelledAnimals;
 
     public static final int REACH = 12;
+    private static final int NUMBER_OF_POSITIONS = 625;
+    private static final int TOTAL_TILES_AVAILABLE = 95;
     public static final Board EMPTY = new Board(
-            new PlacedTile[625],
+            new PlacedTile[NUMBER_OF_POSITIONS],
             new int[]{}, ZonePartitions.EMPTY,
             Collections.emptySet()
     );
@@ -32,11 +34,11 @@ public class Board {
         return (Math.abs(pos.x()) < 13 &&
                 Math.abs(pos.y()) < 13) ?
                 placedTiles[calculateTileIndex(pos)]
-                : null ;
+                : null;
     }
 
     private static int calculateTileIndex(Pos pos) {
-        return (pos.x() + REACH) + (REACH + pos.y())*25;
+        return (pos.x() + REACH) + (REACH + pos.y()) * 25;
     }
 
     public PlacedTile tileWithId(int tileId) {
@@ -46,12 +48,13 @@ public class Board {
         }
         throw new IllegalArgumentException("No tile with such index");
     }
-    public Set<Animal> cancelledAnimals(){
+
+    public Set<Animal> cancelledAnimals() {
         return Set.copyOf(cancelledAnimals);
     }
 
     //TODO Immutability ?
-    public Set<Occupant> occupants(){
+    public Set<Occupant> occupants() {
         Set<Occupant> occupants = new HashSet<>();
         for (int placedTileIndex : placedTileIndices) {
             occupants.add(placedTiles[placedTileIndex].occupant());
@@ -59,24 +62,31 @@ public class Board {
         }
         return occupants;
     }
+
     public Area<Zone.Forest> forestArea(Zone.Forest forest) {
         return zonePartitions.forests().areaContaining(forest);
     }
+
     public Area<Zone.Meadow> meadowArea(Zone.Meadow meadow) {
         return zonePartitions.meadows().areaContaining(meadow);
     }
+
     public Area<Zone.River> riverArea(Zone.River river) {
         return zonePartitions.rivers().areaContaining(river);
     }
+
     public Area<Zone.Water> riverSystemArea(Zone.Water water) {
         return zonePartitions.riverSystems().areaContaining(water);
     }
+
     public Set<Area<Zone.Meadow>> meadowAreas() {
         return zonePartitions.meadows().areas();
     }
+
     public Set<Area<Zone.Water>> riverSystemAreas() {
         return zonePartitions.riverSystems().areas();
     }
+
     public Area<Zone.Meadow> adjacentMeadow(Pos pos, Zone.Meadow meadowZone) {
         Set<Zone.Meadow> neighboringMeadowZones = new HashSet<>();
         for (PlacedTile placedTile : getTileNeighbourhood(pos)) {
@@ -102,29 +112,30 @@ public class Board {
                 tileAt(pos.translated(-1, 0))
         );
     }
+
     public int occupantCount(PlayerColor player, Occupant.Kind occupantKind) {
         int occupantCount = 0;
         switch (occupantKind) {
             case PAWN -> {
                 for (Area<Zone.Meadow> area : meadowAreas()) {
-                    for (PlayerColor occupantColor: area.occupants()) {
+                    for (PlayerColor occupantColor : area.occupants()) {
                         occupantCount += (occupantColor.equals(player)) ? 1 : 0;
                     }
                 }
                 for (Area<Zone.Forest> area : zonePartitions.forests().areas()) {
-                    for (PlayerColor occupantColor: area.occupants()) {
+                    for (PlayerColor occupantColor : area.occupants()) {
                         occupantCount += (occupantColor.equals(player)) ? 1 : 0;
                     }
                 }
                 for (Area<Zone.River> area : zonePartitions.rivers().areas()) {
-                    for (PlayerColor occupantColor: area.occupants()) {
+                    for (PlayerColor occupantColor : area.occupants()) {
                         occupantCount += (occupantColor.equals(player)) ? 1 : 0;
                     }
                 }
             }
             case HUT -> {
                 for (Area<Zone.Water> area : riverSystemAreas()) {
-                    for (PlayerColor occupantColor: area.occupants()) {
+                    for (PlayerColor occupantColor : area.occupants()) {
                         occupantCount += (occupantColor.equals(player)) ? 1 : 0;
                     }
                 }
@@ -134,7 +145,6 @@ public class Board {
     }
 
     public Set<Pos> insertionPositions() {
-        // TODO mol fett go teste
         Set<PlacedTile> insertionTiles = new HashSet<>();
         for (int placedTileIndex : placedTileIndices) {
             insertionTiles.addAll(getTileCross(placedTiles[placedTileIndex].pos()));
@@ -147,6 +157,7 @@ public class Board {
         return insertionPositions;
 
     }
+
     private Set<PlacedTile> getTileCross(Pos pos) {
         return Set.of(
                 tileAt(pos.neighbor(Direction.N)),
@@ -156,28 +167,13 @@ public class Board {
         );
     }
 
-    //==============================================================================================
-    //==                       BEWARE OF BRAIN ROT SPAGHETTI CODE                                 ==
-    //==                          !!! PROCEED WITH CAUTION !!!                                    ==
-    //==============================================================================================
-
     public PlacedTile lastPlacedTile() {
-        // TODO testing much important yes
-        // This will never work like this like what
         if (this.equals(EMPTY))
             return null;
 
-        return placedTiles[placedTileIndices[placedTileIndices.length-1]];
-        /*
-        ** NOW LEGACY DUE TO CHANGES TO PLACEDTILESINDICES **
-        List<PlacedTile> tileList = new ArrayList<>();
-        for (int placedTileIndex : placedTileIndices) {
-            if (placedTiles[placedTileIndex] != null)
-                tileList.add((placedTiles[placedTileIndex]));
-        }
-        return tileList.getLast();
-        */
+        return placedTiles[placedTileIndices[placedTileIndices.length - 1]];
     }
+
     public Set<Area<Zone.Forest>> forestsClosedByLastTile() {
         Set<Area<Zone.Forest>> closedForestAreas = new HashSet<>();
         for (Zone.Forest forestZone : lastPlacedTile().forestZones()) {
@@ -186,6 +182,7 @@ public class Board {
         }
         return closedForestAreas;
     }
+
     public Set<Area<Zone.River>> riversClosedByLastTile() {
         Set<Area<Zone.River>> closedRiverAreas = new HashSet<>();
         for (Zone.River riverZone : lastPlacedTile().riverZones()) {
@@ -194,6 +191,7 @@ public class Board {
         }
         return closedRiverAreas;
     }
+
     public boolean canAddTile(PlacedTile tile) {
         // TODO this might have to account for rotation and stuff, have to test
         if (!insertionPositions().contains(tile.pos()))
@@ -212,7 +210,7 @@ public class Board {
         for (Pos insertionPosition : insertionPositions()) {
             for (Rotation rotation : Rotation.ALL) {
                 // TODO Check if the placer parameter really can be null without causing problems
-                if (canAddTile(new PlacedTile(tile, null, rotation , insertionPosition)))
+                if (canAddTile(new PlacedTile(tile, null, rotation, insertionPosition)))
                     return true;
             }
         }
@@ -237,42 +235,19 @@ public class Board {
      */
 
     public Board withNewTile(PlacedTile tile) {
-        /* TODO The wording makes it seem like we should call couldPlaceTile,
-            but they pass a placedTile???
-            Why can they not just give clear instructions. Like do I have to add
-            to the zone partition too ??? Should this tile be connected  to any sides ????
-            What
-         */
-        //=======================================================================
-        //==                            VERSION 2                              ==
-        //==                      THE SWELTERING DISARRAY                      ==
-        //=======================================================================
 
-        // CouldPlaceTile makes no sense here as per the rules, a tile which cannot be added to
-        /* The board is supposed to be imediately removed from the game
-        if (!couldPlaceTile(tile.tile()))
-            throw new IllegalArgumentException("This tile cannot be placed");
-         */
-        if (!canAddTile(tile))
-            throw new IllegalArgumentException("Cannot add tile at this position");
+        if (!canAddTile(tile) || placedTileIndices.length == TOTAL_TILES_AVAILABLE)
+            throw new IllegalArgumentException("Cannot add tile");
 
         // This part seems pretty right to me, the cloning should be safe
         PlacedTile[] placedTilesWithNewTile = placedTiles.clone();
         placedTilesWithNewTile[calculateTileIndex(tile.pos())] = tile;
 
-        // This part might need refactoring since I changed the way placedTileIndices works
-        // in order to get this to work :)
-        // TODO Rename placedTileIndicesWithNewTile, this is too long
-        int[] placedTileIndicesWithNewTile = new int[placedTileIndices.length+1];
-        System.arraycopy(
-                placedTileIndices, 0,
-                placedTileIndicesWithNewTile, 0,
-                placedTileIndices.length);
-        placedTileIndicesWithNewTile[placedTileIndicesWithNewTile.length-1] =
+        int[] placedTileIndicesWithNewTile = Arrays.copyOf(placedTileIndices,
+                placedTileIndices.length + 1);
+        placedTileIndicesWithNewTile[placedTileIndices.length] =
                 calculateTileIndex(tile.pos());
 
-        // I have no clue if this part is actually necessary, they do not mention anything
-        // but it would be very stupid to do this someplace else
         ZonePartitions.Builder builder = new ZonePartitions.Builder(zonePartitions);
         builder.addTile(tile.tile());
         for (Direction direction : Direction.ALL) {
@@ -292,42 +267,29 @@ public class Board {
 
     public Board withOccupant(Occupant occupant) {
         //                           ??? ●﹏● ???
-
-        /* Step 1:
-            Figure out which tile and zone we should add the occupant to
-        */
         PlacedTile targetTile = tileWithId(Zone.tileId(occupant.zoneId()));
         Zone targetZone = targetTile.zoneWithId(occupant.zoneId());
         ZonePartitions.Builder builder = new ZonePartitions.Builder(zonePartitions);
+        PlayerColor occupantColor = targetTile.placer();
 
+        Objects.requireNonNull(occupantColor);
         if (!Objects.nonNull(targetTile.occupant())) {
             throw new IllegalArgumentException("Tile already occupied");
         }
 
-        /* Step 2:
-            Add the occupant to all the places it belongs to
-                - How should an occupant be added to the partition if we do not get the player ?
-            TODO this version is purposefully neither concise nor compact, but much more readable.
-             We need to refactor once all the logic is in place
-             TODO this needs to throw for some condition
-        */
-        PlayerColor occupantColor =  targetTile.placer();
-
-        // Am really quite confused how much of this needs to remain immutable and how much is ok like this
-
         builder.addInitialOccupant(occupantColor, occupant.kind(), targetZone);
 
-        placedTiles[calculateTileIndex(targetTile.pos())] =
-                placedTiles[calculateTileIndex(targetTile.pos())].withOccupant(occupant);
+        PlacedTile[] placedTilesWithNewOccupant = placedTiles.clone();
+        placedTilesWithNewOccupant[calculateTileIndex(targetTile.pos())] =
+                placedTilesWithNewOccupant[calculateTileIndex(targetTile.pos())].withOccupant(occupant);
 
-        // TODO return a new board while maintaining immutability
-         return new Board(placedTiles.clone(), placedTileIndices.clone(),
-                 builder.build(), cancelledAnimals());
+        return new Board(placedTilesWithNewOccupant, placedTileIndices.clone(),
+                builder.build(), cancelledAnimals());
     }
 
     public Board withoutOccupant(Occupant occupant) {
-        // TODO might have to throw if occupant does not exist
-        if (Objects.nonNull(occupant) && !occupants().contains(occupant)){
+
+        if (Objects.nonNull(occupant) && !occupants().contains(occupant)) {
             throw new IllegalArgumentException("Illegal Occupant");
         }
 
@@ -338,10 +300,11 @@ public class Board {
 
         builder.removePawn(occupantColor, targetZone);
 
-        placedTiles[calculateTileIndex(targetTile.pos())] =
-                placedTiles[calculateTileIndex(targetTile.pos())].withNoOccupant();
+        PlacedTile[] placedTilesWithoutOccupant = placedTiles.clone();
+        placedTilesWithoutOccupant[calculateTileIndex(targetTile.pos())] =
+                placedTilesWithoutOccupant[calculateTileIndex(targetTile.pos())].withNoOccupant();
 
-        return new Board(placedTiles.clone(), placedTileIndices.clone(),
+        return new Board(placedTilesWithoutOccupant, placedTileIndices.clone(),
                 builder.build(), cancelledAnimals());
     }
 
@@ -349,26 +312,41 @@ public class Board {
             Set<Area<Zone.Forest>> forests, Set<Area<Zone.River>> rivers) {
         ZonePartitions.Builder builder = new ZonePartitions.Builder(zonePartitions);
 
+        PlacedTile[] placedTilesWithoutGatherersOrFishers = placedTiles.clone();
         for (Area<Zone.Forest> forest : forests) {
             builder.clearGatherers(forest);
+
             for (Integer tileId : forest.tileIds()) {
-                // THis is overkill, it would not only remove the pawns we want to remove but also hunters
-                // TODO I have no clue how to do this in any other way
-                placedTiles[calculateTileIndex(tileWithId(tileId).pos())].withNoOccupant();
+                placedTilesWithoutGatherersOrFishers[
+                        calculateTileIndex(tileWithId(tileId).pos())].withNoOccupant();
             }
 
         }
         for (Area<Zone.River> river : rivers) {
             builder.clearFishers(river);
+
+            for (Integer tileId : river.tileIds()) {
+                if (placedTilesWithoutGatherersOrFishers[
+                        calculateTileIndex(tileWithId(tileId).pos())]
+                        .occupant().kind() == Occupant.Kind.PAWN) {
+
+                    placedTilesWithoutGatherersOrFishers[
+                            calculateTileIndex(tileWithId(tileId).pos())]
+                            .withNoOccupant();
+                }
+            }
         }
-        return new Board(placedTiles.clone(), placedTileIndices.clone(),
+        return new Board(placedTilesWithoutGatherersOrFishers, placedTileIndices.clone(),
                 builder.build(), cancelledAnimals());
     }
 
     public Board withMoreCancelledAnimals(Set<Animal> newlyCancelledAnimals) {
+
         ZonePartitions.Builder builder = new ZonePartitions.Builder(zonePartitions);
         Set<Animal> freshCancelledAnimals = cancelledAnimals();
+
         freshCancelledAnimals.addAll(newlyCancelledAnimals);
+
         return new Board(placedTiles.clone(), placedTileIndices.clone(),
                 builder.build(), freshCancelledAnimals);
     }
@@ -377,10 +355,10 @@ public class Board {
     public boolean equals(Object obj) {
 
         if (obj instanceof Board) {
-                return (this.cancelledAnimals.equals(((Board) obj).cancelledAnimals) &&
-                Arrays.equals(this.placedTiles, ((Board) obj).placedTiles) &&
-                Arrays.equals(this.placedTileIndices, ((Board) obj).placedTileIndices) &&
-                this.zonePartitions.equals(((Board) obj).zonePartitions));
+            return (this.cancelledAnimals.equals(((Board) obj).cancelledAnimals) &&
+                    Arrays.equals(this.placedTiles, ((Board) obj).placedTiles) &&
+                    Arrays.equals(this.placedTileIndices, ((Board) obj).placedTileIndices) &&
+                    this.zonePartitions.equals(((Board) obj).zonePartitions));
         }
         return false;
     }

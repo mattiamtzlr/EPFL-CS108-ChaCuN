@@ -120,6 +120,20 @@ class MyBoardTest {
         // : all occupants of the complete meadow
 
     }
+    // TODO Test occupantCount
+    // TODO Test insertionPositions
+    // TODO Test lastPlacedTile
+    // TODO Test forestsClosedByLastTile
+    // TODO Test riversClosedByLastTile
+    // TODO Test canAddTile
+    // TODO Test couldPlaceTile
+    // TODO Test withNewTile
+    // TODO Test withOccupant
+    // TODO Test withoutOccupant
+    // TODO Test withoutGatherersOrFishersIn
+    // TODO Test WithMoreCancelledAnimals
+    // TODO Test equals
+    // TODO Test hashCode
 
 
 
