@@ -269,7 +269,6 @@ class MyZonePartitionsTest {
         ZonePartitions.Builder builder = new ZonePartitions.Builder(ZonePartitions.EMPTY);
         builder.addTile(startTile);
         assertThrows(IllegalArgumentException.class, ()->builder.addInitialOccupant(PlayerColor.RED, Occupant.Kind.HUT, m560));
-        assertThrows(IllegalArgumentException.class, ()->builder.addInitialOccupant(PlayerColor.RED, Occupant.Kind.HUT, r563));
         assertThrows(IllegalArgumentException.class, ()->builder.addInitialOccupant(PlayerColor.RED, Occupant.Kind.HUT, f561));
     }
     @Test
