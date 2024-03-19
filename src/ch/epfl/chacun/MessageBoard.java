@@ -181,14 +181,12 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages) {
     public MessageBoard withScoredLogboat(PlayerColor scorer, Area<Zone.Water> riverSystem) {
         List<Message> newMessages = new ArrayList<>(Set.copyOf(this.messages));
 
-        if (riverSystem.zoneWithSpecialPower(Zone.SpecialPower.LOGBOAT) != null) {
-            int pointsGained = Points.forLogboat(Area.lakeCount(riverSystem));
-            newMessages.add(new Message(
-                    this.textMaker.playerScoredLogboat(
-                            scorer, pointsGained, Area.lakeCount(riverSystem)),
-                    pointsGained, Collections.singleton(scorer), riverSystem.tileIds()
-            ));
-        }
+        int pointsGained = Points.forLogboat(Area.lakeCount(riverSystem));
+        newMessages.add(new Message(
+                this.textMaker.playerScoredLogboat(
+                        scorer, pointsGained, Area.lakeCount(riverSystem)),
+                pointsGained, Collections.singleton(scorer), riverSystem.tileIds()
+        ));
 
         return new MessageBoard(this.textMaker, newMessages);
     }
@@ -267,7 +265,7 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages) {
         Zone.Meadow specialPowerZone = (Zone.Meadow)
                 adjacentMeadow.zoneWithSpecialPower(Zone.SpecialPower.PIT_TRAP);
 
-        if (specialPowerZone != null) {
+        if (adjacentMeadow.isOccupied()) {
             Set<Animal> animals = Area.animals(
                     adjacentMeadow,
                     Set.copyOf(cancelledAnimals)
@@ -305,8 +303,7 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages) {
     public MessageBoard withScoredRaft(Area<Zone.Water> riverSystem) {
         List<Message> newMessages = new ArrayList<>(Set.copyOf(this.messages));
 
-        if (riverSystem.zoneWithSpecialPower(Zone.SpecialPower.RAFT) != null
-            && riverSystem.isOccupied()) {
+        if (riverSystem.isOccupied()) {
 
             int lakeCount = Area.lakeCount(riverSystem);
             int pointsGained = Points.forRaft(lakeCount);
@@ -333,7 +330,7 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages) {
         List<Message> newMessages = new ArrayList<>(Set.copyOf(this.messages));
 
         newMessages.add(new Message(
-                this.textMaker.playersWon(winners, points), points, winners, Collections.emptySet()
+                this.textMaker.playersWon(winners, points), 0, winners, Collections.emptySet()
         ));
 
         return new MessageBoard(this.textMaker, newMessages);

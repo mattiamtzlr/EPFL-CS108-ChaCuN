@@ -1,9 +1,11 @@
-package ch.epfl.chacun;
+package ch.epfl.chacun.week4;
 
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.Set;
+
+import ch.epfl.chacun.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;

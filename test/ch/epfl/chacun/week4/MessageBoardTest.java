@@ -1,9 +1,11 @@
-package ch.epfl.chacun;
+package ch.epfl.chacun.week4;
 
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
 import java.util.stream.Collectors;
+
+import ch.epfl.chacun.*;
 
 import static ch.epfl.chacun.PlayerColor.*;
 import static ch.epfl.chacun.Zone.Forest.*;
