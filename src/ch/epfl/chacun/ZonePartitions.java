@@ -158,7 +158,8 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests,
                     }
                 }
                 case HUT -> {
-                    if (Objects.requireNonNull(occupiedZone) instanceof Zone.Lake) {
+                    if (Objects.requireNonNull(occupiedZone) instanceof Zone.Lake ||
+                        Objects.requireNonNull(occupiedZone) instanceof Zone.River) {
                         riverSystemsBuilder.addInitialOccupant(
                                 (Zone.Water) occupiedZone, player);
                     } else {
