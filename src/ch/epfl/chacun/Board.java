@@ -29,7 +29,10 @@ public class Board {
     }
 
     public PlacedTile tileAt(Pos pos) {
-        return placedTiles[calculateTileIndex(pos)];
+        return (Math.abs(pos.x()) < 13 &&
+                Math.abs(pos.y()) < 13) ?
+                placedTiles[calculateTileIndex(pos)]
+                : null ;
     }
 
     private static int calculateTileIndex(Pos pos) {
@@ -47,6 +50,7 @@ public class Board {
         return Set.copyOf(cancelledAnimals);
     }
 
+    //TODO Immutability ?
     public Set<Occupant> occupants(){
         Set<Occupant> occupants = new HashSet<>();
         for (int placedTileIndex : placedTileIndices) {
@@ -296,13 +300,18 @@ public class Board {
         Zone targetZone = targetTile.zoneWithId(occupant.zoneId());
         ZonePartitions.Builder builder = new ZonePartitions.Builder(zonePartitions);
 
+        if (!Objects.nonNull(targetTile.occupant())) {
+            throw new IllegalArgumentException("Tile already occupied");
+        }
+
         /* Step 2:
             Add the occupant to all the places it belongs to
                 - How should an occupant be added to the partition if we do not get the player ?
             TODO this version is purposefully neither concise nor compact, but much more readable.
              We need to refactor once all the logic is in place
+             TODO this needs to throw for some condition
         */
-        PlayerColor occupantColor = PlayerColor.RED; // TODO here we have to find the color, this is wip
+        PlayerColor occupantColor =  targetTile.placer();
 
         // Am really quite confused how much of this needs to remain immutable and how much is ok like this
 
@@ -317,11 +326,15 @@ public class Board {
     }
 
     public Board withoutOccupant(Occupant occupant) {
+        // TODO might have to throw if occupant does not exist
+        if (Objects.nonNull(occupant) && !occupants().contains(occupant)){
+            throw new IllegalArgumentException("Illegal Occupant");
+        }
 
         PlacedTile targetTile = tileWithId(Zone.tileId(occupant.zoneId()));
         Zone targetZone = targetTile.zoneWithId(occupant.zoneId());
         ZonePartitions.Builder builder = new ZonePartitions.Builder(zonePartitions);
-        PlayerColor occupantColor = PlayerColor.RED; // TODO here we have to find the color, this is wip
+        PlayerColor occupantColor = targetTile.placer();
 
         builder.removePawn(occupantColor, targetZone);
 
