@@ -88,29 +88,28 @@ public final class Board {
     }
 
     public Area<Zone.Meadow> adjacentMeadow(Pos pos, Zone.Meadow meadowZone) {
+
         Set<Zone.Meadow> neighboringMeadowZones = new HashSet<>();
-        for (PlacedTile placedTile : getTileNeighbourhood(pos)) {
+        for (PlacedTile placedTile : getTileAdjacentPositions(pos)) {
             neighboringMeadowZones.addAll(placedTile.meadowZones());
         }
         Set<Zone.Meadow> zones = new HashSet<>(Set.copyOf(meadowArea(meadowZone).zones()));
         zones.retainAll(neighboringMeadowZones);
+        zones.add(meadowZone);
 
         return new Area<>(zones, meadowArea(meadowZone).occupants(), 0);
     }
 
     // TODO This needs some improvements
-    private Set<PlacedTile> getTileNeighbourhood(Pos pos) {
-        return Set.of(
-                tileAt(pos),
-                tileAt(pos.translated(-1, -1)),
-                tileAt(pos.translated(0, -1)),
-                tileAt(pos.translated(1, -1)),
-                tileAt(pos.translated(1, 0)),
-                tileAt(pos.translated(1, 1)),
-                tileAt(pos.translated(0, 1)),
-                tileAt(pos.translated(-1, 1)),
-                tileAt(pos.translated(-1, 0))
-        );
+    private Set<PlacedTile> getTileAdjacentPositions(Pos pos) {
+        Set<PlacedTile> returnSet = getTileNeighborPositions(pos);
+        returnSet.add(tileAt(pos.translated(-1, -1)));
+        returnSet.add(tileAt(pos.translated(1, -1)));
+        returnSet.add(tileAt(pos.translated(-1, 1)));
+        returnSet.add(tileAt(pos.translated(1, 1)));
+        returnSet.removeIf(Objects::isNull);
+
+        return returnSet;
     }
 
     public int occupantCount(PlayerColor player, Occupant.Kind occupantKind) {
@@ -147,7 +146,7 @@ public final class Board {
     public Set<Pos> insertionPositions() {
         Set<PlacedTile> insertionTiles = new HashSet<>();
         for (int placedTileIndex : placedTileIndices) {
-            insertionTiles.addAll(getTileCross(placedTiles[placedTileIndex].pos()));
+            insertionTiles.addAll(getTileNeighborPositions(placedTiles[placedTileIndex].pos()));
         }
         Arrays.asList(placedTiles).forEach(insertionTiles::remove);
         Set<Pos> insertionPositions = new HashSet<>();
@@ -158,13 +157,15 @@ public final class Board {
 
     }
 
-    private Set<PlacedTile> getTileCross(Pos pos) {
-        return Set.of(
-                tileAt(pos.neighbor(Direction.N)),
-                tileAt(pos.neighbor(Direction.E)),
-                tileAt(pos.neighbor(Direction.S)),
-                tileAt(pos.neighbor(Direction.W))
-        );
+    private Set<PlacedTile> getTileNeighborPositions(Pos pos) {
+
+        Set<PlacedTile> returnSet = new HashSet<>();
+        for (Direction direction : Direction.ALL) {
+            returnSet.add(tileAt(pos.neighbor(direction)));
+        }
+        returnSet.removeIf(Objects::isNull);
+
+        return returnSet;
     }
 
     public PlacedTile lastPlacedTile() {
@@ -193,12 +194,13 @@ public final class Board {
     }
 
     public boolean canAddTile(PlacedTile tile) {
-        // TODO this might have to account for rotation and stuff, have to test
-        if (!insertionPositions().contains(tile.pos()))
+
+        if (!insertionPositions().isEmpty() && !insertionPositions().contains(tile.pos()))
             return false;
 
         for (Direction direction : Direction.ALL) {
-            if (!tile.side(direction).isSameKindAs(
+            if (tileAt(tile.pos().neighbor(direction))!=null &&
+                    !tile.side(direction).isSameKindAs(
                     tileAt(tile.pos().neighbor(direction))
                             .side(direction.opposite())))
                 return false;
@@ -251,7 +253,7 @@ public final class Board {
         ZonePartitions.Builder builder = new ZonePartitions.Builder(zonePartitions);
         builder.addTile(tile.tile());
         for (Direction direction : Direction.ALL) {
-            if (tile.pos().neighbor(direction) != null) {
+            if (tileAt(tile.pos().neighbor(direction)) != null) {
                 builder.connectSides(
                         tile.side(direction),
                         tileAt(tile.pos().neighbor(direction)).side(direction.opposite()));
