@@ -1,6 +1,7 @@
 package ch.epfl.chacun;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * TODO Description
@@ -55,12 +56,19 @@ public final class Board {
 
     //TODO Immutability ?
     public Set<Occupant> occupants() {
-        Set<Occupant> occupants = new HashSet<>();
+        /*Set<Occupant> occupants = new HashSet<>();
         for (int placedTileIndex : placedTileIndices) {
             occupants.add(placedTiles[placedTileIndex].occupant());
 
-        }
-        return occupants;
+        }*/
+
+        // TODO don't know if this .clone() is necessary
+        return Arrays.stream(placedTiles.clone())
+            .filter(Objects::nonNull)
+            .map(PlacedTile::occupant)
+            .collect(Collectors.toSet());
+
+//        return occupants;
     }
 
     public Area<Zone.Forest> forestArea(Zone.Forest forest) {
@@ -112,31 +120,31 @@ public final class Board {
         return returnSet;
     }
 
+    private static <Z extends Zone> int countOccupantsInArea(Area<Z> area, PlayerColor player) {
+        int occupantCount = 0;
+        for (PlayerColor occupantColor : area.occupants()) {
+            occupantCount += (occupantColor.equals(player)) ? 1 : 0;
+        }
+        return occupantCount;
+    }
+
     public int occupantCount(PlayerColor player, Occupant.Kind occupantKind) {
         int occupantCount = 0;
         switch (occupantKind) {
             case PAWN -> {
                 for (Area<Zone.Meadow> area : meadowAreas()) {
-                    for (PlayerColor occupantColor : area.occupants()) {
-                        occupantCount += (occupantColor.equals(player)) ? 1 : 0;
-                    }
+                    occupantCount += countOccupantsInArea(area, player);
                 }
                 for (Area<Zone.Forest> area : zonePartitions.forests().areas()) {
-                    for (PlayerColor occupantColor : area.occupants()) {
-                        occupantCount += (occupantColor.equals(player)) ? 1 : 0;
-                    }
+                    occupantCount += countOccupantsInArea(area, player);
                 }
                 for (Area<Zone.River> area : zonePartitions.rivers().areas()) {
-                    for (PlayerColor occupantColor : area.occupants()) {
-                        occupantCount += (occupantColor.equals(player)) ? 1 : 0;
-                    }
+                    occupantCount += countOccupantsInArea(area, player);
                 }
             }
             case HUT -> {
                 for (Area<Zone.Water> area : riverSystemAreas()) {
-                    for (PlayerColor occupantColor : area.occupants()) {
-                        occupantCount += (occupantColor.equals(player)) ? 1 : 0;
-                    }
+                    occupantCount += countOccupantsInArea(area, player);
                 }
             }
         }
@@ -256,15 +264,25 @@ public final class Board {
             if (tileAt(tile.pos().neighbor(direction)) != null) {
                 builder.connectSides(
                         tile.side(direction),
-                        tileAt(tile.pos().neighbor(direction)).side(direction.opposite()));
+                        tileAt(tile.pos().neighbor(direction))
+                            .side(direction.opposite()));
             }
         }
+
+        Board toReturn = new Board(
+            placedTilesWithNewTile, placedTileIndicesWithNewTile,
+            builder.build(), cancelledAnimals()
+        );
+
+        // Occupants have to be added here I guess otherwise the count doesn't work
+        if (Objects.nonNull(tile.occupant()))
+            builder.addInitialOccupant(tile.placer(), tile.occupant().kind(),
+                tile.zoneWithId(tile.occupant().zoneId()));
 
         return new Board(
                 placedTilesWithNewTile, placedTileIndicesWithNewTile,
                 builder.build(), cancelledAnimals()
         );
-
     }
 
     public Board withOccupant(Occupant occupant) {

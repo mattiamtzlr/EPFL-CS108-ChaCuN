@@ -1,6 +1,7 @@
 package ch.epfl.chacun.week5;
 
 import ch.epfl.chacun.*;
+import ch.epfl.chacun.tile.Tiles;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
@@ -101,16 +102,25 @@ class MyBoardTest {
     // occupants
     @Test
     void occupantsWorksForTrivialCase() {
+        Board board = Board.EMPTY;
+        Occupant occupant1 = new Occupant(Occupant.Kind.PAWN, m610.id());
+        Occupant occupant2 = new Occupant(Occupant.Kind.HUT, r881.id());
 
+        Board actual = board.withNewTile(
+            new PlacedTile(t61, BLUE, Rotation.NONE, new Pos(2, 2), occupant1)
+        ).withNewTile(
+            new PlacedTile(t88, GREEN, Rotation.LEFT, new Pos(-2, 3), occupant2)
+        );
+
+        assertEquals(Set.of(occupant1, occupant2), actual.occupants());
     }
     @Test
     void occupantsWorksForNoOccupants() {
-
+        Board board = Board.EMPTY;
+        assertEquals(Collections.emptySet(), board.occupants());
     }
 
     // *Area type methods
-
-
 
     @Test
     void forestAreaWorksForTrivialCase() {
@@ -195,7 +205,8 @@ class MyBoardTest {
                 .withNewTile(t88PlacedWest)
                 .withNewTile(t61PlacedWestOft88);
 
-        Area<Zone.Meadow> expectedAdjacentMeadowAreaM562 = new Area<>(Set.of(m880, m562), Collections.emptyList(), 0);
+        // The adjacent meadow area contains ALL occupants of the original area thus RED for m562
+        Area<Zone.Meadow> expectedAdjacentMeadowAreaM562 = new Area<>(Set.of(m880, m562), Collections.singletonList(RED), 0);
         Area<Zone.Meadow> expectedAdjacentMeadowAreaM560 = new Area<>(Set.of(m560, m882), Collections.emptyList(), 0);
 
         assertEquals(expectedAdjacentMeadowAreaM560,
@@ -210,6 +221,24 @@ class MyBoardTest {
 
     }
 
+    @Test
+    void occupantsCountWorksOnTrivialCase() {
+        Board board = Board.EMPTY;
+        Occupant occupant1 = new Occupant(Occupant.Kind.PAWN, m610.id());
+        Occupant occupant2 = new Occupant(Occupant.Kind.HUT, r881.id());
+        Occupant occupant3 = new Occupant(Occupant.Kind.HUT, 38);
+
+        Board actual = board.withNewTile(
+            new PlacedTile(t61, BLUE, Rotation.NONE, new Pos(2, 2), occupant1)
+        ).withNewTile(
+            new PlacedTile(t88, GREEN, Rotation.LEFT, new Pos(-2, 3), occupant2)
+        ).withNewTile(
+            new PlacedTile(Tiles.TILES.get(3), GREEN, Rotation.NONE, new Pos(-2, -1), occupant3)
+        );
+
+        assertEquals(1, actual.occupantCount(BLUE, Occupant.Kind.PAWN));
+        assertEquals(2, actual.occupantCount(GREEN, Occupant.Kind.HUT));
+    }
     
     // TODO Test occupantCount
     // TODO Test insertionPositions
