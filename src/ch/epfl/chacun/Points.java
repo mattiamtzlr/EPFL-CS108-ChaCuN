@@ -11,7 +11,8 @@ public final class Points {
 
     /**
      * Method that calculates the point gain for closing a forest
-     * @param tileCount number of tiles the forest spans
+     *
+     * @param tileCount          number of tiles the forest spans
      * @param mushroomGroupCount number of mushroom groups within the forest
      * @return points for a closed forest
      */
@@ -24,6 +25,7 @@ public final class Points {
 
     /**
      * Method that calculates the point gain for closing a River
+     *
      * @param tileCount the number of tiles the river stretches
      * @param fishCount the number of fishes in the river
      * @return points for closed river
@@ -38,9 +40,10 @@ public final class Points {
     /**
      * Method that calculates the point gain for a meadow
      * > this is only relevant in the final point counting phase
+     *
      * @param mammothCount the number of mammoths in a meadow
      * @param aurochsCount the number of aurochs in a meadow
-     * @param deerCount the number of deer in a meadow
+     * @param deerCount    the number of deer in a meadow
      * @return points for a given meadow
      */
     public static int forMeadow(int mammothCount, int aurochsCount, int deerCount) {
@@ -53,6 +56,7 @@ public final class Points {
 
     /**
      * Method that calculates the point gain for a river system
+     *
      * @param fishCount the number of fish in the river system
      * @return points for a given river system
      */
@@ -63,6 +67,7 @@ public final class Points {
 
     /**
      * Method that calculates the point gain for a Logboat
+     *
      * @param lakeCount the number of lakes connected to the Logboat
      * @return points for the logboat
      */
@@ -73,6 +78,7 @@ public final class Points {
 
     /**
      * Method that calculates the point gain for a Raft
+     *
      * @param lakeCount the number of lakes connected to the Raft
      * @return points for the raft
      */

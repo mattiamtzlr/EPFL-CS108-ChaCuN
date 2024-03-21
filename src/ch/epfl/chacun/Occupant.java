@@ -5,20 +5,12 @@ import java.util.Objects;
 /**
  * Occupant Record
  *
+ * @param kind   (Occupant.Kind) the kind of occupant
+ * @param zoneId (int) the id of the zone in which the occupant lives
  * @author Mattia Metzler (372025)
  * @author Leoluca Bernardi (374107)
- *
- * @param kind (Occupant.Kind) the kind of occupant
- * @param zoneId (int) the id of the zone in which the occupant lives
  */
 public record Occupant(Kind kind, int zoneId) {
-    /**
-     * Enumerator for the occupant kind
-     */
-    public enum Kind {
-        PAWN, HUT
-    }
-
     /**
      * Compact Constructor for Occupant, which checks whether the params are valid.
      */
@@ -29,6 +21,7 @@ public record Occupant(Kind kind, int zoneId) {
 
     /**
      * Returns the number of occupants for a given kind.
+     *
      * @param kind (Kind) the kind to be queried
      * @return (int) 5 for PAWN, 3 for HUT
      */
@@ -37,5 +30,12 @@ public record Occupant(Kind kind, int zoneId) {
             case PAWN -> 5;
             case HUT -> 3;
         };
+    }
+
+    /**
+     * Enumerator for the occupant kind
+     */
+    public enum Kind {
+        PAWN, HUT
     }
 }

@@ -15,6 +15,7 @@ public enum Direction {
 
     /**
      * Method to change a direction by rotation
+     *
      * @param rotation rotation to be applied
      * @return new direction with applied rotation
      */
@@ -24,6 +25,7 @@ public enum Direction {
 
     /**
      * Method to change the direction to opposite
+     *
      * @return new direction in oposite direction
      */
     public Direction opposite() {

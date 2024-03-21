@@ -1,4 +1,5 @@
 package ch.epfl.chacun;
+
 import java.util.List;
 
 
@@ -10,15 +11,18 @@ import java.util.List;
  */
 public sealed interface TileSide {
     List<Zone> zones();
+
     boolean isSameKindAs(TileSide that);
 
     /**
      * Forest record representing the forest type tile border
+     *
      * @param forest a forest zone
      */
     record Forest(Zone.Forest forest) implements TileSide {
         /**
          * Returns a list of the zone on this side of the tile
+         *
          * @return (List) list of zone on this TileSide
          */
         @Override
@@ -28,6 +32,7 @@ public sealed interface TileSide {
 
         /**
          * Method to check whether two TileSides are of the same kind
+         *
          * @param that (TileSide) Side of a tile we want to compare
          * @return Boolean value if "that" is a forest tile side
          */
@@ -39,11 +44,13 @@ public sealed interface TileSide {
 
     /**
      * Forest record representing the meadow type tile border
+     *
      * @param meadow a meadow zone
      */
     record Meadow(Zone.Meadow meadow) implements TileSide {
         /**
          * Returns a list of the zone on this side of the tile
+         *
          * @return (List) list of zone on this TileSide
          */
         @Override
@@ -53,6 +60,7 @@ public sealed interface TileSide {
 
         /**
          * Method to check whether two TileSides are of the same kind
+         *
          * @param that (TileSide) Side of a tile we want to compare
          * @return Boolean value if "that" is a meadow tile side
          */
@@ -64,13 +72,15 @@ public sealed interface TileSide {
 
     /**
      * Forest record representing the river type tile border
+     *
      * @param meadow1 the first meadow zone (counterclockwise of the river)
-     * @param river the river zone
+     * @param river   the river zone
      * @param meadow2 the second meadow zone (clockwise of the river)
      */
     record River(Zone.Meadow meadow1, Zone.River river, Zone.Meadow meadow2) implements TileSide {
         /**
          * Returns a list of the zones on this side of the tile
+         *
          * @return (List) list of zones on this TileSide
          */
         @Override
@@ -80,6 +90,7 @@ public sealed interface TileSide {
 
         /**
          * Method to check whether two TileSides are of the same kind
+         *
          * @param that (TileSide) Side of a tile we want to compare
          * @return Boolean value if "that" is a river tile side
          */

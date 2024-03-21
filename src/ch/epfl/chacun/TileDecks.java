@@ -16,7 +16,8 @@ import java.util.function.Predicate;
 public record TileDecks(List<Tile> startTiles, List<Tile> normalTiles, List<Tile> menhirTiles) {
     /**
      * Compact constructor to ensure immutability
-     * @param startTiles the starting tile
+     *
+     * @param startTiles  the starting tile
      * @param normalTiles a collection containing all normal tiles
      * @param menhirTiles a collection containing all menhir tiles
      */
@@ -28,6 +29,7 @@ public record TileDecks(List<Tile> startTiles, List<Tile> normalTiles, List<Tile
 
     /**
      * Method to calculate the size of a chosen deck
+     *
      * @param kind Deck kind
      * @return the number of cards in the chosen deck
      */
@@ -42,6 +44,7 @@ public record TileDecks(List<Tile> startTiles, List<Tile> normalTiles, List<Tile
 
     /**
      * Method to get the top Tile in a chosen deck
+     *
      * @param kind Deck kind
      * @return the Tile on the top of a chosen deck, null if the deck is empty
      */
@@ -59,31 +62,33 @@ public record TileDecks(List<Tile> startTiles, List<Tile> normalTiles, List<Tile
 
     /**
      * Method to get the deck triplet without one top tile
+     *
      * @param kind Deck kind
      * @return a TileDecks instance with one tile missing from a chosen deck
      */
     public TileDecks withTopTileDrawn(Tile.Kind kind) {
         Preconditions.checkArgument(deckSize(kind) != 0);
-        return switch(kind) {
+        return switch (kind) {
             case START -> new TileDecks(
-                        startTiles.subList(1, startTiles.size()),
-                        normalTiles,
-                        menhirTiles);
+                startTiles.subList(1, startTiles.size()),
+                normalTiles,
+                menhirTiles);
             case NORMAL -> new TileDecks(
-                    startTiles,
-                    normalTiles.subList(1, normalTiles.size()),
-                    menhirTiles);
+                startTiles,
+                normalTiles.subList(1, normalTiles.size()),
+                menhirTiles);
             case MENHIR -> new TileDecks(
-                    startTiles,
-                    normalTiles,
-                    menhirTiles.subList(1, menhirTiles.size())
+                startTiles,
+                normalTiles,
+                menhirTiles.subList(1, menhirTiles.size())
             );
         };
     }
 
     /**
      * Method that allows to batch remove tiles from the top of a chosen deck
-     * @param kind Deck kind
+     *
+     * @param kind      Deck kind
      * @param predicate Condition to be checked on the top tiles of the chosen deck
      * @return a TileDecks instance with every tile on the top of (kind)Tiles that does not pass the
      * predicate test removed

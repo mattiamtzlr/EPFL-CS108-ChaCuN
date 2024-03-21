@@ -20,6 +20,7 @@ public enum Rotation {
     /**
      * Adds another rotation to the current instance, e.g. adding RIGHT to HALF_TURN returns
      * LEFT.
+     *
      * @param that (Rotation) rotation to add
      * @return (Rotation) sum of the rotations
      */
@@ -30,6 +31,7 @@ public enum Rotation {
     /**
      * Returns the opposite of the instance, meaning the rotation, which when added to the
      * original one yields NONE.
+     *
      * @return (Rotation) the opposite of the rotation
      */
     public Rotation negated() {
@@ -39,6 +41,7 @@ public enum Rotation {
     /**
      * Returns the number of clock-wise quarter turns represented by the rotation, e.g. HALF_TURN
      * is 2.
+     *
      * @return (int) the number of clock-wise quarter turns
      */
     public int quarterTurnsCW() {
@@ -48,6 +51,7 @@ public enum Rotation {
     /**
      * Returns the number of clock-wise degrees represented by the rotation, e.g. HALF_TURN is
      * 180°.
+     *
      * @return the number of degrees.
      */
     public int degreesCW() {
