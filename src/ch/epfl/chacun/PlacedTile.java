@@ -12,13 +12,13 @@ import java.util.Set;
  * @author Leoluca Bernardi (374107)
  */
 public record PlacedTile(
-    Tile tile, PlayerColor placer, Rotation rotation, Pos pos, Occupant occupant
+        Tile tile, PlayerColor placer, Rotation rotation, Pos pos, Occupant occupant
 ) {
     /**
      * PlacedTile constructor which checks if tile rotation and pos are non-null.
      *
      * @param tile     tile to be placed
-     * @param placer   color of the player placing the tile
+     * @param placer   color of the player placing the tile (can be null for starting tile)
      * @param rotation rotation in which the tile is to be placed
      * @param pos      position on the board where the tile should be placed
      * @param occupant (Occupant) the potential occupant of the tile, null if none
@@ -33,7 +33,7 @@ public record PlacedTile(
      * Constructor that can be called without specifying an occupant
      *
      * @param tile     tile to be placed
-     * @param placer   color of the player placing the tile
+     * @param placer   color of the player placing the tile (can be null for starting tile)
      * @param rotation rotation in which the tile is to be placed
      * @param pos      position on the board where the tile should be placed
      */
@@ -141,9 +141,9 @@ public record PlacedTile(
     }
 
     /**
-     * Method to find pieces that are possible to place on this tile
+     * Method to find occupants that are possible to place on this tile
      *
-     * @return a set of the pieces that are placeable
+     * @return a set of the occupants that are placeable
      */
     public Set<Occupant> potentialOccupants() {
         if (placer == null)
