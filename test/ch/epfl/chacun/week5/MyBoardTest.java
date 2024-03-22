@@ -525,16 +525,17 @@ class MyBoardTest {
         assertEquals(t88PlacedWest, board.tileAt(new Pos(-1,0)));
     }
     @Test
-    void withNewTileThrowsOnBoardFull() {
-        Board board = Board.EMPTY;
+    void withNewTileThrowsOnNotAbleToAdd() {
+        Board board = Board.EMPTY
+                .withNewTile(startTilePlacedRotNone)
+                .withNewTile(t61Placed)
+                .withNewTile(new PlacedTile(TILES.get(34), GREEN, Rotation.RIGHT, new Pos(-1, -1)))
+                .withNewTile(new PlacedTile(TILES.get(31), RED, Rotation.NONE, new Pos(-2, -1)))
+                .withNewTile(new PlacedTile(TILES.get(35), BLUE, Rotation.NONE, new Pos(-2, 0)))
+                .withNewTile(new PlacedTile(TILES.get(33), PURPLE, Rotation.LEFT, new Pos(-2, 1)))
+                .withNewTile(new PlacedTile(TILES.get(36), YELLOW, Rotation.LEFT, new Pos(-1, 1)));
 
-        for (int i = -12; i < 12; i++) {
-            for (int j = -12; j<12; j++) {
-            Pos position = new Pos(i, j);
-            board = board.withNewTile(new PlacedTile(t61, RED, Rotation.NONE, position));
-            }
-        }
-
+        assertThrows(IllegalArgumentException.class, ()-> board.withNewTile(new PlacedTile(TILES.get(36), YELLOW, Rotation.NONE, new Pos(-1, 1))));
 
     }
 
