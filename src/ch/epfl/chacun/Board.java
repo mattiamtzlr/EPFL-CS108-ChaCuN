@@ -102,7 +102,7 @@ public final class Board {
 
     // TODO This needs some improvements
     private Set<PlacedTile> getTileAdjacentPositions(Pos pos) {
-        Set<PlacedTile> returnSet = getTileNeighborPositions(pos);
+        Set<PlacedTile> returnSet = getNeighborTiles(pos);
         returnSet.add(tileAt(pos.translated(-1, -1)));
         returnSet.add(tileAt(pos.translated(1, -1)));
         returnSet.add(tileAt(pos.translated(-1, 1)));
@@ -144,20 +144,32 @@ public final class Board {
     }
 
     public Set<Pos> insertionPositions() {
-        Set<PlacedTile> insertionTiles = new HashSet<>();
-        for (int placedTileIndex : placedTileIndices) {
-            insertionTiles.addAll(getTileNeighborPositions(placedTiles[placedTileIndex].pos()));
-        }
-        Arrays.asList(placedTiles).forEach(insertionTiles::remove);
-        Set<Pos> insertionPositions = new HashSet<>();
-        for (PlacedTile insertionTile : insertionTiles) {
-            insertionPositions.add(insertionTile.pos());
-        }
-        return insertionPositions;
+        if (this.equals(Board.EMPTY))
+            return Set.of(new Pos(0,0));
+
+        Set<Pos> occupiedPositions =  Arrays.stream(placedTiles.clone())
+                .filter(Objects::nonNull)
+                .map(PlacedTile::pos)
+                .collect(Collectors.toSet());
+
+        Set<Pos> potentialInsertPosition = new HashSet<>();
+        Arrays.stream(placedTiles.clone())
+                .filter(Objects::nonNull)
+                .map((a) -> getNeighborPositions(a.pos()))
+                .forEach(potentialInsertPosition::addAll);
+
+
+        potentialInsertPosition.removeAll(occupiedPositions);
+        return potentialInsertPosition;
 
     }
-
-    private Set<PlacedTile> getTileNeighborPositions(Pos pos) {
+    private Set<Pos> getNeighborPositions(Pos pos) {
+        return Set.of(
+                pos.neighbor(Direction.N), pos.neighbor(Direction.E),
+                pos.neighbor(Direction.S), pos.neighbor(Direction.W)
+        );
+    }
+    private Set<PlacedTile> getNeighborTiles(Pos pos) {
 
         Set<PlacedTile> returnSet = new HashSet<>();
         for (Direction direction : Direction.ALL) {
@@ -244,11 +256,6 @@ public final class Board {
                             .side(direction.opposite()));
             }
         }
-
-        Board toReturn = new Board(
-            placedTilesWithNewTile, placedTileIndicesWithNewTile,
-            builder.build(), cancelledAnimals()
-        );
 
         return new Board(
                 placedTilesWithNewTile, placedTileIndicesWithNewTile,
@@ -340,7 +347,8 @@ public final class Board {
     public Board withMoreCancelledAnimals(Set<Animal> newlyCancelledAnimals) {
 
         ZonePartitions.Builder builder = new ZonePartitions.Builder(zonePartitions);
-        Set<Animal> freshCancelledAnimals = cancelledAnimals();
+        Set<Animal> freshCancelledAnimals = new HashSet<>();
+        freshCancelledAnimals.addAll(cancelledAnimals());
 
         freshCancelledAnimals.addAll(newlyCancelledAnimals);
 
