@@ -38,6 +38,7 @@ public final class Board {
                 : null;
     }
 
+
     private static int calculateTileIndex(Pos pos) {
         return (pos.x() + REACH) + (REACH + pos.y()) * 25;
     }
@@ -54,21 +55,12 @@ public final class Board {
         return Set.copyOf(cancelledAnimals);
     }
 
-    //TODO Immutability ?
     public Set<Occupant> occupants() {
-        /*Set<Occupant> occupants = new HashSet<>();
-        for (int placedTileIndex : placedTileIndices) {
-            occupants.add(placedTiles[placedTileIndex].occupant());
-
-        }*/
-
-        // TODO don't know if this .clone() is necessary
         return Arrays.stream(placedTiles.clone())
-            .filter(Objects::nonNull)
-            .map(PlacedTile::occupant)
-            .collect(Collectors.toSet());
-
-//        return occupants;
+                .filter(Objects::nonNull)
+                .map(PlacedTile::occupant)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
     }
 
     public Area<Zone.Forest> forestArea(Zone.Forest forest) {
@@ -227,22 +219,6 @@ public final class Board {
         return false;
     }
 
-    /*  TODO I just found this part of the instructions, feeling stupid now, will have to implement
-         
-        All "derivation" methods - those whose name begins with with and which allow you to obtain a
-        new array derived from the receiver - must take care to copy the arrays before modifying
-        them and then passing them to the constructor, otherwise the immutability of the class would
-        not be guaranteed.
-
-        When arrays do not change size, this can be done using the clone method. When they do change
-        size, Arrays' copyOf method is preferable, as it copies an array into a new array of a
-        different size from the original.
-
-        Derivation methods must also ensure that zone partitions always match the contents of the
-        tray. To do this, they must always calculate not only the new arrays containing the tiles
-        and their indices, but also the corresponding new partitions.
-
-     */
 
     public Board withNewTile(PlacedTile tile) {
 
@@ -274,11 +250,6 @@ public final class Board {
             builder.build(), cancelledAnimals()
         );
 
-        // Occupants have to be added here I guess otherwise the count doesn't work
-        if (Objects.nonNull(tile.occupant()))
-            builder.addInitialOccupant(tile.placer(), tile.occupant().kind(),
-                tile.zoneWithId(tile.occupant().zoneId()));
-
         return new Board(
                 placedTilesWithNewTile, placedTileIndicesWithNewTile,
                 builder.build(), cancelledAnimals()
@@ -293,7 +264,7 @@ public final class Board {
         PlayerColor occupantColor = targetTile.placer();
 
         Objects.requireNonNull(occupantColor);
-        if (!Objects.nonNull(targetTile.occupant())) {
+        if (Objects.nonNull(targetTile.occupant())) {
             throw new IllegalArgumentException("Tile already occupied");
         }
 
@@ -330,6 +301,7 @@ public final class Board {
 
     public Board withoutGatherersOrFishersIn(
             Set<Area<Zone.Forest>> forests, Set<Area<Zone.River>> rivers) {
+
         ZonePartitions.Builder builder = new ZonePartitions.Builder(zonePartitions);
 
         PlacedTile[] placedTilesWithoutGatherersOrFishers = placedTiles.clone();
@@ -337,7 +309,8 @@ public final class Board {
             builder.clearGatherers(forest);
 
             for (Integer tileId : forest.tileIds()) {
-                placedTilesWithoutGatherersOrFishers[
+                placedTilesWithoutGatherersOrFishers[calculateTileIndex(tileWithId(tileId).pos())] =
+                        placedTilesWithoutGatherersOrFishers[
                         calculateTileIndex(tileWithId(tileId).pos())].withNoOccupant();
             }
 
@@ -346,11 +319,15 @@ public final class Board {
             builder.clearFishers(river);
 
             for (Integer tileId : river.tileIds()) {
-                if (placedTilesWithoutGatherersOrFishers[
+                if (Objects.nonNull(placedTilesWithoutGatherersOrFishers[
+                        calculateTileIndex(tileWithId(tileId).pos())].occupant()) &&
+                        placedTilesWithoutGatherersOrFishers[
                         calculateTileIndex(tileWithId(tileId).pos())]
                         .occupant().kind() == Occupant.Kind.PAWN) {
 
                     placedTilesWithoutGatherersOrFishers[
+                            calculateTileIndex(tileWithId(tileId).pos())] =
+                            placedTilesWithoutGatherersOrFishers[
                             calculateTileIndex(tileWithId(tileId).pos())]
                             .withNoOccupant();
                 }

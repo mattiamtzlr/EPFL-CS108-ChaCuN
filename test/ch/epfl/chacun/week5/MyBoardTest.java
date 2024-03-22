@@ -51,22 +51,40 @@ class MyBoardTest {
     TileSide.Meadow t61W = new TileSide.Meadow(m610);
     Tile t61 = new Tile(61, Tile.Kind.NORMAL, t61N, t61E, t61S, t61W);
     PlacedTile t61Placed = new PlacedTile(t61, PlayerColor.GREEN, Rotation.NONE,
-            startTilePlacedRotNone.pos().neighbor(Direction.N), new Occupant(Occupant.Kind.PAWN, m610.id()));
-    PlacedTile t61PlacedWestOft88 = new PlacedTile(t61, RED, Rotation.NONE, new Pos(-2, 0), new Occupant(Occupant.Kind.PAWN, m610.id()));
+            startTilePlacedRotNone.pos().neighbor(Direction.N));
+    PlacedTile t61PlacedWestOft88 = new PlacedTile(t61, RED, Rotation.NONE, new Pos(-2, 0));
+
+    // Tile 82
+    Zone.Meadow m820 = new Zone.Meadow(820, Collections.emptyList(), null);
+    Zone.River r821  =new Zone.River(821, 0, new Zone.Lake(828, 2, null));
+    Zone.Meadow m822 = new Zone.Meadow(822, List.of(new Animal(8220, Animal.Kind.DEER)), null);
+    Zone.Forest f823 = new Zone.Forest(823, Zone.Forest.Kind.PLAIN);
+
+    TileSide.River t82N = new TileSide.River(m820, r821, m822);
+    TileSide.Meadow t82E = new TileSide.Meadow(m822);
+    TileSide.Meadow t82S = new TileSide.Meadow(m882);
+    TileSide.Forest t82W = new TileSide.Forest(f823);
+
+    Tile t82 = new Tile(82, Tile.Kind.NORMAL, t82N, t82E, t82S, t82W);
+
+    PlacedTile t82NorthOfT88Rotated = new PlacedTile(t82, GREEN, Rotation.HALF_TURN, new Pos(-1,-1));
+    PlacedTile t82SouthOfT88Rotated = new PlacedTile(t82, GREEN, Rotation.RIGHT, new Pos(-1,1));
+
     Tile[] tiles = {startTile, t88, t61};
     ZonePartitions emptySetup = ZonePartitions.EMPTY;
 
     @Test
     void boardEmptyContainsNoTiles(){
-
-    }
-    @Test
-    void boardEmptyContainsNoAnimals(){
-
-    }
-    @Test
-    void boardEmptyContainsEmptyZonePartitions(){
-
+        Board board = Board.EMPTY;
+        for (int i = 0; i < 624; i++) {
+            int finalI = i;
+            assertThrows(IllegalArgumentException.class, () -> board.tileWithId(finalI));
+        }
+        for (int i = -12; i < 13; i++) {
+            for (int j = -12; j < 13; j++) {
+                assertNull(board.tileAt(new Pos(i, j)));
+            }
+        }
     }
 
     // tileAt
@@ -205,8 +223,7 @@ class MyBoardTest {
                 .withNewTile(t88PlacedWest)
                 .withNewTile(t61PlacedWestOft88);
 
-        // The adjacent meadow area contains ALL occupants of the original area thus RED for m562
-        Area<Zone.Meadow> expectedAdjacentMeadowAreaM562 = new Area<>(Set.of(m880, m562), Collections.singletonList(RED), 0);
+        Area<Zone.Meadow> expectedAdjacentMeadowAreaM562 = new Area<>(Set.of(m880, m562), Collections.emptyList(), 0);
         Area<Zone.Meadow> expectedAdjacentMeadowAreaM560 = new Area<>(Set.of(m560, m882), Collections.emptyList(), 0);
 
         assertEquals(expectedAdjacentMeadowAreaM560,
@@ -229,12 +246,12 @@ class MyBoardTest {
         Occupant occupant3 = new Occupant(Occupant.Kind.HUT, 38);
 
         Board actual = board.withNewTile(
-            new PlacedTile(t61, BLUE, Rotation.NONE, new Pos(2, 2), occupant1)
-        ).withNewTile(
-            new PlacedTile(t88, GREEN, Rotation.LEFT, new Pos(-2, 3), occupant2)
-        ).withNewTile(
-            new PlacedTile(Tiles.TILES.get(3), GREEN, Rotation.NONE, new Pos(-2, -1), occupant3)
-        );
+            new PlacedTile(t61, BLUE, Rotation.NONE, new Pos(2, 2), null)
+        ).withOccupant(occupant1).withNewTile(
+            new PlacedTile(t88, GREEN, Rotation.LEFT, new Pos(-2, 3), null)
+        ).withOccupant(occupant2).withNewTile(
+            new PlacedTile(Tiles.TILES.get(3), GREEN, Rotation.NONE, new Pos(-2, -1), null)
+        ).withOccupant(occupant3);
 
         assertEquals(1, actual.occupantCount(BLUE, Occupant.Kind.PAWN));
         assertEquals(2, actual.occupantCount(GREEN, Occupant.Kind.HUT));
@@ -264,25 +281,135 @@ class MyBoardTest {
         assertEquals(t88PlacedWest, board.tileAt(new Pos(-1,0)));
     }
 
-    // TODO Test withOccupant
-    // TODO Test withoutOccupant
-    // TODO Test withoutGatherersOrFishersIn
+    // withOccupant
+    @Test
+    void withOccupantWorksForTrivialCase() {
+        Occupant redPawnM610 = new Occupant(Occupant.Kind.PAWN, 610);
+        Occupant greenPawnF883 = new Occupant(Occupant.Kind.PAWN, 883);
+
+        Board board = Board.EMPTY
+                .withNewTile(startTilePlacedRotNone)
+                .withNewTile(t88PlacedWest)
+                .withNewTile(t61PlacedWestOft88)
+                .withOccupant(redPawnM610)
+                .withOccupant(greenPawnF883);
+
+        assertEquals(Set.of(redPawnM610, greenPawnF883), board.occupants());
+
+    }
+
+    @Test
+    void withOccupantThrowsOnAlreadyOccupied() {
+        Occupant redPawnM880 = new Occupant(Occupant.Kind.PAWN, 880);
+        Occupant greenPawnF883 = new Occupant(Occupant.Kind.PAWN, 883);
+        Occupant greenPawnM610 = new Occupant(Occupant.Kind.PAWN, 610);
+
+        Board board = Board.EMPTY
+                .withNewTile(startTilePlacedRotNone)
+                .withNewTile(t88PlacedWest)
+                .withNewTile(t61PlacedWestOft88)
+                .withOccupant(greenPawnF883);
+
+        assertThrows(IllegalArgumentException.class, () -> board.withOccupant(redPawnM880));
+        assertThrows(IllegalArgumentException.class, () -> board.withOccupant(greenPawnF883));
+        assertDoesNotThrow(() -> board.withOccupant(greenPawnM610));
+    }
+
+    // withoutOccupant
+
+    @Test
+    void withoutOccupantWorksForTrivialCase() {
+
+        Occupant redPawnM610 = new Occupant(Occupant.Kind.PAWN, 610);
+        Occupant greenPawnF883 = new Occupant(Occupant.Kind.PAWN, 883);
+
+        Board board = Board.EMPTY
+                .withNewTile(startTilePlacedRotNone)
+                .withNewTile(t88PlacedWest)
+                .withNewTile(t61PlacedWestOft88)
+                .withOccupant(redPawnM610)
+                .withOccupant(greenPawnF883)
+                .withoutOccupant(greenPawnF883);
+
+        assertEquals(Set.of(redPawnM610), board.occupants());
+
+        board = board.withoutOccupant(redPawnM610);
+        assertEquals(Collections.emptySet(), board.occupants());
+    }
+    @Test
+    void withoutOccupantThrowsOnOccupantNotPresent() {
+        Occupant redPawnM610 = new Occupant(Occupant.Kind.PAWN, 610);
+        Occupant purplePawnR882 = new Occupant(Occupant.Kind.PAWN, 882);
+        
+
+        Board board = Board.EMPTY
+                .withNewTile(startTilePlacedRotNone)
+                .withNewTile(t88PlacedWest)
+                .withNewTile(t61PlacedWestOft88)
+                .withOccupant(redPawnM610);
+
+        assertThrows(IllegalArgumentException.class, () -> board.withoutOccupant(purplePawnR882));
+    }
+    @Test
+    void withoutOccupantThrowsRemoveFromEmpty() {
+        Occupant redPawnM610 = new Occupant(Occupant.Kind.PAWN, 610);
+        Occupant greenPawnF883 = new Occupant(Occupant.Kind.PAWN, 883);
+
+        Board board = Board.EMPTY
+                .withNewTile(startTilePlacedRotNone)
+                .withNewTile(t88PlacedWest)
+                .withNewTile(t61PlacedWestOft88);
+
+        assertThrows(IllegalArgumentException.class, () -> board.withoutOccupant(greenPawnF883));
+        assertThrows(IllegalArgumentException.class, () -> board.withoutOccupant(redPawnM610));
+    }
+    @Test
+    void withoutGatherersOrFishersInWorksForTrivialCase() {
+        Occupant redPawnM610 = new Occupant(Occupant.Kind.PAWN, 610);
+        Occupant purplePawnF883 = new Occupant(Occupant.Kind.PAWN, 883);
+        Occupant greenPawnR821 = new Occupant(Occupant.Kind.PAWN, 821);
+
+        Area<Zone.Forest> forestArea = new Area<>(Set.of(f883), List.of(PURPLE), 1);
+        Area<Zone.River> riverArea = new Area<>(Set.of(r881, r563, r821), List.of(GREEN), 0);
+
+        Board board = Board.EMPTY
+                .withNewTile(startTilePlacedRotNone)
+                .withNewTile(t88PlacedWest)
+                .withNewTile(t61PlacedWestOft88)
+                .withNewTile(t82NorthOfT88Rotated)
+                .withOccupant(purplePawnF883)
+                .withOccupant(redPawnM610)
+                .withOccupant(greenPawnR821)
+                .withoutGatherersOrFishersIn(Set.of(forestArea), Collections.emptySet());
+
+        assertEquals(Set.of(redPawnM610, greenPawnR821), board.occupants());
+        board = board.withoutGatherersOrFishersIn(Collections.emptySet(), Set.of(riverArea));
+        assertEquals(Set.of(redPawnM610), board.occupants());
+
+    }
+    @Test
+    void withoutGatherersOrFishersInWorksForHutAndFisherPresentCase() {
+
+        Occupant redPawnM610 = new Occupant(Occupant.Kind.PAWN, 610);
+        Occupant purpleHutR881 = new Occupant(Occupant.Kind.HUT, 881);
+        Occupant greenPawnR821 = new Occupant(Occupant.Kind.PAWN, 821);
+
+        Area<Zone.River> riverArea1 = new Area<>(Set.of(r881, r563),Collections.emptyList(), 1);
+        Area<Zone.River> riverArea2 = new Area<>(Set.of(r821), List.of(GREEN), 1);
+
+        Board board = Board.EMPTY
+                .withNewTile(startTilePlacedRotNone)
+                .withNewTile(t88PlacedWest)
+                .withNewTile(t61PlacedWestOft88)
+                .withNewTile(t82SouthOfT88Rotated)
+                .withOccupant(purpleHutR881)
+                .withOccupant(redPawnM610)
+                .withOccupant(greenPawnR821)
+                .withoutGatherersOrFishersIn(Collections.emptySet(), Set.of(riverArea1, riverArea2));
+
+        assertEquals(Set.of(redPawnM610, purpleHutR881), board.occupants());
+    }
     // TODO Test WithMoreCancelledAnimals
-    // equals
-    @Test
-    void equalsWorksForTrivialBoards() {
-
-    }
-    @Test
-    void equalsWorksForEmptyBoards() {
-        Board board = Board.EMPTY;
-        Board board1 = board.withNewTile(startTilePlacedRotNone);
-
-        assertTrue(board.equals(Board.EMPTY));
-        assertFalse(board1.equals(Board.EMPTY));
-    }
-
-    // TODO Test hashCode
 
     @Test
     void boardParamsAreImmutable(){
