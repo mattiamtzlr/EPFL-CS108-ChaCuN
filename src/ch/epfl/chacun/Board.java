@@ -18,6 +18,10 @@ public final class Board {
     public static final int REACH = 12;
     private static final int NUMBER_OF_POSITIONS = 625;
     private static final int TOTAL_TILES_AVAILABLE = 95;
+
+    /**
+     * A preset for an empty board
+     */
     public static final Board EMPTY = new Board(
             new PlacedTile[NUMBER_OF_POSITIONS],
             new int[]{}, ZonePartitions.EMPTY,
@@ -31,6 +35,11 @@ public final class Board {
         this.cancelledAnimals = cancelledAnimals;
     }
 
+    /**
+     * A method to get the tile at a specific position
+     * @param pos The position at which we search for the tile
+     * @return The tile if it was found, otherwise returns null
+     */
     public PlacedTile tileAt(Pos pos) {
         return (Math.abs(pos.x()) < 13 &&
                 Math.abs(pos.y()) < 13) ?
@@ -38,11 +47,21 @@ public final class Board {
                 : null;
     }
 
-
+    /**
+     * Calculate the index corresponding to some position
+     * @param pos The position to convert from
+     * @return The index that corresponds to position
+     */
     private static int calculateTileIndex(Pos pos) {
         return (pos.x() + REACH) + (REACH + pos.y()) * 25;
     }
 
+    /**
+     * Get the tile that has a specific id
+     * @param tileId The id we want to lookup
+     * @throws IllegalArgumentException if there is no tile with the given id
+     * @return The tile with the id that was passed
+     */
     public PlacedTile tileWithId(int tileId) {
         for (int placedTileIndex : placedTileIndices) {
             if (placedTiles[placedTileIndex].id() == tileId)
@@ -51,10 +70,18 @@ public final class Board {
         throw new IllegalArgumentException("No tile with such index");
     }
 
+    /**
+     * Method to ensure immutability of cancelledAnimals
+     * @return An immutable copy oc cancelledAnimals
+     */
     public Set<Animal> cancelledAnimals() {
         return Set.copyOf(cancelledAnimals);
     }
 
+    /**
+     * Method to find all occupants on the board
+     * @return The set of occupants present on the board (Not PlayerColor)
+     */
     public Set<Occupant> occupants() {
         return Arrays.stream(placedTiles.clone())
                 .filter(Objects::nonNull)
@@ -63,30 +90,65 @@ public final class Board {
                 .collect(Collectors.toSet());
     }
 
+    /**
+     * Method to get the area the zone belongs to
+     * @param forest The zone of which we want to query the area
+     * @return The area that was found
+     */
     public Area<Zone.Forest> forestArea(Zone.Forest forest) {
         return zonePartitions.forests().areaContaining(forest);
     }
 
+    /**
+     * Method to get the area the zone belongs to
+     * @param meadow The zone of which we want to find the area
+     * @return The area that was found
+     */
     public Area<Zone.Meadow> meadowArea(Zone.Meadow meadow) {
         return zonePartitions.meadows().areaContaining(meadow);
     }
 
+    /**
+     * Method to get the area the zone belongs to
+     * @param river The zone of which we want to find the area
+     * @return The area that was found
+     */
     public Area<Zone.River> riverArea(Zone.River river) {
         return zonePartitions.rivers().areaContaining(river);
     }
 
+    /**
+     * Method to get the area the zone belongs to
+     * @param water The zone of which we want to find the area
+     * @return The area that was found
+     */
     public Area<Zone.Water> riverSystemArea(Zone.Water water) {
         return zonePartitions.riverSystems().areaContaining(water);
     }
 
+    /**
+     * Method to get all meadow areas
+     * @return A set of all meadow areas
+     */
     public Set<Area<Zone.Meadow>> meadowAreas() {
         return zonePartitions.meadows().areas();
     }
 
+    /**
+     * Method to get all riverSystem areas
+     * @return A set of all riverSystem areas
+     */
     public Set<Area<Zone.Water>> riverSystemAreas() {
         return zonePartitions.riverSystems().areas();
     }
 
+    /**
+     * Generate a set of meadow adjacent to a meadow zone
+     * @param pos The position at which the zone is located
+     * @param meadowZone The zone around which we want the adjacent meadow
+     * @return The area containing all meadow zones that area both connected to the
+     *         zone that was passed and are not further away than one tile
+     */
     public Area<Zone.Meadow> adjacentMeadow(Pos pos, Zone.Meadow meadowZone) {
 
         Set<Zone.Meadow> neighboringMeadowZones = new HashSet<>();
@@ -100,7 +162,6 @@ public final class Board {
         return new Area<>(zones, meadowArea(meadowZone).occupants(), 0);
     }
 
-    // TODO This needs some improvements
     private Set<PlacedTile> getTileAdjacentPositions(Pos pos) {
         Set<PlacedTile> returnSet = getNeighborTiles(pos);
         returnSet.add(tileAt(pos.translated(-1, -1)));
@@ -120,6 +181,12 @@ public final class Board {
         return occupantCount;
     }
 
+    /**
+     * Method to count the occupants of a given kind placed by a given player
+     * @param player The color of the player we inquire about
+     * @param occupantKind The kind of occupant that we count
+     * @return The number of occupants of a given kind placed by a given player
+     */
     public int occupantCount(PlayerColor player, Occupant.Kind occupantKind) {
         int occupantCount = 0;
         switch (occupantKind) {
@@ -143,6 +210,10 @@ public final class Board {
         return occupantCount;
     }
 
+    /**
+     * A method to get all positions at which a new tile could be added to the board
+     * @return The set of possible insertion positions
+     */
     public Set<Pos> insertionPositions() {
         if (this.equals(Board.EMPTY))
             return Set.of(new Pos(0,0));
@@ -161,7 +232,6 @@ public final class Board {
 
         potentialInsertPosition.removeAll(occupiedPositions);
         return potentialInsertPosition;
-
     }
     private Set<Pos> getNeighborPositions(Pos pos) {
         return Set.of(
@@ -180,10 +250,13 @@ public final class Board {
         return returnSet;
     }
 
+    /**
+     * Method to get the last placed tile
+     * @return The tile that was last placed, null if no tile was placed yet
+     */
     public PlacedTile lastPlacedTile() {
         if (this.equals(EMPTY))
             return null;
-
         return placedTiles[placedTileIndices[placedTileIndices.length - 1]];
     }
 
