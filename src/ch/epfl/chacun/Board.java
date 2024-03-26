@@ -229,8 +229,14 @@ public final class Board {
                 .map((a) -> getNeighborPositions(a.pos()))
                 .forEach(potentialInsertPosition::addAll);
 
-
+        // Remove positions where there already is a tile
         potentialInsertPosition.removeAll(occupiedPositions);
+
+        // Remove positions that are be outside the board
+        potentialInsertPosition = potentialInsertPosition.stream()
+                .filter(p -> Math.abs(p.x()) < 13 && Math.abs(p.y()) < 13)
+                .collect(Collectors.toSet());
+
         return potentialInsertPosition;
     }
     private Set<Pos> getNeighborPositions(Pos pos) {
