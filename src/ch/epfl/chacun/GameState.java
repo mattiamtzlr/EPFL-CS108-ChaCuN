@@ -1,9 +1,10 @@
 package ch.epfl.chacun;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+
+import static ch.epfl.chacun.Zone.SpecialPower.*;
 
 /**
  * GameState record, used to represent an entire game.
@@ -152,6 +153,70 @@ public record GameState(
     public GameState withPlacedTile(PlacedTile tile) {
         Preconditions.checkArgument(this.nextAction.equals(Action.PLACE_TILE));
         Preconditions.checkArgument(Objects.isNull(tile.occupant()));
+
+        Board returnBoard = this.board.withNewTile(tile);
+
+        // calculate deer eaten by tigers if hunting trap tile was placed
+        switch (tile.specialPowerZone()) {
+            case Zone.Meadow meadow when meadow.specialPower().equals(HUNTING_TRAP) -> {
+
+                Area<Zone.Meadow> adjacentMeadow = this.board.adjacentMeadow(
+                        tile.pos(), meadow);
+
+
+                // get all animals, count them
+                Set<Animal> animals = Area.animals(adjacentMeadow, Collections.emptySet());
+                Map<Animal.Kind, Integer> animalCounts = new HashMap<>();
+                animals.forEach(a -> animalCounts.merge(a.kind(), 1, Integer::sum));
+
+                Set<Animal> cancelledAnimals;
+                if (animalCounts.get(Animal.Kind.TIGER) >= animalCounts.get(Animal.Kind.DEER)) {
+                    // cancel all deer
+                    cancelledAnimals = Set.copyOf(animals).stream()
+                            .filter(a -> a.kind().equals(Animal.Kind.DEER))
+                            .collect(Collectors.toSet());
+                    animalCounts.put(Animal.Kind.DEER, 0);
+
+                } else {
+                    // cancel some deer
+                    AtomicInteger cancelCount = new AtomicInteger();
+                    cancelledAnimals = Set.copyOf(animals).stream()
+                            .filter(a -> {
+                                if (a.kind().equals(Animal.Kind.DEER) &&
+                                        cancelCount.get() < animalCounts.get(Animal.Kind.TIGER)) {
+
+                                    cancelCount.getAndIncrement();
+                                    return true;
+                                }
+                                return false;
+                            })
+                            .collect(Collectors.toSet());
+                    animalCounts.computeIfPresent(Animal.Kind.DEER, (k, v) -> v - cancelCount.get());
+                }
+
+                this.messageBoard.withScoredHuntingTrap(
+                        currentPlayer(),
+                        adjacentMeadow/*,
+                    cancelledAnimals TODO: uncomment this as soon as new version is known */
+                );
+
+                returnBoard = returnBoard.withMoreCancelledAnimals(animals);
+            }
+
+            case Zone.Meadow meadow when meadow.specialPower().equals(SHAMAN) -> {
+
+            }
+
+            case Zone.Lake lake when lake.specialPower().equals(LOGBOAT) -> {
+                this.messageBoard.withScoredLogboat(
+                        currentPlayer(),
+                        this.board.riverSystemArea(lake)
+                );
+            }
+
+            case null -> {}
+            default -> {}
+        }
 
         return this;
     }

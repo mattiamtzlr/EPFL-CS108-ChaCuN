@@ -133,6 +133,8 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages) {
             Set<Animal> animals = Area.animals(
                 adjacentMeadow,
                 Collections.emptySet()
+                    // TODO: replace this with passed cancelled animals as soon as the new version
+                    //       is known
             );
 
             Map<Animal.Kind, Integer> animalCounts = new HashMap<>();
