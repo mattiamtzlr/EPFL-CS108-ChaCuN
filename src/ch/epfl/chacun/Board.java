@@ -266,6 +266,10 @@ public final class Board {
         return placedTiles[placedTileIndices[placedTileIndices.length - 1]];
     }
 
+    /**
+     * Method to find that forest areas that were closed by the placement of the last tile
+     * @return The forest areas that were closed, empty set if none
+     */
     public Set<Area<Zone.Forest>> forestsClosedByLastTile() {
         Set<Area<Zone.Forest>> closedForestAreas = new HashSet<>();
         for (Zone.Forest forestZone : lastPlacedTile().forestZones()) {
@@ -275,6 +279,10 @@ public final class Board {
         return closedForestAreas;
     }
 
+    /**
+     * Method to find that river areas that were closed by the placement of the last tile
+     * @return The river areas that were closed, empty set if none
+     */
     public Set<Area<Zone.River>> riversClosedByLastTile() {
         Set<Area<Zone.River>> closedRiverAreas = new HashSet<>();
         for (Zone.River riverZone : lastPlacedTile().riverZones()) {
@@ -284,6 +292,11 @@ public final class Board {
         return closedRiverAreas;
     }
 
+    /**
+     * Determine whether a tile can be placed at a specific position
+     * @param tile The tile (PlacedTile) we want to test
+     * @return True if the tile can be placed, false otherwise
+     */
     public boolean canAddTile(PlacedTile tile) {
 
         if (!insertionPositions().isEmpty() && !insertionPositions().contains(tile.pos()))
@@ -299,6 +312,11 @@ public final class Board {
         return true;
     }
 
+    /**
+     * Determine whether there exists a a position on the board where the give tile could be placed
+     * @param tile The tile to be tested
+     * @return True if there exists a position where the tile can be added, false otherwise
+     */
     public boolean couldPlaceTile(Tile tile) {
         for (Pos insertionPosition : insertionPositions()) {
             for (Rotation rotation : Rotation.ALL) {
@@ -310,7 +328,12 @@ public final class Board {
         return false;
     }
 
-
+    /**
+     * Method to add a tile to the board
+     * @param tile The tile (PlacedTile) to be placed
+     * @return A new board with the given tile added
+     * @throws IllegalFormatCodePointException if tile cannot be added
+     */
     public Board withNewTile(PlacedTile tile) {
 
         if (!canAddTile(tile) || placedTileIndices.length == TOTAL_TILES_AVAILABLE)
