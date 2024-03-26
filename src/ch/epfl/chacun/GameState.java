@@ -156,8 +156,8 @@ public record GameState(
 
         Board returnBoard = this.board.withNewTile(tile);
 
-        // calculate deer eaten by tigers if hunting trap tile was placed
         switch (tile.specialPowerZone()) {
+            // calculate deer eaten by tigers if hunting trap tile was placed
             case Zone.Meadow meadow when meadow.specialPower().equals(HUNTING_TRAP) -> {
 
                 Area<Zone.Meadow> adjacentMeadow = this.board.adjacentMeadow(
@@ -194,30 +194,36 @@ public record GameState(
                     animalCounts.computeIfPresent(Animal.Kind.DEER, (k, v) -> v - cancelCount.get());
                 }
 
-                this.messageBoard.withScoredHuntingTrap(
+                MessageBoard newMessageBoard = this.messageBoard.withScoredHuntingTrap(
                         currentPlayer(),
                         adjacentMeadow/*,
                     cancelledAnimals TODO: uncomment this as soon as new version is known */
                 );
 
-                returnBoard = returnBoard.withMoreCancelledAnimals(animals);
+                return new GameState(this.players, this.tileDecks, null,
+                        returnBoard.withMoreCancelledAnimals(animals), Action.OCCUPY_TILE,
+                        newMessageBoard);
             }
 
             case Zone.Meadow meadow when meadow.specialPower().equals(SHAMAN) -> {
-
+                return new GameState(this.players, this.tileDecks, null,
+                        returnBoard, Action.RETAKE_PAWN, this.messageBoard);
             }
 
             case Zone.Lake lake when lake.specialPower().equals(LOGBOAT) -> {
-                this.messageBoard.withScoredLogboat(
+                MessageBoard newMessageBoard = this.messageBoard.withScoredLogboat(
                         currentPlayer(),
                         this.board.riverSystemArea(lake)
                 );
+
+                return new GameState(this.players, this.tileDecks, null,
+                        returnBoard, Action.OCCUPY_TILE, newMessageBoard);
             }
 
-            case null -> {}
-            default -> {}
+            case null, default -> {
+                return new GameState(this.players, this.tileDecks, null,
+                        returnBoard, Action.OCCUPY_TILE, this.messageBoard);
+            }
         }
-
-        return this;
     }
 }
