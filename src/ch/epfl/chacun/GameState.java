@@ -111,8 +111,27 @@ public record GameState(
      */
     public Set<Occupant> lastTilePotentialOccupants() {
         Preconditions.checkArgument(!this.board.equals(Board.EMPTY));
+
         // this warning can be ignored, as the board always has a last placed tile if it's not empty
-        return board.lastPlacedTile().potentialOccupants();
+        return this.board.lastPlacedTile().potentialOccupants().stream()
+                .filter(o -> freeOccupantsCount(currentPlayer(), o.kind()) > 0)
+                .filter(o -> {
+                    Zone zone = this.board.lastPlacedTile().zoneWithId(o.zoneId());
+                    return switch (zone) {
+                        case Zone.Meadow meadow -> !this.board.meadowArea(meadow).isOccupied();
+                        case Zone.Forest forest -> !this.board.forestArea(forest).isOccupied();
+
+                        // TODO: this seems to behave correctly but it's weird
+                        case Zone.Water water when o.kind().equals(Occupant.Kind.PAWN) ->
+                                !this.board.riverArea((Zone.River) water).isOccupied() &&
+                                !this.board.riverSystemArea(water).isOccupied();
+
+                        case Zone.Water water when o.kind().equals(Occupant.Kind.HUT) ->
+                                !this.board.riverSystemArea(water).isOccupied();
+
+                        default -> false;
+                    };
+                }).collect(Collectors.toSet());
     }
 
     /* ==========================================================================================
@@ -125,8 +144,6 @@ public record GameState(
         newList.add(this.currentPlayer());
         return newList;
     }
-
-
 
     /* ==========================================================================================
        |                        State machine methods, keep up the control flow                 |

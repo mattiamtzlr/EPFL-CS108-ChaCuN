@@ -64,14 +64,23 @@ class MyGameStateTest {
     );
     Occupant hutR682 = new Occupant(Occupant.Kind.HUT, 682);
 
-    Board boardCrossAround56 = Board.EMPTY
+    Board boardCrossAround56Last68 = Board.EMPTY
             .withNewTile(t56PRotNone)
             .withNewTile(t11PRotNoneWestOf56).withOccupant(hutL118)
             .withNewTile(t23PRotNoneEastOf56).withOccupant(pawnF233)
             .withNewTile(t32PRotNoneNorthOf56).withOccupant(pawnM321)
             .withNewTile(t68PRotNoneSouthOf56).withOccupant(hutR682);
 
+    Board boardCrossAround56Last23 = Board.EMPTY
+            .withNewTile(t56PRotNone)
+            .withNewTile(t11PRotNoneWestOf56).withOccupant(hutL118)
+            .withNewTile(t32PRotNoneNorthOf56).withOccupant(pawnM321)
+            .withNewTile(t68PRotNoneSouthOf56).withOccupant(hutR682)
+            .withNewTile(t23PRotNoneEastOf56).withOccupant(pawnF233);
+
     /* TODO:
+        edge cases of lastTilePotentialOccupants: not enough occupants etc.
+        .
         withStartingTilePlaced()
         withPlacedTile()
         withOccupantRemoved()
@@ -168,7 +177,7 @@ class MyGameStateTest {
 
     @Test
     void freeOccupantsCountWorksOnOccupiedBoard() {
-        GameState state = new GameState(ALL, standardDecks(), TILES.get(69), boardCrossAround56,
+        GameState state = new GameState(ALL, standardDecks(), TILES.get(69), boardCrossAround56Last68,
                 PLACE_TILE, emptyMessageBoard);
 
         List<Integer> expected = List.of(
@@ -192,19 +201,40 @@ class MyGameStateTest {
     @Test
     void lastTilePotentialOccupantsThrowsOnEmptyBoard() {
         GameState state = GameState.initial(ALL, standardDecks(), basicTextMaker);
-        assertThrows(IllegalArgumentException.class, () -> {
-            Set<Occupant> occupants = state.lastTilePotentialOccupants();
-        });
+        assertThrows(IllegalArgumentException.class, state::lastTilePotentialOccupants);
     }
 
     @Test
-    void lastTilePotentialOccupantsWorksOnTrivialCase() {
-        GameState state = new GameState(ALL, standardDecks(), TILES.get(69), boardCrossAround56,
-                PLACE_TILE, emptyMessageBoard);
+    void lastTilePotentialOccupantsWorksOnTrivialCases() {
+        GameState state1 = new GameState(ALL, standardDecks(), TILES.get(69),
+                boardCrossAround56Last68, PLACE_TILE, emptyMessageBoard);
 
         assertEquals(
-                t68PRotNoneSouthOf56.potentialOccupants(),
-                state.lastTilePotentialOccupants()
+                /* last placed tile is 68, with a hut on river 682, thus no pawn and no hut can be
+                placed there, current player is red, who has > 1 huts and pawns remaining.
+                Also, as the forest area that the forest 680 at the top belongs to is occupied by
+                a pawn in forest 233, it is also not valid. */
+
+                Set.of(
+                        new Occupant(Occupant.Kind.PAWN, 681),
+                        new Occupant(Occupant.Kind.PAWN, 683)
+                ),
+                state1.lastTilePotentialOccupants()
+        );
+
+        GameState state2 = new GameState(ALL,standardDecks(), TILES.get(72),
+                boardCrossAround56Last23, PLACE_TILE, emptyMessageBoard);
+
+        assertEquals(
+                /* last placed tile is 23, with a pawn in forest 233, thus no pawn can be placed
+                there, current player is red who has > 1 huts and pawns remaining. */
+                Set.of(
+                        new Occupant(Occupant.Kind.PAWN, 230),
+                        new Occupant(Occupant.Kind.PAWN, 231),
+                        new Occupant(Occupant.Kind.PAWN, 232),
+                        new Occupant(Occupant.Kind.HUT, 231)
+                ),
+                state2.lastTilePotentialOccupants()
         );
     }
 }
