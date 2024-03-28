@@ -139,6 +139,7 @@ public record GameState(
        ========================================================================================== */
 
     private List<PlayerColor> shiftPlayers() {
+        // TODO immutability problems?
         List<PlayerColor> newList = this.players.subList(1, this.players.size());
         newList.add(this.currentPlayer());
         return newList;
@@ -177,7 +178,6 @@ public record GameState(
         if (!closedForests.isEmpty()) {
             for (Area<Zone.Forest> forest : closedForests) {
                 newMessageBoard = newMessageBoard.withScoredForest(forest);
-
                 if (Area.hasMenhir(forest) && !menhir) {
                     newMessageBoard = newMessageBoard.withClosedForestWithMenhir(
                             currentPlayer(), forest);
@@ -271,14 +271,14 @@ public record GameState(
 
                 Set<Animal> cancelledAnimals;
                 if (animalCounts.get(Animal.Kind.TIGER) >= animalCounts.get(Animal.Kind.DEER)) {
-                    // cancel all deer
+                    // cancel all deer ☠
                     cancelledAnimals = Set.copyOf(animals).stream()
                             .filter(a -> a.kind().equals(Animal.Kind.DEER))
                             .collect(Collectors.toSet());
                     animalCounts.put(Animal.Kind.DEER, 0);
 
                 } else {
-                    // cancel some deer
+                    // cancel some deer 🪦
                     AtomicInteger cancelCount = new AtomicInteger();
                     cancelledAnimals = Set.copyOf(animals).stream()
                             .filter(a -> {
