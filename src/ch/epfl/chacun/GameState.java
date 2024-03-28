@@ -124,7 +124,7 @@ public record GameState(
                         // TODO: this seems to behave correctly but it's weird
                         case Zone.Water water when o.kind().equals(Occupant.Kind.PAWN) ->
                                 !this.board.riverArea((Zone.River) water).isOccupied() &&
-                                !this.board.riverSystemArea(water).isOccupied();
+                                        !this.board.riverSystemArea(water).isOccupied();
 
                         case Zone.Water water when o.kind().equals(Occupant.Kind.HUT) ->
                                 !this.board.riverSystemArea(water).isOccupied();
@@ -138,11 +138,92 @@ public record GameState(
        |                           Helper methods, used for methods below                       |
        ========================================================================================== */
 
-    // TODO: maybe this isn't even used lol
     private List<PlayerColor> shiftPlayers() {
         List<PlayerColor> newList = this.players.subList(1, this.players.size());
         newList.add(this.currentPlayer());
         return newList;
+    }
+
+    private GameState withTurnFinishedIfUnoccupationImpossible(
+            Board newBoard, MessageBoard newMessageBoard) {
+
+        // TODO
+
+        return withTurnFinished(newBoard, newMessageBoard);
+    }
+
+    private GameState withTurnFinishedIfOccupationImpossible(
+            Board newBoard, MessageBoard newMessageBoard) {
+
+        // TODO
+
+        return withTurnFinished(newBoard, newMessageBoard);
+    }
+
+    private GameState withFinalPointsCounted() {
+
+        // TODO
+
+        return this;
+    }
+
+    private GameState withTurnFinished(Board newBoard, MessageBoard messageBoard) {
+        boolean menhir = false;
+        MessageBoard newMessageBoard = new MessageBoard(
+                messageBoard.textMaker(), messageBoard.messages());
+
+        // add points for closed forests and check for menhir forests
+        Set<Area<Zone.Forest>> closedForests = newBoard.forestsClosedByLastTile();
+        if (!closedForests.isEmpty()) {
+            for (Area<Zone.Forest> forest : closedForests) {
+                newMessageBoard = newMessageBoard.withScoredForest(forest);
+
+                if (Area.hasMenhir(forest) && !menhir) {
+                    newMessageBoard = newMessageBoard.withClosedForestWithMenhir(
+                            currentPlayer(), forest);
+                    menhir = true;
+                }
+            }
+        }
+
+        // add points for closed rivers
+        Set<Area<Zone.River>> closedRivers = newBoard.riversClosedByLastTile();
+        if (!closedRivers.isEmpty()) {
+            for (Area<Zone.River> river : closedRivers) {
+                newMessageBoard = newMessageBoard.withScoredRiver(river);
+            }
+        }
+
+        // check next tile and handle accordingly
+        TileDecks newTileDecks;
+        Tile nextTile;
+        if (menhir) {
+            newTileDecks = this.tileDecks.withTopTileDrawnUntil(
+                    Tile.Kind.MENHIR,
+                    newBoard::couldPlaceTile
+            );
+
+            nextTile = newTileDecks.topTile(Tile.Kind.MENHIR);
+
+            if (nextTile != null)
+                return new GameState(this.players, newTileDecks, nextTile, newBoard,
+                        Action.PLACE_TILE, newMessageBoard);
+        }
+
+        newTileDecks = this.tileDecks.withTopTileDrawnUntil(
+                Tile.Kind.NORMAL,
+                newBoard::couldPlaceTile
+        );
+
+        nextTile = newTileDecks.topTile(Tile.Kind.NORMAL);
+
+        if (nextTile != null) {
+            return new GameState(shiftPlayers(), newTileDecks, nextTile, newBoard,
+                    Action.PLACE_TILE, newMessageBoard);
+        }
+        else {
+            return withFinalPointsCounted();
+        }
     }
 
     /* ==========================================================================================
@@ -171,13 +252,15 @@ public record GameState(
         Preconditions.checkArgument(this.nextAction.equals(Action.PLACE_TILE));
         Preconditions.checkArgument(Objects.isNull(tile.occupant()));
 
-        Board returnBoard = this.board.withNewTile(tile);
+        Board newBoard = this.board.withNewTile(tile);
+        MessageBoard newMessageBoard = this.messageBoard;
+        boolean shaman = false;
 
         switch (tile.specialPowerZone()) {
             // calculate deer eaten by tigers if hunting trap tile was placed
             case Zone.Meadow meadow when meadow.specialPower().equals(HUNTING_TRAP) -> {
 
-                Area<Zone.Meadow> adjacentMeadow = this.board.adjacentMeadow(
+                Area<Zone.Meadow> adjacentMeadow = newBoard.adjacentMeadow(
                         tile.pos(), meadow);
 
 
@@ -211,36 +294,32 @@ public record GameState(
                     animalCounts.computeIfPresent(Animal.Kind.DEER, (k, v) -> v - cancelCount.get());
                 }
 
-                MessageBoard newMessageBoard = this.messageBoard.withScoredHuntingTrap(
+                newMessageBoard = newMessageBoard.withScoredHuntingTrap(
                         currentPlayer(),
                         adjacentMeadow/*,
                     cancelledAnimals TODO: uncomment this as soon as new version is known */
                 );
 
-                return new GameState(this.players, this.tileDecks, null,
-                        returnBoard.withMoreCancelledAnimals(animals), Action.OCCUPY_TILE,
-                        newMessageBoard);
+                newBoard = newBoard.withMoreCancelledAnimals(animals);
             }
 
-            case Zone.Meadow meadow when meadow.specialPower().equals(SHAMAN) -> {
-                return new GameState(this.players, this.tileDecks, null,
-                        returnBoard, Action.RETAKE_PAWN, this.messageBoard);
-            }
+            // add points for logboat
+            case Zone.Lake lake when lake.specialPower().equals(LOGBOAT) ->
+                    newMessageBoard = newMessageBoard.withScoredLogboat(
+                            currentPlayer(),
+                            newBoard.riverSystemArea(lake)
+                    );
 
-            case Zone.Lake lake when lake.specialPower().equals(LOGBOAT) -> {
-                MessageBoard newMessageBoard = this.messageBoard.withScoredLogboat(
-                        currentPlayer(),
-                        this.board.riverSystemArea(lake)
-                );
-
-                return new GameState(this.players, this.tileDecks, null,
-                        returnBoard, Action.OCCUPY_TILE, newMessageBoard);
-            }
+            // set shaman flag
+            case Zone.Meadow meadow when meadow.specialPower().equals(SHAMAN) -> shaman = true;
 
             case null, default -> {
-                return new GameState(this.players, this.tileDecks, null,
-                        returnBoard, Action.OCCUPY_TILE, this.messageBoard);
             }
         }
+
+        if (shaman)
+            return withTurnFinishedIfUnoccupationImpossible(newBoard, newMessageBoard);
+        else
+            return withTurnFinishedIfOccupationImpossible(newBoard, newMessageBoard);
     }
 }
