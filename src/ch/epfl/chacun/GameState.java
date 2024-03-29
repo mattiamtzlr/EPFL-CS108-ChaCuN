@@ -280,6 +280,7 @@ public record GameState(
                 } else {
                     // cancel some deer 🪦
                     AtomicInteger cancelCount = new AtomicInteger();
+                    //noinspection UnusedAssignment
                     cancelledAnimals = Set.copyOf(animals).stream()
                             .filter(a -> {
                                 if (a.kind().equals(Animal.Kind.DEER) &&
@@ -322,4 +323,41 @@ public record GameState(
         else
             return withTurnFinishedIfOccupationImpossible(newBoard, newMessageBoard);
     }
+
+    /**
+     * Method that handles the RETAKE_PAWN action that arises after having placed the shaman.
+     * @param occupant The occupant the current player chooses to remove from the board, null if
+     *                 the player chose not to remove a pawn.
+     * @return A new board without the occupant that was passed, next action OCCUPY_TIlE.
+     *         If either null was passed or the current player does not have any pawns on the board,
+     *         the same board is kept and only the next action is changed to OCCUPY_TILE.
+     * @throws IllegalArgumentException if either the next action is not RETAKE_PAWN or the occupant
+     *         that is passed is neither null nor a pawn.
+     */
+    public GameState withOccupantRemoved(Occupant occupant) {
+        Preconditions.checkArgument(this.nextAction.equals(Action.RETAKE_PAWN));
+        Preconditions.checkArgument(occupant == null
+                || occupant.kind().equals(Occupant.Kind.PAWN));
+
+        if (occupant == null || this.board().occupantCount(this.currentPlayer(), occupant.kind())<1)
+        {
+            /* TODO return the GameState for the case that the player that would have had the
+                possibility to retake a pawn but chose not to and for the case that the player
+                did not have an occupant on the board to begin with?
+            */
+            return new GameState(players, tileDecks, tileToPlace, board,
+                    Action.OCCUPY_TILE, messageBoard);
+        }
+        /* deleting the occupant that was passed from the board (probably also needs to make sure
+           that the player that retook one of their pawns actually gets an additional pawn)
+            -> This is handled by the way we calculate the free occupants I think
+        */
+        Board newBoard = this.board.withoutOccupant(occupant);
+        // TODO no clue if this should be done this way
+        // It is intended that players stays the same as the pawn is removed before the occupation step
+        return new GameState(players, tileDecks, tileToPlace, newBoard,
+                Action.OCCUPY_TILE, messageBoard);
+    }
+
+
 }
