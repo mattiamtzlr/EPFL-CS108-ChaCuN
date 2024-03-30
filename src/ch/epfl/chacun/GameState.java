@@ -145,7 +145,7 @@ public record GameState(
         return newList;
     }
 
-    private GameState withTurnFinishedIfUnoccupationImpossible(
+    private GameState withOccupantForRetakeImpossible(
             Board newBoard, MessageBoard newMessageBoard) {
 
         // TODO
@@ -325,7 +325,8 @@ public record GameState(
                       --> RETAKE Impossible does not imply OCCUPY Impossible
                 */
         if (shaman)
-            return withTurnFinishedIfUnoccupationImpossible(newBoard, newMessageBoard);
+            // Rename, this method should only skip the retake step
+            return withOccupantForRetakeImpossible(newBoard, newMessageBoard);
         else
             return withTurnFinishedIfOccupationImpossible(newBoard, newMessageBoard);
     }
@@ -365,5 +366,22 @@ public record GameState(
                 Action.OCCUPY_TILE, messageBoard);
     }
 
+    /**
+     * Method that handles the OCCUPY_TILE step.
+     * @param occupant The occupant to be added to the board.
+     * @return A new GameState with the additional occupant.
+     */
+    public GameState withNewOccupant(Occupant occupant) {
+        Preconditions.checkArgument(nextAction.equals(Action.OCCUPY_TILE));
+        // Dunno if this is the right method to call here ↓
+        if (occupant == null)
+            return withTurnFinishedIfOccupationImpossible(board, messageBoard);
+        // This should in theory never have to throw because this exception is handled above somewhere
+        Board newBoard = board.withOccupant(occupant);
+
+        // I think this is responsible here, dunno how this should work.
+        return withTurnFinished(newBoard, messageBoard);
+
+    }
 
 }
