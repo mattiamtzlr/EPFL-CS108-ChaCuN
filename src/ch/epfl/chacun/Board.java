@@ -4,7 +4,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 /**
- * TODO Description
+ * This class represents the board that is played on, will be updated during the game.
+ * Contains a representation of all the tiles on the board and handles directional things between
+ * tiles, as well as area/zone partitioning and cancelling animals.
  *
  * @author Mattia Metzler (372025)
  * @author Leoluca Bernardi (374107)
@@ -28,7 +30,8 @@ public final class Board {
             Collections.emptySet()
     );
 
-    private Board(PlacedTile[] placedTiles, int[] placedTileIndices, ZonePartitions zonePartitions, Set<Animal> cancelledAnimals) {
+    private Board(PlacedTile[] placedTiles, int[] placedTileIndices, ZonePartitions zonePartitions,
+                  Set<Animal> cancelledAnimals) {
         this.placedTiles = placedTiles;
         this.placedTileIndices = placedTileIndices;
         this.zonePartitions = zonePartitions;
@@ -239,12 +242,24 @@ public final class Board {
 
         return potentialInsertPosition;
     }
+
+    /**
+     * A method to get the positions of the immediate neighboring tiles.
+     * @param pos Position of the middle tile.
+     * @return A set of the requested positions.
+     */
     private Set<Pos> getNeighborPositions(Pos pos) {
         return Set.of(
                 pos.neighbor(Direction.N), pos.neighbor(Direction.E),
                 pos.neighbor(Direction.S), pos.neighbor(Direction.W)
         );
     }
+
+    /**
+     * A method to get the immediate neighbor tiles (Cross)
+     * @param pos The position of the middle tile.
+     * @return A sets that contains all (placed) tiles that share a border with the middle tile
+     */
     private Set<PlacedTile> getNeighborTiles(Pos pos) {
 
         Set<PlacedTile> returnSet = new HashSet<>();
@@ -320,7 +335,6 @@ public final class Board {
     public boolean couldPlaceTile(Tile tile) {
         for (Pos insertionPosition : insertionPositions()) {
             for (Rotation rotation : Rotation.ALL) {
-                // TODO Check if the placer parameter really can be null without causing problems
                 if (canAddTile(new PlacedTile(tile, null, rotation, insertionPosition)))
                     return true;
             }
@@ -365,8 +379,14 @@ public final class Board {
         );
     }
 
+    /**
+     * Method to create a board with an additional occupant.
+     * @param occupant The occupant we wish to add.
+     * @return A board that was updated with a new occupant.
+     * @throws IllegalArgumentException if the tile where we would like to place the occupant is
+     *          already occupied
+     */
     public Board withOccupant(Occupant occupant) {
-        //                           ??? ●﹏● ???
         PlacedTile targetTile = tileWithId(Zone.tileId(occupant.zoneId()));
         Zone targetZone = targetTile.zoneWithId(occupant.zoneId());
         ZonePartitions.Builder builder = new ZonePartitions.Builder(zonePartitions);
@@ -381,12 +401,19 @@ public final class Board {
 
         PlacedTile[] placedTilesWithNewOccupant = placedTiles.clone();
         placedTilesWithNewOccupant[calculateTileIndex(targetTile.pos())] =
-                placedTilesWithNewOccupant[calculateTileIndex(targetTile.pos())].withOccupant(occupant);
+                placedTilesWithNewOccupant[calculateTileIndex(targetTile.pos())]
+                        .withOccupant(occupant);
 
         return new Board(placedTilesWithNewOccupant, placedTileIndices.clone(),
                 builder.build(), cancelledAnimals());
     }
 
+    /**
+     * Method to create a board without one of its occupants.
+     * @param occupant The occupant we wish to add.
+     * @return A board that was updated with a new occupant.
+     * @throws IllegalArgumentException if the occupant that should be removed is not on the board.
+     */
     public Board withoutOccupant(Occupant occupant) {
 
         if (Objects.nonNull(occupant) && !occupants().contains(occupant)) {
@@ -408,6 +435,12 @@ public final class Board {
                 builder.build(), cancelledAnimals());
     }
 
+    /**
+     * Method to remove all pawn type occupants from the given river and forest areas
+     * @param forests The forest areas that should be cleared.
+     * @param rivers The river areas that should be cleared.
+     * @return A new board without pawns in the given areas.
+     */
     public Board withoutGatherersOrFishersIn(
             Set<Area<Zone.Forest>> forests, Set<Area<Zone.River>> rivers) {
 
@@ -446,6 +479,11 @@ public final class Board {
                 builder.build(), cancelledAnimals());
     }
 
+    /**
+     * Method to add cancelled animals to the list and update the board accordingly.
+     * @param newlyCancelledAnimals A set of animals to be cancelled.
+     * @return A new board with more cancelled animals.
+     */
     public Board withMoreCancelledAnimals(Set<Animal> newlyCancelledAnimals) {
 
         ZonePartitions.Builder builder = new ZonePartitions.Builder(zonePartitions);

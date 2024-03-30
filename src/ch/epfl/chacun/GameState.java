@@ -292,7 +292,7 @@ public record GameState(
                                 return false;
                             })
                             .collect(Collectors.toSet());
-                    animalCounts.computeIfPresent(Animal.Kind.DEER, (k, v) -> v - cancelCount.get());
+                    animalCounts.computeIfPresent(Animal.Kind.DEER, (k, v) -> v -cancelCount.get());
                 }
 
                 newMessageBoard = newMessageBoard.withScoredHuntingTrap(
@@ -317,7 +317,13 @@ public record GameState(
             case null, default -> {
             }
         }
-
+        /* TODO I think the shaman special power should trigger before the occupation step,
+                does this work correctly in that context?
+                    · Probably would not behave as intended if the shaman is placed before the
+                      placer had the chance to place a pawn but still should get
+                      the chance to place an occupant during the occupy phase
+                      --> RETAKE Impossible does not imply OCCUPY Impossible
+                */
         if (shaman)
             return withTurnFinishedIfUnoccupationImpossible(newBoard, newMessageBoard);
         else
