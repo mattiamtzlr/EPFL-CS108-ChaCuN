@@ -139,33 +139,38 @@ public record GameState(
        ========================================================================================== */
 
     private List<PlayerColor> shiftPlayers() {
-        // TODO immutability problems?
-        List<PlayerColor> newList = this.players.subList(1, this.players.size());
+        List<PlayerColor> newList = List.copyOf(this.players).subList(1, this.players.size());
         newList.add(this.currentPlayer());
         return newList;
     }
 
-    private GameState withOccupantForRetakeImpossible(
+    private GameState withOccupationIfDeOccupationImpossible(
             Board newBoard, MessageBoard newMessageBoard) {
 
-        // TODO
+        if (freeOccupantsCount(currentPlayer(), Occupant.Kind.PAWN)
+                < Occupant.occupantsCount(Occupant.Kind.PAWN)) {
 
-        return withTurnFinished(newBoard, newMessageBoard);
+            return new GameState(this.players, this.tileDecks, null, newBoard,
+                    Action.RETAKE_PAWN, newMessageBoard);
+        }
+
+        return withTurnFinishedIfOccupationImpossible(newBoard, newMessageBoard);
     }
 
     private GameState withTurnFinishedIfOccupationImpossible(
             Board newBoard, MessageBoard newMessageBoard) {
 
-        // TODO
+        boolean enoughOccupants = false;
+        for (Occupant occupant : lastTilePotentialOccupants()) {
+            if (freeOccupantsCount(currentPlayer(), occupant.kind()) > 0)
+                enoughOccupants = true;
+        }
+
+        if (enoughOccupants && !lastTilePotentialOccupants().isEmpty())
+            return new GameState(this.players, this.tileDecks, null, newBoard,
+                    Action.OCCUPY_TILE, newMessageBoard);
 
         return withTurnFinished(newBoard, newMessageBoard);
-    }
-
-    private GameState withFinalPointsCounted() {
-
-        // TODO
-
-        return this;
     }
 
     private GameState withTurnFinished(Board newBoard, MessageBoard messageBoard) {
@@ -220,10 +225,159 @@ public record GameState(
         if (nextTile != null) {
             return new GameState(shiftPlayers(), newTileDecks, nextTile, newBoard,
                     Action.PLACE_TILE, newMessageBoard);
-        }
-        else {
+        } else {
             return withFinalPointsCounted();
         }
+    }
+
+    private GameState withFinalPointsCounted() {
+
+        Board newBoard = this.board;
+        MessageBoard newMessageBoard = this.messageBoard;
+
+        // count meadow points
+        for (Area<Zone.Meadow> meadow : newBoard.meadowAreas()) {
+            Set<Animal> cancelledDeer;
+
+            if (meadow.zoneWithSpecialPower(WILD_FIRE) != null)
+                // don't cancel any deer if there is a fire in the area
+                cancelledDeer = Collections.emptySet();
+
+            else if (meadow.zoneWithSpecialPower(PIT_TRAP) != null) {
+                Zone.Meadow pitTrapZone = (Zone.Meadow) meadow.zoneWithSpecialPower(PIT_TRAP);
+                // if the pit trap is in the area, say hi
+
+                Area<Zone.Meadow> adjMeadow = this.board().adjacentMeadow(
+                        newBoard.tileWithId(pitTrapZone.tileId()).pos(),
+                        pitTrapZone
+                );
+
+                Set<Animal> animals = Area.animals(meadow, Collections.emptySet());
+                Map<Animal.Kind, Integer> animalCounts = new HashMap<>();
+                animals.forEach(a -> animalCounts.merge(a.kind(), 1, Integer::sum));
+
+                AtomicInteger cancelCount = new AtomicInteger();
+                // add all deer that are not in the adjacent meadow
+                cancelledDeer = Set.copyOf(animals).stream()
+                        .filter(a -> {
+                            if (a.kind().equals(Animal.Kind.DEER) &&
+                                    !Area.animals(adjMeadow, Collections.emptySet()).contains(a) &&
+                                    cancelCount.get() < animalCounts.get(Animal.Kind.TIGER)) {
+
+                                cancelCount.getAndIncrement();
+                                return true;
+                            }
+                            return false;
+                        })
+                        .collect(Collectors.toSet());
+
+                // add more deer until count reached
+                if (cancelCount.get() < animalCounts.get(Animal.Kind.TIGER))
+                    cancelledDeer.addAll(Set.copyOf(animals).stream()
+                            .filter(a -> {
+                                if (a.kind().equals(Animal.Kind.DEER) &&
+                                        cancelCount.get() < animalCounts.get(Animal.Kind.TIGER)) {
+
+                                    cancelCount.getAndIncrement();
+                                    return true;
+                                }
+                                return false;
+                            })
+                            .collect(Collectors.toSet())
+                    );
+
+                newMessageBoard = newMessageBoard.withScoredPitTrap(adjMeadow, cancelledDeer);
+
+            } else {
+                cancelledDeer = cancelledDeerInMeadow(meadow);
+            }
+
+            newBoard = newBoard.withMoreCancelledAnimals(cancelledDeer);
+            newMessageBoard = newMessageBoard.withScoredMeadow(meadow, cancelledDeer);
+        }
+
+        // count points in river systems
+        for (Area<Zone.Water> riverSystem : newBoard.riverSystemAreas()) {
+            if (riverSystem.zoneWithSpecialPower(RAFT) != null)
+                // give additional points if there is the raft
+                newMessageBoard = newMessageBoard.withScoredRaft(riverSystem);
+
+            newMessageBoard = newMessageBoard.withScoredRiverSystem(riverSystem);
+        }
+
+        // determine winners
+
+        int maxPoints = 0;
+        for (Integer points : newMessageBoard.points().values()) {
+            maxPoints = Math.max(maxPoints, points);
+        }
+
+        Set<PlayerColor> winners = new HashSet<>();
+        for (PlayerColor playerColor : PlayerColor.ALL) {
+            if (newMessageBoard.points().getOrDefault(playerColor, 0) == maxPoints)
+                winners.add(playerColor);
+        }
+
+        newMessageBoard = newMessageBoard.withWinners(winners, maxPoints);
+
+        return new GameState(this.players, this.tileDecks, null, newBoard,
+                Action.END_GAME, newMessageBoard);
+    }
+
+    private static Set<Animal> cancelledDeerInMeadow(Area<Zone.Meadow> meadowArea) {
+        // get all animals, count them
+        Set<Animal> animals = Area.animals(meadowArea, Collections.emptySet());
+        Map<Animal.Kind, Integer> animalCounts = new HashMap<>();
+        animals.forEach(a -> animalCounts.merge(a.kind(), 1, Integer::sum));
+
+        Set<Animal> cancelledDeer;
+        /*if (animalCounts.get(Animal.Kind.TIGER) >= animalCounts.get(Animal.Kind.DEER)) {
+            // cancel all deer ☠
+            cancelledDeer = Set.copyOf(animals).stream()
+                    .filter(a -> a.kind().equals(Animal.Kind.DEER))
+                    .collect(Collectors.toSet());
+
+            // dunno if this is necessary but hey
+            animalCounts.put(Animal.Kind.DEER, 0);
+
+        } else {
+            // cancel some deer 🪦
+            AtomicInteger cancelCount = new AtomicInteger();
+            cancelledDeer = Set.copyOf(animals).stream()
+                    .filter(a -> {
+                        if (a.kind().equals(Animal.Kind.DEER) &&
+                                cancelCount.get() < animalCounts.get(Animal.Kind.TIGER)) {
+
+                            cancelCount.getAndIncrement();
+                            return true;
+                        }
+                        return false;
+                    })
+                    .collect(Collectors.toSet());
+
+            // dunno if this is necessary but hey
+            animalCounts.computeIfPresent(Animal.Kind.DEER, (k, v) -> v - cancelCount.get());
+        }*/
+
+        // this should actually be enough: cancel as many deer as there are tigers, or all
+        // if there are >= tigers than deer ☠ 🪦
+        AtomicInteger cancelCount = new AtomicInteger();
+        cancelledDeer = Set.copyOf(animals).stream()
+                .filter(a -> {
+                    if (a.kind().equals(Animal.Kind.DEER) &&
+                            cancelCount.get() < animalCounts.get(Animal.Kind.TIGER)) {
+
+                        cancelCount.getAndIncrement();
+                        return true;
+                    }
+                    return false;
+                })
+                .collect(Collectors.toSet());
+
+        // dunno if this is necessary but hey
+        animalCounts.computeIfPresent(Animal.Kind.DEER, (k, v) -> v - cancelCount.get());
+
+        return cancelledDeer;
     }
 
     /* ==========================================================================================
@@ -248,10 +402,21 @@ public record GameState(
                 nextTile, newBoard, Action.PLACE_TILE, this.messageBoard);
     }
 
+    /**
+     * Returns the same GameState, but with the given tile added and all the corresponding actions
+     * taken care of.
+     *
+     * @param tile the tile (PlacedTile) to be added to the board
+     * @return the new game state
+     */
     public GameState withPlacedTile(PlacedTile tile) {
         Preconditions.checkArgument(this.nextAction.equals(Action.PLACE_TILE));
         Preconditions.checkArgument(Objects.isNull(tile.occupant()));
 
+        /*
+            PSA: the addition of a new tile always works, as the starting tile accepts every single
+            zone type, and after the start, tile selection is handled by withTurnFinished.
+         */
         Board newBoard = this.board.withNewTile(tile);
         MessageBoard newMessageBoard = this.messageBoard;
         boolean shaman = false;
@@ -263,45 +428,17 @@ public record GameState(
                 Area<Zone.Meadow> adjacentMeadow = newBoard.adjacentMeadow(
                         tile.pos(), meadow);
 
-
-                // get all animals, count them
-                Set<Animal> animals = Area.animals(adjacentMeadow, Collections.emptySet());
-                Map<Animal.Kind, Integer> animalCounts = new HashMap<>();
-                animals.forEach(a -> animalCounts.merge(a.kind(), 1, Integer::sum));
-
-                Set<Animal> cancelledAnimals;
-                if (animalCounts.get(Animal.Kind.TIGER) >= animalCounts.get(Animal.Kind.DEER)) {
-                    // cancel all deer ☠
-                    cancelledAnimals = Set.copyOf(animals).stream()
-                            .filter(a -> a.kind().equals(Animal.Kind.DEER))
-                            .collect(Collectors.toSet());
-                    animalCounts.put(Animal.Kind.DEER, 0);
-
-                } else {
-                    // cancel some deer 🪦
-                    AtomicInteger cancelCount = new AtomicInteger();
-                    //noinspection UnusedAssignment
-                    cancelledAnimals = Set.copyOf(animals).stream()
-                            .filter(a -> {
-                                if (a.kind().equals(Animal.Kind.DEER) &&
-                                        cancelCount.get() < animalCounts.get(Animal.Kind.TIGER)) {
-
-                                    cancelCount.getAndIncrement();
-                                    return true;
-                                }
-                                return false;
-                            })
-                            .collect(Collectors.toSet());
-                    animalCounts.computeIfPresent(Animal.Kind.DEER, (k, v) -> v -cancelCount.get());
-                }
+                Set<Animal> cancelledDeer = cancelledDeerInMeadow(adjacentMeadow);
 
                 newMessageBoard = newMessageBoard.withScoredHuntingTrap(
                         currentPlayer(),
                         adjacentMeadow/*,
-                    cancelledAnimals TODO: uncomment this as soon as new version is known */
+                    cancelledDeer TODO: uncomment this as soon as new version is known */
                 );
 
-                newBoard = newBoard.withMoreCancelledAnimals(animals);
+                newBoard = newBoard.withMoreCancelledAnimals(
+                        Area.animals(adjacentMeadow, Collections.emptySet())
+                );
             }
 
             // add points for logboat
@@ -323,65 +460,53 @@ public record GameState(
                       placer had the chance to place a pawn but still should get
                       the chance to place an occupant during the occupy phase
                       --> RETAKE Impossible does not imply OCCUPY Impossible
-                */
+                .
+                Good thinking, but I was planning to call withTurnFinishedIfOccupationImpossible
+                in withTurnFinishedIfDeOccupationImpossible, so it should work out. - Mattia
+        */
         if (shaman)
-            // Rename, this method should only skip the retake step
-            return withOccupantForRetakeImpossible(newBoard, newMessageBoard);
+            return withOccupationIfDeOccupationImpossible(newBoard, newMessageBoard);
         else
             return withTurnFinishedIfOccupationImpossible(newBoard, newMessageBoard);
     }
 
     /**
      * Method that handles the RETAKE_PAWN action that arises after having placed the shaman.
+     *
      * @param occupant The occupant the current player chooses to remove from the board, null if
      *                 the player chose not to remove a pawn.
      * @return A new board without the occupant that was passed, next action OCCUPY_TIlE.
-     *         If either null was passed or the current player does not have any pawns on the board,
-     *         the same board is kept and only the next action is changed to OCCUPY_TILE.
+     * If either null was passed or the current player does not have any pawns on the board,
+     * the same board is kept and only the next action is changed to OCCUPY_TILE.
      * @throws IllegalArgumentException if either the next action is not RETAKE_PAWN or the occupant
-     *         that is passed is neither null nor a pawn.
+     *                                  that is passed is neither null nor a pawn.
      */
     public GameState withOccupantRemoved(Occupant occupant) {
         Preconditions.checkArgument(this.nextAction.equals(Action.RETAKE_PAWN));
         Preconditions.checkArgument(occupant == null
                 || occupant.kind().equals(Occupant.Kind.PAWN));
 
-        if (occupant == null || this.board().occupantCount(this.currentPlayer(), occupant.kind())<1)
-        {
-            /* TODO return the GameState for the case that the player that would have had the
-                possibility to retake a pawn but chose not to and for the case that the player
-                did not have an occupant on the board to begin with?
-            */
-            return new GameState(players, tileDecks, tileToPlace, board,
-                    Action.OCCUPY_TILE, messageBoard);
-        }
-        /* deleting the occupant that was passed from the board (probably also needs to make sure
-           that the player that retook one of their pawns actually gets an additional pawn)
-            -> This is handled by the way we calculate the free occupants I think
-        */
-        Board newBoard = this.board.withoutOccupant(occupant);
-        // TODO no clue if this should be done this way
-        // It is intended that players stays the same as the pawn is removed before the occupation step
-        return new GameState(players, tileDecks, tileToPlace, newBoard,
-                Action.OCCUPY_TILE, messageBoard);
+        if (occupant == null || this.board.occupantCount(this.currentPlayer(), occupant.kind()) < 1)
+            return withTurnFinishedIfOccupationImpossible(this.board, this.messageBoard);
+
+        return withTurnFinishedIfOccupationImpossible(
+                this.board.withoutOccupant(occupant), this.messageBoard
+        );
     }
 
     /**
      * Method that handles the OCCUPY_TILE step.
+     *
      * @param occupant The occupant to be added to the board.
      * @return A new GameState with the additional occupant.
      */
     public GameState withNewOccupant(Occupant occupant) {
         Preconditions.checkArgument(nextAction.equals(Action.OCCUPY_TILE));
-        // Dunno if this is the right method to call here ↓
+
         if (occupant == null)
-            return withTurnFinishedIfOccupationImpossible(board, messageBoard);
-        // This should in theory never have to throw because this exception is handled above somewhere
+            return withTurnFinished(this.board, this.messageBoard);
+
         Board newBoard = board.withOccupant(occupant);
-
-        // I think this is responsible here, dunno how this should work.
-        return withTurnFinished(newBoard, messageBoard);
-
+        return withTurnFinished(newBoard, this.messageBoard);
     }
-
 }
