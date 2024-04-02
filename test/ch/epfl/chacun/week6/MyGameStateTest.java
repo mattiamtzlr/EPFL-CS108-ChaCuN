@@ -4,6 +4,7 @@ import ch.epfl.chacun.*;
 
 import static ch.epfl.chacun.PlayerColor.*;
 import static ch.epfl.chacun.GameState.Action.*;
+import static ch.epfl.chacun.Occupant.Kind.*;
 import static ch.epfl.cs108.Tiles.TILES;
 
 import org.junit.jupiter.api.Test;
@@ -16,8 +17,8 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MyGameStateTest {
-    static final int PAWN_MAX = Occupant.occupantsCount(Occupant.Kind.PAWN);
-    static final int HUT_MAX = Occupant.occupantsCount(Occupant.Kind.HUT);
+    static final int PAWN_MAX = Occupant.occupantsCount(PAWN);
+    static final int HUT_MAX = Occupant.occupantsCount(HUT);
 
     static TileDecks standardDecks() {
         List<Tile> startTiles = new ArrayList<>();
@@ -40,49 +41,113 @@ class MyGameStateTest {
             basicTextMaker, Collections.emptyList());
 
     // Test tiles
-    PlacedTile t56PRotNone = new PlacedTile(
+    PlacedTile t56RotNone = new PlacedTile(
             TILES.get(56), null, Rotation.NONE, new Pos(0, 0)
     );
 
-    PlacedTile t11PRotNoneWestOf56 = new PlacedTile(
-            TILES.get(11), RED, Rotation.NONE, t56PRotNone.pos().neighbor(Direction.W)
+    PlacedTile t11RotNoneWestOf56 = new PlacedTile(
+            TILES.get(11), RED, Rotation.NONE, t56RotNone.pos().neighbor(Direction.W)
     );
-    Occupant hutL118 = new Occupant(Occupant.Kind.HUT, 118);
+    PlacedTile t11RotNoneWestOf56BLUE = new PlacedTile(
+            TILES.get(11), BLUE, Rotation.NONE, t56RotNone.pos().neighbor(Direction.W)
+    );
+    Occupant hutL118 = new Occupant(HUT, 118);
 
-    PlacedTile t23PRotNoneEastOf56 = new PlacedTile(
-            TILES.get(23), BLUE, Rotation.NONE, t56PRotNone.pos().neighbor(Direction.E)
+    PlacedTile t23RotNoneEastOf56 = new PlacedTile(
+            TILES.get(23), BLUE, Rotation.NONE, t56RotNone.pos().neighbor(Direction.E)
     );
-    Occupant pawnF233 = new Occupant(Occupant.Kind.PAWN, 233);
+    PlacedTile t23RotNoneEastOf56RED = new PlacedTile(
+            TILES.get(23), RED, Rotation.NONE, t56RotNone.pos().neighbor(Direction.E)
+    );
+    Occupant pawnF233 = new Occupant(PAWN, 233);
+    Occupant hutF231 = new Occupant(HUT, 231);
 
-    PlacedTile t32PRotNoneNorthOf56 = new PlacedTile(
-            TILES.get(32), GREEN, Rotation.NONE, t56PRotNone.pos().neighbor(Direction.N)
+    PlacedTile t32RotNoneNorthOf56 = new PlacedTile(
+            TILES.get(32), GREEN, Rotation.NONE, t56RotNone.pos().neighbor(Direction.N)
     );
-    Occupant pawnM321 = new Occupant(Occupant.Kind.PAWN, 321);
+    PlacedTile t32RotNoneNorthOf56RED = new PlacedTile(
+            TILES.get(32), RED, Rotation.NONE, t56RotNone.pos().neighbor(Direction.N)
+    );
+    Occupant pawnM321 = new Occupant(PAWN, 321);
 
-    PlacedTile t68PRotNoneSouthOf56 = new PlacedTile(
-            TILES.get(68), YELLOW, Rotation.NONE, t56PRotNone.pos().neighbor(Direction.S)
+    PlacedTile t68RotNoneSouthOf56 = new PlacedTile(
+            TILES.get(68), YELLOW, Rotation.NONE, t56RotNone.pos().neighbor(Direction.S)
     );
-    Occupant hutR682 = new Occupant(Occupant.Kind.HUT, 682);
+    PlacedTile t68RotNoneSouthOf56BLUE = new PlacedTile(
+            TILES.get(68), BLUE, Rotation.NONE, t56RotNone.pos().neighbor(Direction.S)
+    );
+    Occupant hutR682 = new Occupant(HUT, 682);
+
+    PlacedTile t16RotNoneNorthEastOf56 = new PlacedTile(
+            TILES.get(16), PURPLE, Rotation.NONE, t56RotNone.pos().translated(1, -1)
+    );
+    PlacedTile t16RotNoneNorthEastOf56RED = new PlacedTile(
+            TILES.get(16), RED, Rotation.NONE, t56RotNone.pos().translated(1, -1)
+    );
+    Occupant pawnM162 = new Occupant(PAWN, 162);
+
+    PlacedTile t74RotNoneNorthWestOf56 = new PlacedTile(
+            TILES.get(74), BLUE, Rotation.NONE, t56RotNone.pos().translated(-1, -1)
+    );
+    PlacedTile t74RotNoneNorthWestOf56RED = new PlacedTile(
+            TILES.get(74), RED, Rotation.NONE, t56RotNone.pos().translated(-1, -1)
+    );
+    Occupant pawnM740 = new Occupant(PAWN, 740);
+
+    PlacedTile t33RotNoneSouthWestOf56 = new PlacedTile(
+            TILES.get(33), GREEN, Rotation.NONE, t56RotNone.pos().translated(-1, 1)
+    );
+    PlacedTile t33RotNoneSouthWestOf56RED = new PlacedTile(
+            TILES.get(33), RED, Rotation.NONE, t56RotNone.pos().translated(-1, 1)
+    );
+    Occupant pawnF330 = new Occupant(PAWN, 330);
+
+    PlacedTile t66RotNoneSouthEastOf56 = new PlacedTile(
+            TILES.get(66), RED, Rotation.NONE, t56RotNone.pos().translated(1, 1)
+    );
+    PlacedTile t66RotNoneSouthEastOf56BLUE = new PlacedTile(
+            TILES.get(66), BLUE, Rotation.NONE, t56RotNone.pos().translated(1, 1)
+    );
 
     Board boardCrossAround56Last68 = Board.EMPTY
-            .withNewTile(t56PRotNone)
-            .withNewTile(t11PRotNoneWestOf56).withOccupant(hutL118)
-            .withNewTile(t23PRotNoneEastOf56).withOccupant(pawnF233)
-            .withNewTile(t32PRotNoneNorthOf56).withOccupant(pawnM321)
-            .withNewTile(t68PRotNoneSouthOf56).withOccupant(hutR682);
+            .withNewTile(t56RotNone)
+            .withNewTile(t11RotNoneWestOf56).withOccupant(hutL118)
+            .withNewTile(t23RotNoneEastOf56).withOccupant(pawnF233)
+            .withNewTile(t32RotNoneNorthOf56).withOccupant(pawnM321)
+            .withNewTile(t68RotNoneSouthOf56).withOccupant(hutR682);
 
     Board boardCrossAround56Last23 = Board.EMPTY
-            .withNewTile(t56PRotNone)
-            .withNewTile(t11PRotNoneWestOf56).withOccupant(hutL118)
-            .withNewTile(t32PRotNoneNorthOf56).withOccupant(pawnM321)
-            .withNewTile(t68PRotNoneSouthOf56).withOccupant(hutR682)
-            .withNewTile(t23PRotNoneEastOf56).withOccupant(pawnF233);
+            .withNewTile(t56RotNone)
+            .withNewTile(t11RotNoneWestOf56).withOccupant(hutL118)
+            .withNewTile(t32RotNoneNorthOf56).withOccupant(pawnM321)
+            .withNewTile(t68RotNoneSouthOf56).withOccupant(hutR682)
+            .withNewTile(t23RotNoneEastOf56).withOccupant(pawnF233);
+
+    Board boardSquareAround56Last66BLUE3Huts = Board.EMPTY
+            .withNewTile(t56RotNone)
+            .withNewTile(t11RotNoneWestOf56BLUE).withOccupant(hutL118)
+            .withNewTile(t23RotNoneEastOf56).withOccupant(hutF231)
+            .withNewTile(t32RotNoneNorthOf56)
+            .withNewTile(t68RotNoneSouthOf56BLUE).withOccupant(hutR682)
+            .withNewTile(t16RotNoneNorthEastOf56)
+            .withNewTile(t74RotNoneNorthWestOf56)
+            .withNewTile(t33RotNoneSouthWestOf56)
+            .withNewTile(t66RotNoneSouthEastOf56BLUE);
+
+    Board boardSquareAround56Last66RED5Pawns = Board.EMPTY
+            .withNewTile(t56RotNone)
+            .withNewTile(t11RotNoneWestOf56)
+            .withNewTile(t23RotNoneEastOf56RED).withOccupant(pawnF233)
+            .withNewTile(t32RotNoneNorthOf56RED).withOccupant(pawnM321)
+            .withNewTile(t68RotNoneSouthOf56)
+            .withNewTile(t16RotNoneNorthEastOf56RED).withOccupant(pawnM162)
+            .withNewTile(t74RotNoneNorthWestOf56RED).withOccupant(pawnM740)
+            .withNewTile(t33RotNoneSouthWestOf56RED).withOccupant(pawnF330)
+            .withNewTile(t66RotNoneSouthEastOf56);
+            
 
     /* TODO:
-        edge cases of lastTilePotentialOccupants: not enough occupants etc.
-        .
-        withStartingTilePlaced()
-        withPlacedTile()
+        withPlacedTile()            This one is gonna be fun (*ಠ_ಠ;)
         withOccupantRemoved()
         withNewOccupant()
      */
@@ -177,8 +242,8 @@ class MyGameStateTest {
 
     @Test
     void freeOccupantsCountWorksOnOccupiedBoard() {
-        GameState state = new GameState(ALL, standardDecks(), TILES.get(69), boardCrossAround56Last68,
-                PLACE_TILE, emptyMessageBoard);
+        GameState state = new GameState(ALL, standardDecks(), TILES.get(69),
+                boardCrossAround56Last68, PLACE_TILE, emptyMessageBoard);
 
         List<Integer> expected = List.of(
                 PAWN_MAX, HUT_MAX - 1,
@@ -216,25 +281,127 @@ class MyGameStateTest {
                 a pawn in forest 233, it is also not valid. */
 
                 Set.of(
-                        new Occupant(Occupant.Kind.PAWN, 681),
-                        new Occupant(Occupant.Kind.PAWN, 683)
+                        new Occupant(PAWN, 681),
+                        new Occupant(PAWN, 683)
                 ),
                 state1.lastTilePotentialOccupants()
         );
 
-        GameState state2 = new GameState(ALL,standardDecks(), TILES.get(72),
+        GameState state2 = new GameState(ALL, standardDecks(), TILES.get(72),
                 boardCrossAround56Last23, PLACE_TILE, emptyMessageBoard);
 
         assertEquals(
                 /* last placed tile is 23, with a pawn in forest 233, thus no pawn can be placed
                 there, current player is red who has > 1 huts and pawns remaining. */
                 Set.of(
-                        new Occupant(Occupant.Kind.PAWN, 230),
-                        new Occupant(Occupant.Kind.PAWN, 231),
-                        new Occupant(Occupant.Kind.PAWN, 232),
-                        new Occupant(Occupant.Kind.HUT, 231)
+                        new Occupant(PAWN, 230),
+                        new Occupant(PAWN, 231),
+                        new Occupant(PAWN, 232),
+                        new Occupant(HUT, 231)
                 ),
                 state2.lastTilePotentialOccupants()
         );
+    }
+
+    @Test
+    void lastTilePotentialOccupantsWorksWithNoOccupantsRemaining() {
+        GameState state1 = new GameState(List.of(BLUE, GREEN, YELLOW, PURPLE, RED), standardDecks(),
+                TILES.get(41), boardSquareAround56Last66BLUE3Huts, PLACE_TILE, emptyMessageBoard);
+
+        assertEquals(
+                /* last placed tile is 66, possible pawn in 660, 661, 662,  663 and 664; Hut in 662
+                not possible as blue (current player) does not have enough huts. */
+                Set.of(
+                        new Occupant(PAWN, 660),
+                        new Occupant(PAWN, 661),
+                        new Occupant(PAWN, 662),
+                        new Occupant(PAWN, 663),
+                        new Occupant(PAWN, 664)
+                ),
+                state1.lastTilePotentialOccupants()
+        );
+
+        GameState state2 = new GameState(ALL, standardDecks(), TILES.get(47),
+                boardSquareAround56Last66RED5Pawns, PLACE_TILE, emptyMessageBoard);
+
+        assertEquals(
+                /* last placed tile is 66, no possible pawns as red (current player) has none left;
+                however possible hut on river 662. */
+                Collections.singleton(
+                        new Occupant(HUT, 662)
+                ),
+                state2.lastTilePotentialOccupants()
+        );
+    }
+
+    @Test
+    void withStartingTilePlacedThrowsOnIllegalNextAction() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            GameState initial = new GameState(ALL, standardDecks(), TILES.get(44), Board.EMPTY,
+                    PLACE_TILE, emptyMessageBoard);
+            initial.withStartingTilePlaced();
+        });
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            GameState.Action[] actions = {RETAKE_PAWN, OCCUPY_TILE, END_GAME};
+
+            for (GameState.Action action : actions) {
+                GameState initial = new GameState(ALL, standardDecks(), null, Board.EMPTY,
+                        action, emptyMessageBoard);
+
+                initial.withStartingTilePlaced();
+            }
+        });
+    }
+
+    @Test
+    void withStartingTilePlacedBehavesCorrectly() {
+        GameState initial = GameState.initial(
+                List.of(PURPLE, YELLOW, BLUE), standardDecks(), basicTextMaker
+        );
+        GameState withStartingTile = initial.withStartingTilePlaced();
+
+        assertEquals(PLACE_TILE, withStartingTile.nextAction());
+        assertEquals(
+                Board.EMPTY.withNewTile(t56RotNone),
+                withStartingTile.board()
+        );
+        assertEquals(
+                TILES.getFirst(),
+                withStartingTile.tileToPlace()
+        );
+        assertEquals(
+                standardDecks().withTopTileDrawn(Tile.Kind.NORMAL),
+                withStartingTile.tileDecks()
+        );
+        assertEquals(PURPLE, withStartingTile.currentPlayer());
+    }
+
+    @Test
+    void withPlacedTileThrowsOnIllegalNextAction() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            GameState.Action[] actions = {START_GAME, RETAKE_PAWN, OCCUPY_TILE, END_GAME};
+
+            for (GameState.Action action : actions) {
+                GameState initial = new GameState(ALL, standardDecks(), null, Board.EMPTY,
+                        action, emptyMessageBoard);
+
+                initial.withPlacedTile(t68RotNoneSouthOf56);
+            }
+        });
+    }
+
+    @Test
+    void withPlacedTileThrowsOnOccupiedTile() {
+        PlacedTile occupiedTile = new PlacedTile(
+                TILES.get(32), PURPLE, Rotation.NONE, t56RotNone.pos().neighbor(Direction.S),
+                new Occupant(PAWN, 230)
+        );
+
+        assertThrows(IllegalArgumentException.class, () -> {
+            GameState state = GameState.initial(ALL, standardDecks(), basicTextMaker)
+                    .withStartingTilePlaced()
+                    .withPlacedTile(occupiedTile);
+        });
     }
 }

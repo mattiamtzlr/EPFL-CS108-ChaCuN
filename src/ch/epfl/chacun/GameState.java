@@ -139,7 +139,8 @@ public record GameState(
        ========================================================================================== */
 
     private List<PlayerColor> shiftPlayers() {
-        List<PlayerColor> newList = List.copyOf(this.players).subList(1, this.players.size());
+        List<PlayerColor> newList = new ArrayList<>(List.copyOf(this.players))
+                .subList(1, this.players.size());
         newList.add(this.currentPlayer());
         return newList;
     }
