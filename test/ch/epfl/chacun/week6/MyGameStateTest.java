@@ -36,9 +36,9 @@ class MyGameStateTest {
         return new TileDecks(startTiles, normalTiles, menhirTiles);
     }
 
-    static TextMaker basicTextMaker = new BasicTextMaker();
+    static TextMaker textMaker = new TextMakerTEST();
     static MessageBoard emptyMessageBoard = new MessageBoard(
-            basicTextMaker, Collections.emptyList());
+            textMaker, Collections.emptyList());
 
     // Test tiles
     PlacedTile t56RotNone = new PlacedTile(
@@ -116,7 +116,7 @@ class MyGameStateTest {
 
 
     PlacedTile t61RotNoneSouthEastOf56 = new PlacedTile(
-            TILES.get(61), BLUE, Rotation.NONE, t56RotNone.pos().translated(1,1)
+            TILES.get(61), BLUE, Rotation.NONE, t56RotNone.pos().translated(1, 1)
     );
     PlacedTile t61RotNoneNorthOf56 = new PlacedTile(
             TILES.get(61), BLUE, Rotation.NONE, t56RotNone.pos().neighbor(Direction.N)
@@ -127,11 +127,11 @@ class MyGameStateTest {
             TILES.get(22), RED, Rotation.HALF_TURN, t56RotNone.pos().neighbor(Direction.W)
     );
     PlacedTile t24RotNoneSouthWestOf56 = new PlacedTile(
-            TILES.get(24), GREEN, Rotation.NONE, t56RotNone.pos().translated(-1,1)
+            TILES.get(24), GREEN, Rotation.NONE, t56RotNone.pos().translated(-1, 1)
     );
     Occupant pawnM242 = new Occupant(PAWN, 242);
     PlacedTile t29RotNoneSouthOf24 = new PlacedTile(
-            TILES.get(29), BLUE, Rotation.NONE, new Pos(-1,2)
+            TILES.get(29), BLUE, Rotation.NONE, new Pos(-1, 2)
     );
     PlacedTile t37RotNoneSouthOf56 = new PlacedTile(
             TILES.get(37), PURPLE, Rotation.NONE, t56RotNone.pos().neighbor(Direction.S)
@@ -141,6 +141,11 @@ class MyGameStateTest {
     );
     Occupant pawnR191 = new Occupant(PAWN, 191);
     Occupant hutR292 = new Occupant(HUT, 292);
+
+    PlacedTile t88RotNoneTwiceNorthOf56SHAMAN = new PlacedTile(
+            TILES.get(88), GREEN, Rotation.NONE, t56RotNone.pos().translated(0, -2)
+    );
+
     Board boardCrossAround56Last68 = Board.EMPTY
             .withNewTile(t56RotNone)
             .withNewTile(t11RotNoneWestOf56).withOccupant(hutL118)
@@ -180,8 +185,11 @@ class MyGameStateTest {
 
     /* TODO:
         withPlacedTile()            This one is gonna be fun (*ಠ_ಠ;)
-        withOccupantRemoved()
+            - special powers {Hunting Trap, Logboat}
+            - edge cases
         withNewOccupant()
+        .
+        I suggest not to test whether messages are correctly saved, it's very trivial - Mattia
      */
 
     @Test
@@ -229,7 +237,7 @@ class MyGameStateTest {
                 START_GAME, emptyMessageBoard);
 
         assertEquals(
-                expected, GameState.initial(ALL, standardDecks(), basicTextMaker)
+                expected, GameState.initial(ALL, standardDecks(), textMaker)
         );
     }
 
@@ -262,7 +270,7 @@ class MyGameStateTest {
 
     @Test
     void freeOccupantsCountIsMaxOnBoardWithNoOccupants() {
-        GameState state = GameState.initial(ALL, standardDecks(), basicTextMaker);
+        GameState state = GameState.initial(ALL, standardDecks(), textMaker);
 
         for (Occupant.Kind kind : Occupant.Kind.values()) {
             for (PlayerColor color : ALL) {
@@ -297,7 +305,7 @@ class MyGameStateTest {
 
     @Test
     void lastTilePotentialOccupantsThrowsOnEmptyBoard() {
-        GameState state = GameState.initial(ALL, standardDecks(), basicTextMaker);
+        GameState state = GameState.initial(ALL, standardDecks(), textMaker);
         assertThrows(IllegalArgumentException.class, state::lastTilePotentialOccupants);
     }
 
@@ -369,27 +377,27 @@ class MyGameStateTest {
     @Test
     void withStartingTilePlacedThrowsOnIllegalNextAction() {
         assertThrows(IllegalArgumentException.class, () -> {
-            GameState initial = new GameState(ALL, standardDecks(), TILES.get(44), Board.EMPTY,
+            GameState state = new GameState(ALL, standardDecks(), TILES.get(44), Board.EMPTY,
                     PLACE_TILE, emptyMessageBoard);
-            initial.withStartingTilePlaced();
+            state.withStartingTilePlaced();
         });
 
-        assertThrows(IllegalArgumentException.class, () -> {
-            GameState.Action[] actions = {RETAKE_PAWN, OCCUPY_TILE, END_GAME};
+        GameState.Action[] actions = {RETAKE_PAWN, OCCUPY_TILE, END_GAME};
 
-            for (GameState.Action action : actions) {
-                GameState initial = new GameState(ALL, standardDecks(), null, Board.EMPTY,
+        for (GameState.Action action : actions) {
+            assertThrows(IllegalArgumentException.class, () -> {
+                GameState state = new GameState(ALL, standardDecks(), null, Board.EMPTY,
                         action, emptyMessageBoard);
 
-                initial.withStartingTilePlaced();
-            }
-        });
+                state.withStartingTilePlaced();
+            });
+        }
     }
 
     @Test
     void withStartingTilePlacedBehavesCorrectly() {
         GameState initial = GameState.initial(
-                List.of(PURPLE, YELLOW, BLUE), standardDecks(), basicTextMaker
+                List.of(PURPLE, YELLOW, BLUE), standardDecks(), textMaker
         );
         GameState withStartingTile = initial.withStartingTilePlaced();
 
@@ -411,16 +419,16 @@ class MyGameStateTest {
 
     @Test
     void withPlacedTileThrowsOnIllegalNextAction() {
-        assertThrows(IllegalArgumentException.class, () -> {
-            GameState.Action[] actions = {START_GAME, RETAKE_PAWN, OCCUPY_TILE, END_GAME};
+        GameState.Action[] actions = {START_GAME, RETAKE_PAWN, OCCUPY_TILE, END_GAME};
 
-            for (GameState.Action action : actions) {
-                GameState initial = new GameState(ALL, standardDecks(), null, Board.EMPTY,
+        for (GameState.Action action : actions) {
+            assertThrows(IllegalArgumentException.class, () -> {
+                GameState state = new GameState(ALL, standardDecks(), null, Board.EMPTY,
                         action, emptyMessageBoard);
 
-                initial.withPlacedTile(t68RotNoneSouthOf56);
-            }
-        });
+                state.withPlacedTile(t68RotNoneSouthOf56);
+            });
+        }
     }
 
     @Test
@@ -431,36 +439,34 @@ class MyGameStateTest {
         );
 
         assertThrows(IllegalArgumentException.class, () -> {
-            GameState state = GameState.initial(ALL, standardDecks(), basicTextMaker)
-                    .withStartingTilePlaced()
+            GameState state = GameState.initial(ALL, standardDecks(), textMaker);
+
+            state.withStartingTilePlaced()
                     .withPlacedTile(occupiedTile);
         });
     }
 
     @Test
     void withPlacedTileEntersMenhirStatesForTrivialCase() {
-        GameState state = GameState.initial( List.of(GREEN,PURPLE), standardDecks(), basicTextMaker);
+        GameState state = GameState.initial(List.of(GREEN, PURPLE), standardDecks(), textMaker);
         GameState menhirTriggerState = state.withStartingTilePlaced()
                 .withPlacedTile(t82RotNoneEastOf56).withNewOccupant(null)
                 .withPlacedTile(t68RotNoneSouthOf56).withNewOccupant(pawnM681);
 
         assertEquals(GameState.Action.PLACE_TILE, menhirTriggerState.nextAction());
     }
+
     @Test
     void withPlacedTileEntersMenhirStatesForNoOccupyPossibleCase() {
-
-        GameState startingState = GameState.initial(ALL, standardDecks(), basicTextMaker)
+        GameState startingState = GameState.initial(ALL, standardDecks(), textMaker)
                 .withStartingTilePlaced();
+
         GameState menhirTriggerState = startingState
                 .withPlacedTile(t82RotNoneEastOf56).withNewOccupant(pawnF823)
                 .withPlacedTile(t61RotNoneSouthEastOf56).withNewOccupant(pawnM610)
                 .withPlacedTile(t37RotNoneSouthOf56);
 
-        // I do not understand why the game thinks it can place a pawn in the forest
         assertEquals(GameState.Action.PLACE_TILE, menhirTriggerState.nextAction());
-
-
-
     }
 
     /* DONE There might be a bug that causes the game state to skip the occupy phase for
@@ -469,11 +475,119 @@ class MyGameStateTest {
     */
     @Test
     void withPlacedTileTileAfterStartEntersOccupy() {
-        GameState state = GameState.initial(ALL, standardDecks(), basicTextMaker)
+        GameState state = GameState.initial(ALL, standardDecks(), textMaker)
                 .withStartingTilePlaced()
                 .withPlacedTile(t61RotNoneNorthOf56);
 
         assertEquals(OCCUPY_TILE, state.nextAction());
+    }
 
+    @Test
+    void withPlacedTileShamanTileTriggersRetakePawn() {
+        // needs to set next action to RETAKE_PAWN
+        GameState state = GameState.initial(List.of(GREEN, PURPLE), standardDecks(), textMaker)
+                .withStartingTilePlaced()
+                .withPlacedTile(t32RotNoneNorthOf56).withNewOccupant(pawnM321)
+                // this below is only to make green play again
+                .withPlacedTile(t16RotNoneNorthEastOf56).withNewOccupant(null)
+                .withPlacedTile(t88RotNoneTwiceNorthOf56SHAMAN);
+
+        assertEquals(RETAKE_PAWN, state.nextAction());
+    }
+
+    @Test
+    void withPlacedTileShamanTilePassesRetakeStepIfNoPawnsAvailable() {
+        // "passes" = goes straight to figuring out if occupation is possible, doesn't change board
+
+        GameState state = GameState.initial(List.of(GREEN, PURPLE), standardDecks(), textMaker)
+                .withStartingTilePlaced()
+                .withPlacedTile(t32RotNoneNorthOf56).withNewOccupant(null)
+                // this below is only to make green play again
+                .withPlacedTile(t16RotNoneNorthEastOf56).withNewOccupant(null)
+                .withPlacedTile(t88RotNoneTwiceNorthOf56SHAMAN);
+
+        assertEquals(OCCUPY_TILE, state.nextAction());
+    }
+
+    @Test
+    void withOccupantRemovedThrowsOnIllegalNextAction() {
+        assertThrows(IllegalArgumentException.class, () -> {
+            GameState state = new GameState(ALL, standardDecks(), TILES.get(45), Board.EMPTY,
+                    PLACE_TILE, emptyMessageBoard);
+
+            state.withOccupantRemoved(new Occupant(PAWN, 444));
+        });
+
+        GameState.Action[] actions = {START_GAME, OCCUPY_TILE, END_GAME};
+
+        for (GameState.Action action : actions) {
+            assertThrows(IllegalArgumentException.class, () -> {
+                GameState state = new GameState(ALL, standardDecks(), null, Board.EMPTY,
+                        action, emptyMessageBoard);
+
+                state.withOccupantRemoved(new Occupant(PAWN, 444));
+            });
+        }
+    }
+
+    @Test
+    void withOccupantRemovedThrowsOnHutAsOccupant() {
+        // occupant should either be null or a pawn, not a Hut
+        assertThrows(IllegalArgumentException.class, () -> {
+            GameState state = new GameState(ALL, standardDecks(), null,
+                    boardCrossAround56Last68, RETAKE_PAWN, emptyMessageBoard);
+
+            state.withOccupantRemoved(new Occupant(HUT, 444));
+        });
+    }
+
+    @Test
+    void withOccupantRemovedWorksInTrivialCase() {
+        GameState state = GameState.initial(List.of(GREEN, PURPLE), standardDecks(), textMaker)
+                .withStartingTilePlaced()
+                .withPlacedTile(t32RotNoneNorthOf56).withNewOccupant(pawnM321) // GREEN
+                // this below is only to make green play again
+                .withPlacedTile(t16RotNoneNorthEastOf56).withNewOccupant(null) // PURPLE
+                .withPlacedTile(t88RotNoneTwiceNorthOf56SHAMAN) // GREEN
+                .withOccupantRemoved(pawnM321);
+
+        // needs to remove the occupant, thus leaving the board unoccupied
+        assertEquals(Collections.emptySet(), state.board().occupants());
+
+        // needs to now be in OCCUPY_TILE state as shaman tile could be occupied by green
+        assertEquals(OCCUPY_TILE, state.nextAction());
+    }
+
+    @Test
+    void withOccupantRemovedPassesOnNullOccupant() {
+        // "passes" = goes straight to figuring out if occupation is possible, doesn't change board
+
+        GameState state = GameState.initial(List.of(GREEN, PURPLE), standardDecks(), textMaker)
+                .withStartingTilePlaced()
+                .withPlacedTile(t32RotNoneNorthOf56).withNewOccupant(pawnM321) // GREEN
+                // this below is only to make green play again
+                .withPlacedTile(t16RotNoneNorthEastOf56).withNewOccupant(null) // PURPLE
+                .withPlacedTile(t88RotNoneTwiceNorthOf56SHAMAN) // GREEN
+                .withOccupantRemoved(null);
+
+        assertEquals(Set.of(pawnM321), state.board().occupants());
+        assertEquals(OCCUPY_TILE, state.nextAction());
+    }
+
+    // I don't know if this actually needs to be tested, it's never explicitly mentioned
+    @Test
+    void withOccupantRemovedPassesIfOccupantIsOfWrongPlayer() {
+        // "passes" = goes straight to figuring out if occupation is possible, doesn't change board
+
+        GameState state = GameState.initial(List.of(GREEN, PURPLE), standardDecks(), textMaker)
+                .withStartingTilePlaced()
+                .withPlacedTile(t32RotNoneNorthOf56).withNewOccupant(pawnM321) // GREEN
+                // this below is only to make green play again
+                .withPlacedTile(t16RotNoneNorthEastOf56).withNewOccupant(pawnM162) // PURPLE
+                .withPlacedTile(t88RotNoneTwiceNorthOf56SHAMAN) // GREEN
+                .withOccupantRemoved(pawnM162); // try to remove purple's pawn
+
+        assertEquals(Set.of(pawnM321, pawnM162), state.board().occupants());
+        assertEquals(OCCUPY_TILE, state.nextAction());
     }
 }

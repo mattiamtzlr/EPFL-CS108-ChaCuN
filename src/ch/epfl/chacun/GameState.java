@@ -180,6 +180,7 @@ public record GameState(
                 }).collect(Collectors.toSet());
 
     }
+
     private GameState withTurnFinishedIfOccupationImpossible(
             Board newBoard, MessageBoard newMessageBoard) {
 
@@ -355,33 +356,6 @@ public record GameState(
         animals.forEach(a -> animalCounts.merge(a.kind(), 1, Integer::sum));
 
         Set<Animal> cancelledDeer;
-        /*if (animalCounts.get(Animal.Kind.TIGER) >= animalCounts.get(Animal.Kind.DEER)) {
-            // cancel all deer ☠
-            cancelledDeer = Set.copyOf(animals).stream()
-                    .filter(a -> a.kind().equals(Animal.Kind.DEER))
-                    .collect(Collectors.toSet());
-
-            // dunno if this is necessary but hey
-            animalCounts.put(Animal.Kind.DEER, 0);
-
-        } else {
-            // cancel some deer 🪦
-            AtomicInteger cancelCount = new AtomicInteger();
-            cancelledDeer = Set.copyOf(animals).stream()
-                    .filter(a -> {
-                        if (a.kind().equals(Animal.Kind.DEER) &&
-                                cancelCount.get() < animalCounts.get(Animal.Kind.TIGER)) {
-
-                            cancelCount.getAndIncrement();
-                            return true;
-                        }
-                        return false;
-                    })
-                    .collect(Collectors.toSet());
-
-            // dunno if this is necessary but hey
-            animalCounts.computeIfPresent(Animal.Kind.DEER, (k, v) -> v - cancelCount.get());
-        }*/
 
         // this should actually be enough: cancel as many deer as there are tigers, or all
         // if there are >= tigers than deer ☠ 🪦
@@ -478,16 +452,7 @@ public record GameState(
             case null, default -> {
             }
         }
-        /* TODO I think the shaman special power should trigger before the occupation step,
-                does this work correctly in that context?
-                    · Probably would not behave as intended if the shaman is placed before the
-                      placer had the chance to place a pawn but still should get
-                      the chance to place an occupant during the occupy phase
-                      --> RETAKE Impossible does not imply OCCUPY Impossible
-                .
-                Good thinking, but I was planning to call withTurnFinishedIfOccupationImpossible
-                in withTurnFinishedIfDeOccupationImpossible, so it should work out. - Mattia
-        */
+
         if (shaman)
             return withOccupationIfDeOccupationImpossible(newBoard, newMessageBoard);
         else
@@ -510,7 +475,14 @@ public record GameState(
         Preconditions.checkArgument(occupant == null
                 || occupant.kind().equals(Occupant.Kind.PAWN));
 
-        if (occupant == null || this.board.occupantCount(this.currentPlayer(), occupant.kind()) < 1)
+        if (
+                occupant == null
+                /* this condition is never explicitly mentioned, but it seems logical - Mattia
+                also removed the other condition as that is checked in the helper method. */
+                        || !this.board.tileWithId(Zone.tileId(occupant.zoneId())).placer()
+                        .equals(currentPlayer())
+        )
+
             return withTurnFinishedIfOccupationImpossible(this.board, this.messageBoard);
 
         return withTurnFinishedIfOccupationImpossible(
