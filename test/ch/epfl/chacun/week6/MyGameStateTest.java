@@ -108,6 +108,35 @@ class MyGameStateTest {
     PlacedTile t66RotNoneSouthEastOf56BLUE = new PlacedTile(
             TILES.get(66), BLUE, Rotation.NONE, t56RotNone.pos().translated(1, 1)
     );
+    PlacedTile t82RotNoneEastOf56 = new PlacedTile(
+            TILES.get(82), PURPLE, Rotation.NONE, t56RotNone.pos().neighbor(Direction.E)
+    );
+    Occupant pawnM681 = new Occupant(PAWN, 681);
+    Occupant pawnF823 = new Occupant(PAWN, 823);
+
+
+    PlacedTile t61RotNoneSouthEastOf56 = new PlacedTile(
+            TILES.get(61), BLUE, Rotation.NONE, t56RotNone.pos().translated(1,1)
+    );
+    PlacedTile t61RotNoneNorthOf56 = new PlacedTile(
+            TILES.get(61), BLUE, Rotation.NONE, t56RotNone.pos().neighbor(Direction.N)
+    );
+    Occupant pawnM610 = new Occupant(PAWN, 610);
+
+    PlacedTile t22HalfTurnWestOf56 = new PlacedTile(
+            TILES.get(22), RED, Rotation.HALF_TURN, t56RotNone.pos().neighbor(Direction.W)
+    );
+    PlacedTile t24RotNoneSouthWestOf56 = new PlacedTile(
+            TILES.get(24), GREEN, Rotation.NONE, t56RotNone.pos().translated(-1,1)
+    );
+    Occupant pawnM242 = new Occupant(PAWN, 242);
+    PlacedTile t29RotNoneSouthOf24 = new PlacedTile(
+            TILES.get(29), BLUE, Rotation.NONE, new Pos(-1,2)
+    );
+    PlacedTile t19HalfTurn2SouthOf56 = new PlacedTile(
+            TILES.get(19), PURPLE, Rotation.HALF_TURN, t56RotNone.pos().translated(0, 2)
+    );
+    Occupant pawnR191 = new Occupant(PAWN, 191);
 
     Board boardCrossAround56Last68 = Board.EMPTY
             .withNewTile(t56RotNone)
@@ -403,5 +432,48 @@ class MyGameStateTest {
                     .withStartingTilePlaced()
                     .withPlacedTile(occupiedTile);
         });
+    }
+
+    @Test
+    void withPlacedTileEntersMenhirStatesForTrivialCase() {
+        GameState state = GameState.initial( List.of(GREEN,PURPLE), standardDecks(), basicTextMaker);
+        GameState menhirTriggerState = state.withStartingTilePlaced()
+                .withPlacedTile(t82RotNoneEastOf56)
+                .withPlacedTile(t68RotNoneSouthOf56)
+                .withNewOccupant(pawnM681);
+
+        assertEquals(GameState.Action.PLACE_TILE, menhirTriggerState.nextAction());
+    }
+    @Test
+    void withPlacedTileEntersMenhirStatesForNoOccupyPossibleCase() {
+
+        GameState startingState = GameState.initial(ALL, standardDecks(), basicTextMaker)
+                .withStartingTilePlaced();
+        GameState menhirTriggerState = startingState
+                .withPlacedTile(t22HalfTurnWestOf56)
+                .withPlacedTile(t24RotNoneSouthWestOf56).withNewOccupant(pawnM242)
+                .withPlacedTile(t29RotNoneSouthOf24).withNewOccupant(null)
+                .withPlacedTile(t19HalfTurn2SouthOf56).withNewOccupant(pawnR191)
+                .withPlacedTile(t82RotNoneEastOf56).withNewOccupant(pawnF823)
+                .withPlacedTile(t61RotNoneSouthEastOf56).withNewOccupant(pawnM610)
+                .withPlacedTile(t68RotNoneSouthOf56);
+
+        assertEquals(GameState.Action.PLACE_TILE, menhirTriggerState.nextAction());
+
+
+
+    }
+
+    /* TODO There might be a bug that causes the game state to skip the occupy phase for
+        the first tile placed after the start tile.
+        - See Test below for demonstration
+    */
+    @Test
+    void withPlacedTileTileAfterStartEntersOccupy() {
+        GameState state = GameState.initial(ALL, standardDecks(), basicTextMaker)
+                .withStartingTilePlaced()
+                .withPlacedTile(t61RotNoneNorthOf56);
+        assertEquals(OCCUPY_TILE, state.nextAction());
+
     }
 }
