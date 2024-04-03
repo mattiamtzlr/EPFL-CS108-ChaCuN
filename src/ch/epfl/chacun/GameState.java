@@ -162,6 +162,17 @@ public record GameState(
             Board newBoard, MessageBoard newMessageBoard) {
 
         boolean enoughOccupants = false;
+        // TODO Remove this, this is for debugging ↓
+        Set<Occupant> potentialOccupantsOfLastTile = lastTilePotentialOccupants();
+        // Calling lastTilePotentialOccupants here (↑) returns an empty set, probably because
+        // the last tile still is the starting tile(Test: withPlacedTileTileAfterStartEntersOccupy).
+        // For this case, the for loop is always skipped and enoughOccupants is never true for the
+        // first tile placed after the starting tile.
+
+        // More generally, we are not checking if we can place an occupant on the tile to be placed,
+        // but rather on the last tile that was placed by the previous player (or the game)
+        // (Also tested)
+
         for (Occupant occupant : lastTilePotentialOccupants()) {
             if (freeOccupantsCount(currentPlayer(), occupant.kind()) > 0)
                 enoughOccupants = true;

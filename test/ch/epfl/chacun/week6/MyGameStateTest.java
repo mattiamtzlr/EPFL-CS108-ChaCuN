@@ -473,7 +473,23 @@ class MyGameStateTest {
         GameState state = GameState.initial(ALL, standardDecks(), basicTextMaker)
                 .withStartingTilePlaced()
                 .withPlacedTile(t61RotNoneNorthOf56);
+
+        assertEquals(Set.of(pawnM610), state.lastTilePotentialOccupants());
+        // -> lastTilePotentialOccupants seems to work fine
+
+        // The bug probably lives somewhere in withTurnFinishedIfOccupationImpossible
         assertEquals(OCCUPY_TILE, state.nextAction());
 
+    }
+    PlacedTile t68RotNoneNorthEastOf56 = new PlacedTile(
+            TILES.get(68), RED, Rotation.NONE, t56RotNone.pos().translated(-1,-1)
+    );
+    @Test
+    void withPlacedTileIntoWithTurnFinishedIfOccupationImpossibleWorksForTrivialCase() {
+        GameState state = GameState.initial(ALL, standardDecks(), basicTextMaker)
+                .withStartingTilePlaced()
+                .withPlacedTile(t61RotNoneNorthOf56)
+                .withPlacedTile(t68RotNoneNorthEastOf56);
+        assertEquals(null, state.currentPlayer());
     }
 }
