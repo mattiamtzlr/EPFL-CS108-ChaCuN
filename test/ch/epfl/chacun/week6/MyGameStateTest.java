@@ -494,7 +494,58 @@ class MyGameStateTest {
 
         assertEquals(RETAKE_PAWN, state.nextAction());
     }
+    //  Tiles: 56, 25L, 68, 16, 78, 37, 62, 61, 88
+    // Occupants: Hut682, Pawn682, Pawn161, null, Pawn370, Pawn620, null
+    // RED, BLUE, GREEN, YELLOW, PURPLE
+    private Pos pos(int x, int y) {
+        return new Pos(x, y);
+    }
+    PlacedTile t78RotNoneSouthOf56 = new PlacedTile(
+            TILES.get(78), RED, Rotation.NONE, pos(0,1)
+    );
+    PlacedTile t25LeftNorthOf56 = new PlacedTile(
+            TILES.get(25), BLUE, Rotation.LEFT, pos(0, -1)
+    );
+    PlacedTile t68RotNoneNorthOf25 = new PlacedTile(
+            TILES.get(68), GREEN, Rotation.NONE, pos(0,-2)
+    );
+    PlacedTile t16RotNoneWestOf25 = new PlacedTile(
+            TILES.get(16), YELLOW, Rotation.NONE, pos(-1,-1)
+    );
+    PlacedTile t37RotNoneWestOf78 = new PlacedTile(
+            TILES.get(37), PURPLE, Rotation.NONE, pos(-1, 1)
+    );
+    PlacedTile t62RotNoneWestOf37 = new PlacedTile(
+            TILES.get(62), RED, Rotation.NONE, pos(-2,1)
+    );
+    PlacedTile t61RotNoneNorthof62 = new PlacedTile(
+            TILES.get(61), BLUE, Rotation.NONE, pos(-2,0)
+    );
+    PlacedTile t88RotNoneWestOf56 = new PlacedTile(
+            TILES.get(88), RED, Rotation.NONE, pos(-1,0)
+    );
+    @Test
+    void withPlacedTileShamanPassesRetakeAndOccupyIfNeitherIsPossible() {
+        Occupant hut682 = new Occupant(HUT, 682);
+        Occupant pawn250 = new Occupant(PAWN, 250);
+        Occupant pawn161 = new Occupant(PAWN, 161);
+        Occupant pawn370 = new Occupant(PAWN, 370);
+        Occupant pawn610 = new Occupant(PAWN, 610);
 
+
+        GameState occupyAndRetakeSkipState = GameState.initial(ALL, standardDecks(), textMaker)
+                .withStartingTilePlaced()
+                .withPlacedTile(t78RotNoneSouthOf56).withNewOccupant(null)
+                .withPlacedTile(t25LeftNorthOf56).withNewOccupant(pawn250)
+                .withPlacedTile(t68RotNoneNorthOf25).withNewOccupant(hut682)
+                .withPlacedTile(t16RotNoneWestOf25).withNewOccupant(pawn161)
+                .withPlacedTile(t37RotNoneWestOf78).withNewOccupant(pawn370)
+                .withPlacedTile(t62RotNoneWestOf37).withNewOccupant(null)
+                .withPlacedTile(t61RotNoneNorthof62).withNewOccupant(pawn610)
+                .withPlacedTile(t88RotNoneWestOf56);
+
+        assertEquals(PLACE_TILE, occupyAndRetakeSkipState.nextAction());
+    }
     @Test
     void withPlacedTileShamanTilePassesRetakeStepIfNoPawnsAvailable() {
         // "passes" = goes straight to figuring out if occupation is possible, doesn't change board
