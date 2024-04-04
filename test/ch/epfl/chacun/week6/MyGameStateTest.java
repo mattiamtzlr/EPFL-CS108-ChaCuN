@@ -494,9 +494,6 @@ class MyGameStateTest {
 
         assertEquals(RETAKE_PAWN, state.nextAction());
     }
-    //  Tiles: 56, 25L, 68, 16, 78, 37, 62, 61, 88
-    // Occupants: Hut682, Pawn682, Pawn161, null, Pawn370, Pawn620, null
-    // RED, BLUE, GREEN, YELLOW, PURPLE
     private Pos pos(int x, int y) {
         return new Pos(x, y);
     }
@@ -558,6 +555,46 @@ class MyGameStateTest {
                 .withPlacedTile(t88RotNoneTwiceNorthOf56SHAMAN);
 
         assertEquals(OCCUPY_TILE, state.nextAction());
+    }
+    PlacedTile t59HalfTurnWestOf68 = new PlacedTile(
+            TILES.get(59), RED, Rotation.HALF_TURN, pos(-1,-2)
+    );
+    PlacedTile t84RotNoneWestOf56 = new PlacedTile(
+            TILES.get(84), BLUE, Rotation.NONE, pos(-1, 0)
+    );
+    PlacedTile t93RightNorthOf84 = new PlacedTile(
+            TILES.get(93), PURPLE, Rotation.RIGHT, pos(-1, -1)
+    );
+    PlacedTile t53RotNoneNorthOf56 = new PlacedTile(
+            TILES.get(53), RED, Rotation.NONE, pos(0, -1)
+    );
+    @Test
+    void withPlacedTileLogBoatWorksForTrivialCases() {
+        GameState boatState1 = GameState.initial(ALL, standardDecks(), textMaker)
+                .withStartingTilePlaced()
+                .withPlacedTile(t25LeftNorthOf56).withNewOccupant(null)
+                .withPlacedTile(t68RotNoneNorthOf25).withNewOccupant(null)
+                .withPlacedTile(t59HalfTurnWestOf68).withNewOccupant(null)
+                .withPlacedTile(t84RotNoneWestOf56).withNewOccupant(null)
+                .withPlacedTile(t93RightNorthOf84);
+        for (PlayerColor color : ALL) {
+            if (color.equals(PURPLE))
+                assertEquals(6, boatState1.messageBoard().points().get(PURPLE));
+            else
+                assertNull(boatState1.messageBoard().points().get(color));
+        }
+
+        GameState boatState2 = GameState.initial(List.of(RED, GREEN), standardDecks(), textMaker)
+                .withStartingTilePlaced()
+                .withPlacedTile(t53RotNoneNorthOf56).withNewOccupant(null)
+                .withPlacedTile(t93RightNorthOf84);
+
+        for (PlayerColor color : ALL) {
+            if (color.equals(GREEN))
+                assertEquals(2, boatState2.messageBoard().points().get(GREEN));
+            else
+                assertNull(boatState2.messageBoard().points().get(color));
+        }
     }
 
     @Test
