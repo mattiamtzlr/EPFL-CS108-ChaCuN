@@ -121,7 +121,6 @@ public record GameState(
                         case Zone.Meadow meadow -> !this.board.meadowArea(meadow).isOccupied();
                         case Zone.Forest forest -> !this.board.forestArea(forest).isOccupied();
 
-                        // TODO: this seems to behave correctly but it's weird
                         case Zone.Water water when o.kind().equals(Occupant.Kind.PAWN) ->
                                 !this.board.riverArea((Zone.River) water).isOccupied() &&
                                         !this.board.riverSystemArea(water).isOccupied();
@@ -167,7 +166,6 @@ public record GameState(
                         case Zone.Meadow meadow -> !newBoard.meadowArea(meadow).isOccupied();
                         case Zone.Forest forest -> !newBoard.forestArea(forest).isOccupied();
 
-                        // TODO: this seems to behave correctly but it's weird
                         case Zone.Water water when o.kind().equals(Occupant.Kind.PAWN) ->
                                 !newBoard.riverArea((Zone.River) water).isOccupied() &&
                                         !newBoard.riverSystemArea(water).isOccupied();
@@ -198,13 +196,13 @@ public record GameState(
         return withTurnFinished(newBoard, newMessageBoard);
     }
 
-    private GameState withTurnFinished(Board newBoard, MessageBoard messageBoard) {
+    private GameState withTurnFinished(Board board, MessageBoard messageBoard) {
         boolean menhir = false;
         MessageBoard newMessageBoard = new MessageBoard(
                 messageBoard.textMaker(), messageBoard.messages());
 
         // add points for closed forests and check for menhir forests
-        Set<Area<Zone.Forest>> closedForests = newBoard.forestsClosedByLastTile();
+        Set<Area<Zone.Forest>> closedForests = board.forestsClosedByLastTile();
         if (!closedForests.isEmpty()) {
             for (Area<Zone.Forest> forest : closedForests) {
                 newMessageBoard = newMessageBoard.withScoredForest(forest);
@@ -217,7 +215,7 @@ public record GameState(
         }
 
         // add points for closed rivers
-        Set<Area<Zone.River>> closedRivers = newBoard.riversClosedByLastTile();
+        Set<Area<Zone.River>> closedRivers = board.riversClosedByLastTile();
         if (!closedRivers.isEmpty()) {
             for (Area<Zone.River> river : closedRivers) {
                 newMessageBoard = newMessageBoard.withScoredRiver(river);
@@ -229,26 +227,32 @@ public record GameState(
         Tile nextTile;
         if (menhir) {
             newTileDecks = this.tileDecks.withTopTileDrawnUntil(
-                    Tile.Kind.MENHIR,
-                    newBoard::couldPlaceTile
-            );
+                            Tile.Kind.MENHIR,
+                            board::couldPlaceTile
+                    )
+                    // this seems weird but is necessary as withTopTileDrawnUntil doesn't actually
+                    // take the first tile that satisfies the condition
+                    .withTopTileDrawn(Tile.Kind.MENHIR);
 
             nextTile = newTileDecks.topTile(Tile.Kind.MENHIR);
 
             if (nextTile != null)
-                return new GameState(this.players, newTileDecks, nextTile, newBoard,
+                return new GameState(this.players, newTileDecks, nextTile, board,
                         Action.PLACE_TILE, newMessageBoard);
         }
 
         newTileDecks = this.tileDecks.withTopTileDrawnUntil(
-                Tile.Kind.NORMAL,
-                newBoard::couldPlaceTile
-        );
+                        Tile.Kind.NORMAL,
+                        board::couldPlaceTile
+                )
+                // this seems weird but is necessary as withTopTileDrawnUntil doesn't actually take
+                // the first tile that satisfies the condition
+                .withTopTileDrawn(Tile.Kind.NORMAL);
 
         nextTile = newTileDecks.topTile(Tile.Kind.NORMAL);
 
         if (nextTile != null) {
-            return new GameState(shiftPlayers(), newTileDecks, nextTile, newBoard,
+            return new GameState(shiftPlayers(), newTileDecks, nextTile, board,
                     Action.PLACE_TILE, newMessageBoard);
         } else {
             return withFinalPointsCounted();
@@ -323,11 +327,14 @@ public record GameState(
 
         // count points in river systems
         for (Area<Zone.Water> riverSystem : newBoard.riverSystemAreas()) {
-            if (riverSystem.zoneWithSpecialPower(RAFT) != null)
+            if (riverSystem.zoneWithSpecialPower(RAFT) != null) {
                 // give additional points if there is the raft
-                newMessageBoard = newMessageBoard.withScoredRaft(riverSystem);
-
-            newMessageBoard = newMessageBoard.withScoredRiverSystem(riverSystem);
+                newMessageBoard = newMessageBoard
+                        .withScoredRaft(riverSystem)
+                        .withScoredRiverSystem(riverSystem);
+            }
+            else
+                newMessageBoard = newMessageBoard.withScoredRiverSystem(riverSystem);
         }
 
         // determine winners
@@ -394,10 +401,10 @@ public record GameState(
                 tileDecks.topTile(Tile.Kind.START), null, Rotation.NONE, new Pos(0, 0)
         );
         Board newBoard = this.board.withNewTile(startTile);
-        Tile nextTile = this.tileDecks.topTile(Tile.Kind.NORMAL);
 
-        return new GameState(this.players, this.tileDecks.withTopTileDrawn(Tile.Kind.NORMAL),
-                nextTile, newBoard, Action.PLACE_TILE, this.messageBoard);
+        return new GameState(this.players, this.tileDecks.withTopTileDrawn(Tile.Kind.START),
+                this.tileDecks.topTile(Tile.Kind.NORMAL), newBoard, Action.PLACE_TILE,
+                this.messageBoard);
     }
 
     /**

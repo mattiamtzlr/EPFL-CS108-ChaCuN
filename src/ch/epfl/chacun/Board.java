@@ -74,8 +74,8 @@ public final class Board {
     }
 
     /**
-     * Method to ensure immutability of cancelledAnimals
-     * @return An immutable copy oc cancelledAnimals
+     * Returns the set of cancelled animals of the board
+     * @return An immutable copy of cancelledAnimals
      */
     public Set<Animal> cancelledAnimals() {
         return Set.copyOf(cancelledAnimals);
