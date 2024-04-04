@@ -1,7 +1,7 @@
 package ch.epfl.chacun.week5;
 
 import ch.epfl.chacun.*;
-import static ch.epfl.cs108.Tiles.TILES;
+import static ch.epfl.chacun.tile.Tiles.TILES;
 import org.junit.jupiter.api.Test;
 
 import java.util.Collections;
