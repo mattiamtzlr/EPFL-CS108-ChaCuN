@@ -249,13 +249,13 @@ public record GameState(
             return new GameState(shiftPlayers(), newTileDecks.withTopTileDrawn(Tile.Kind.NORMAL),
                     nextTile, board, Action.PLACE_TILE, newMessageBoard);
         } else {
-            return withFinalPointsCounted(board);
+            return withFinalPointsCounted(board, newMessageBoard);
         }
     }
 
-    private GameState withFinalPointsCounted(Board board) {
+    private GameState withFinalPointsCounted(Board board, MessageBoard messageBoard) {
 
-        MessageBoard newMessageBoard = this.messageBoard;
+        MessageBoard newMessageBoard = messageBoard;
         // count meadow points
         for (Area<Zone.Meadow> meadow : board.meadowAreas()) {
             Set<Animal> cancelledDeer;

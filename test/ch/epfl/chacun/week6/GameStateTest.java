@@ -553,14 +553,14 @@ public class GameStateTest {
                 Rotation.NONE,
                 new Pos(-1, 1)
         );
-        assertEquals(3, state.tileToPlace().id() );
+        assertEquals(3, state.tileToPlace().id());
         assertEquals(PlayerColor.BLUE, state.currentPlayer());
 
         state = state.withPlacedTile(p3);
         state = state.withNewOccupant(new Occupant(Occupant.Kind.PAWN, 33));
 
 //        System.out.println(state.messageBoard().messages());
-//        System.out.println(state.messageBoard().points());
+        System.out.println(state.messageBoard().points());
 
         assertEquals(11, state.messageBoard().points().get(PlayerColor.RED));
         assertEquals(15, state.messageBoard().points().get(PlayerColor.BLUE));
