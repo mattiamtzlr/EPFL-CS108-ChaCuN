@@ -903,7 +903,7 @@ class MyGameStateTest {
 
     // TEST WFTRIVIAL
     @Test
-    void withFinalPointsCountedTrivialCase() {
+    void withFinalPointsCountedWildfireJoinsMeadowsCase() {
         List<PlayerColor> players = List.of(BLUE, YELLOW);
         List<Integer> stdTileIds = List.of(61, 62, 59, 47, 49, 9, 37);
         List<Integer> mnhTileIds = Collections.singletonList(85);
