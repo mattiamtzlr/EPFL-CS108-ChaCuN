@@ -901,6 +901,7 @@ class MyGameStateTest {
 
     }
 
+    // TEST WFTRIVIAL
     @Test
     void withFinalPointsCountedTrivialCase() {
         List<PlayerColor> players = List.of(BLUE, YELLOW);
@@ -951,6 +952,22 @@ class MyGameStateTest {
         assertEquals(13, state.messageBoard().points().get(BLUE));
         assertEquals(0, state.messageBoard().points().get(YELLOW));
 
+    }
+    @Test
+    void withFinalPointsCountedSmallCase() {
+        List<PlayerColor> players = List.of(BLUE, YELLOW);
+        TileDecks smallDecks = new TileDecks(Collections.singletonList(TILES.get(56)),
+                Collections.singletonList(TILES.get(59)), Collections.emptyList());
+        PlacedTile t59RightWestOf56 = new PlacedTile(
+                TILES.get(59), BLUE, Rotation.RIGHT, pos(-1, 0)
+        );
+        Occupant pawnM590 = new Occupant(PAWN, 590);
+
+        GameState state = GameState.initial(players, smallDecks, textMaker)
+                .withStartingTilePlaced()
+                .withPlacedTile(t59RightWestOf56)
+                .withNewOccupant(pawnM590);
+        assertEquals(2, state.messageBoard().points().get(BLUE));
     }
 
 }

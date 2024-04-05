@@ -229,13 +229,14 @@ public record GameState(
             newTileDecks = this.tileDecks.withTopTileDrawnUntil(
                             Tile.Kind.MENHIR,
                             board::couldPlaceTile
-                    )
+                    );
                     // this seems weird but is necessary as withTopTileDrawnUntil doesn't actually
                     // take the first tile that satisfies the condition
-                    .withTopTileDrawn(Tile.Kind.MENHIR);
+                    // TODO this seems really weird, why remove the top tile before assigning it?
+                    //.withTopTileDrawn(Tile.Kind.MENHIR);
 
             nextTile = newTileDecks.topTile(Tile.Kind.MENHIR);
-
+            // TODO Test WFTRIVIAL: "nextTile" should not be null here, there is something wrong
             if (nextTile != null)
                 return new GameState(this.players, newTileDecks, nextTile, board,
                         Action.PLACE_TILE, newMessageBoard);
@@ -250,7 +251,8 @@ public record GameState(
                 .withTopTileDrawn(Tile.Kind.NORMAL);
 
         nextTile = newTileDecks.topTile(Tile.Kind.NORMAL);
-
+        // TODO Test WFTRIVIAL: Because the game thinks there are no more tiles in the menhir stack,
+        //      it tries to draw from the normal stack which is empty. This is not intended behavior
         if (nextTile != null) {
             return new GameState(shiftPlayers(), newTileDecks, nextTile, board,
                     Action.PLACE_TILE, newMessageBoard);
@@ -263,7 +265,8 @@ public record GameState(
 
         Board newBoard = this.board;
         MessageBoard newMessageBoard = this.messageBoard;
-
+        // TODO Test WFTRIVIAL:The wildFire does not appear in the placed tiles ???
+        //      does this happen with any tile?
         // count meadow points
         for (Area<Zone.Meadow> meadow : newBoard.meadowAreas()) {
             Set<Animal> cancelledDeer;
@@ -366,11 +369,14 @@ public record GameState(
 
         // this should actually be enough: cancel as many deer as there are tigers, or all
         // if there are >= tigers than deer ☠ 🪦
+        // 5.4.23: changed animalCounts.get(Animal.Kind.TIGER) to getOrDefault, as sometimes there
+        // might not be any tigers
         AtomicInteger cancelCount = new AtomicInteger();
         cancelledDeer = Set.copyOf(animals).stream()
                 .filter(a -> {
                     if (a.kind().equals(Animal.Kind.DEER) &&
-                            cancelCount.get() < animalCounts.get(Animal.Kind.TIGER)) {
+                            cancelCount.get() < animalCounts.getOrDefault(Animal.Kind.TIGER,
+                                    0)) {
 
                         cancelCount.getAndIncrement();
                         return true;
