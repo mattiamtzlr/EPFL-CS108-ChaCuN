@@ -328,7 +328,7 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages) {
         List<Message> newMessages = new ArrayList<>(List.copyOf(this.messages));
 
         newMessages.add(new Message(
-            this.textMaker.playersWon(winners, points), 0, winners,
+            this.textMaker.playersWon(winners, points), 0, Collections.emptySet(),
             Collections.emptySet()
         ));
 

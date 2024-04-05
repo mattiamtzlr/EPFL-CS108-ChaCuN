@@ -54,7 +54,6 @@ public record GameState(
         );
 
         players = List.copyOf(players);
-        // TODO: I think this is enough immutability business but (*ಠ_ಠ;)
     }
 
     /**
@@ -122,8 +121,7 @@ public record GameState(
                         case Zone.Forest forest -> !this.board.forestArea(forest).isOccupied();
 
                         case Zone.Water water when o.kind().equals(Occupant.Kind.PAWN) ->
-                                !this.board.riverArea((Zone.River) water).isOccupied() &&
-                                        !this.board.riverSystemArea(water).isOccupied();
+                                !this.board.riverArea((Zone.River) water).isOccupied();
 
                         case Zone.Water water when o.kind().equals(Occupant.Kind.HUT) ->
                                 !this.board.riverSystemArea(water).isOccupied();
@@ -167,8 +165,7 @@ public record GameState(
                         case Zone.Forest forest -> !newBoard.forestArea(forest).isOccupied();
 
                         case Zone.Water water when o.kind().equals(Occupant.Kind.PAWN) ->
-                                !newBoard.riverArea((Zone.River) water).isOccupied() &&
-                                        !newBoard.riverSystemArea(water).isOccupied();
+                                !newBoard.riverArea((Zone.River) water).isOccupied();
 
                         case Zone.Water water when o.kind().equals(Occupant.Kind.HUT) ->
                                 !newBoard.riverSystemArea(water).isOccupied();
@@ -227,33 +224,30 @@ public record GameState(
         Tile nextTile;
         if (menhir) {
             newTileDecks = this.tileDecks.withTopTileDrawnUntil(
-                            Tile.Kind.MENHIR,
-                            board::couldPlaceTile
-                    );
-                    // this seems weird but is necessary as withTopTileDrawnUntil doesn't actually
-                    // take the first tile that satisfies the condition
-                    // TODO this seems really weird, why remove the top tile before assigning it?
-                    //.withTopTileDrawn(Tile.Kind.MENHIR);
+                    Tile.Kind.MENHIR,
+                    board::couldPlaceTile
+            );
+            // this seems weird but is necessary as withTopTileDrawnUntil doesn't actually
+            // take the first tile that satisfies the condition
 
             nextTile = newTileDecks.topTile(Tile.Kind.MENHIR);
-            // TODO Test WFTRIVIAL: "nextTile" should not be null here, there is something wrong
             if (nextTile != null)
-                return new GameState(this.players, newTileDecks, nextTile, board,
-                        Action.PLACE_TILE, newMessageBoard);
+                return new GameState(this.players, newTileDecks.withTopTileDrawn(Tile.Kind.MENHIR),
+                        nextTile, board, Action.PLACE_TILE, newMessageBoard);
         }
 
         newTileDecks = this.tileDecks.withTopTileDrawnUntil(
                         Tile.Kind.NORMAL,
                         board::couldPlaceTile
-                )
+                );
                 // this seems weird but is necessary as withTopTileDrawnUntil doesn't actually take
                 // the first tile that satisfies the condition
-                .withTopTileDrawn(Tile.Kind.NORMAL);
+//                .withTopTileDrawn(Tile.Kind.NORMAL);
 
         nextTile = newTileDecks.topTile(Tile.Kind.NORMAL);
         if (nextTile != null) {
-            return new GameState(shiftPlayers(), newTileDecks, nextTile, board,
-                    Action.PLACE_TILE, newMessageBoard);
+            return new GameState(shiftPlayers(), newTileDecks.withTopTileDrawn(Tile.Kind.NORMAL),
+                    nextTile, board, Action.PLACE_TILE, newMessageBoard);
         } else {
             return withFinalPointsCounted(board);
         }
@@ -262,8 +256,6 @@ public record GameState(
     private GameState withFinalPointsCounted(Board board) {
 
         MessageBoard newMessageBoard = this.messageBoard;
-        // TODO Test WFTRIVIAL:The wildFire does not appear in the placed tiles ???
-        //      does this happen with any tile?
         // count meadow points
         for (Area<Zone.Meadow> meadow : board.meadowAreas()) {
             Set<Animal> cancelledDeer;
@@ -288,32 +280,16 @@ public record GameState(
                 AtomicInteger cancelCount = new AtomicInteger();
                 // add all deer that are not in the adjacent meadow
                 cancelledDeer = Set.copyOf(animals).stream()
-                        .filter(a -> {
-                            if (a.kind().equals(Animal.Kind.DEER) &&
-                                    !Area.animals(adjMeadow, Collections.emptySet()).contains(a) &&
-                                    cancelCount.get() < animalCounts.get(Animal.Kind.TIGER)) {
-
-                                cancelCount.getAndIncrement();
-                                return true;
-                            }
-                            return false;
-                        })
+                        .filter(a ->
+                                a.kind().equals(Animal.Kind.DEER) &&
+                                !Area.animals(adjMeadow, Collections.emptySet()).contains(a)
+                        )
+                        .limit(animalCounts.getOrDefault(Animal.Kind.TIGER, 0))
                         .collect(Collectors.toSet());
 
                 // add more deer until count reached
-                if (cancelCount.get() < animalCounts.get(Animal.Kind.TIGER))
-                    cancelledDeer.addAll(Set.copyOf(animals).stream()
-                            .filter(a -> {
-                                if (a.kind().equals(Animal.Kind.DEER) &&
-                                        cancelCount.get() < animalCounts.get(Animal.Kind.TIGER)) {
-
-                                    cancelCount.getAndIncrement();
-                                    return true;
-                                }
-                                return false;
-                            })
-                            .collect(Collectors.toSet())
-                    );
+                if (cancelledDeer.size() < animalCounts.get(Animal.Kind.TIGER))
+                    cancelledDeer.addAll(cancelledDeerInMeadow(adjMeadow));
 
                 newMessageBoard = newMessageBoard.withScoredPitTrap(adjMeadow, cancelledDeer);
 
@@ -332,8 +308,7 @@ public record GameState(
                 newMessageBoard = newMessageBoard
                         .withScoredRaft(riverSystem)
                         .withScoredRiverSystem(riverSystem);
-            }
-            else
+            } else
                 newMessageBoard = newMessageBoard.withScoredRiverSystem(riverSystem);
         }
 
@@ -370,16 +345,9 @@ public record GameState(
         // might not be any tigers
         AtomicInteger cancelCount = new AtomicInteger();
         cancelledDeer = Set.copyOf(animals).stream()
-                .filter(a -> {
-                    if (a.kind().equals(Animal.Kind.DEER) &&
-                            cancelCount.get() < animalCounts.getOrDefault(Animal.Kind.TIGER,
-                                    0)) {
-
-                        cancelCount.getAndIncrement();
-                        return true;
-                    }
-                    return false;
-                })
+                .filter(a -> a.kind().equals(Animal.Kind.DEER))
+                // limit the number of deer cancelled to the number of tigers
+                .limit(animalCounts.getOrDefault(Animal.Kind.TIGER, 0))
                 .collect(Collectors.toSet());
 
         // dunno if this is necessary but hey
@@ -404,10 +372,11 @@ public record GameState(
                 tileDecks.topTile(Tile.Kind.START), null, Rotation.NONE, new Pos(0, 0)
         );
         Board newBoard = this.board.withNewTile(startTile);
+        Tile next = this.tileDecks.topTile(Tile.Kind.NORMAL);
 
-        return new GameState(this.players, this.tileDecks.withTopTileDrawn(Tile.Kind.START),
-                this.tileDecks.topTile(Tile.Kind.NORMAL), newBoard, Action.PLACE_TILE,
-                this.messageBoard);
+        return new GameState(this.players,
+                this.tileDecks.withTopTileDrawn(Tile.Kind.START).withTopTileDrawn(Tile.Kind.NORMAL),
+                next, newBoard, Action.PLACE_TILE, this.messageBoard);
     }
 
     /**

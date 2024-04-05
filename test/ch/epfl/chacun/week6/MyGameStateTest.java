@@ -32,12 +32,13 @@ class MyGameStateTest {
 
         return new TileDecks(startTiles, normalTiles, menhirTiles);
     }
+
     static TileDecks customDecks(List<Integer> standardTileIds, List<Integer> menhirTileIds) {
         return new TileDecks(
                 Collections.singletonList(TILES.get(56)),
                 standardTileIds.stream().map(TILES::get).toList(),
                 menhirTileIds.stream().map(TILES::get).toList()
-                );
+        );
     }
 
     static TextMaker textMaker = new BasicTextMaker();
@@ -335,6 +336,7 @@ class MyGameStateTest {
 
                 Set.of(
                         new Occupant(PAWN, 681),
+                        new Occupant(PAWN, 682),
                         new Occupant(PAWN, 683)
                 ),
                 state1.lastTilePotentialOccupants()
@@ -424,7 +426,8 @@ class MyGameStateTest {
                 withStartingTile.tileToPlace()
         );
         assertEquals(
-                standardDecks().withTopTileDrawn(Tile.Kind.START),
+                standardDecks()
+                        .withTopTileDrawn(Tile.Kind.START).withTopTileDrawn(Tile.Kind.NORMAL),
                 withStartingTile.tileDecks()
         );
         assertEquals(PURPLE, withStartingTile.currentPlayer());
@@ -735,23 +738,6 @@ class MyGameStateTest {
         assertEquals(OCCUPY_TILE, state.nextAction());
     }
 
-    // I don't know if this actually needs to be tested, it's never explicitly mentioned
-    @Test
-    void withOccupantRemovedPassesIfOccupantIsOfWrongPlayer() {
-        // "passes" = goes straight to figuring out if occupation is possible, doesn't change board
-
-        GameState state = GameState.initial(List.of(GREEN, PURPLE), standardDecks(), textMaker)
-                .withStartingTilePlaced()
-                .withPlacedTile(t32RotNoneNorthOf56).withNewOccupant(pawnM321) // GREEN
-                // this below is only to make green play again
-                .withPlacedTile(t16RotNoneNorthEastOf56).withNewOccupant(pawnM162) // PURPLE
-                .withPlacedTile(t88RotNoneTwiceNorthOf56SHAMAN) // GREEN
-                .withOccupantRemoved(pawnM162); // try to remove purple's pawn
-
-        assertEquals(Set.of(pawnM321, pawnM162), state.board().occupants());
-        assertEquals(OCCUPY_TILE, state.nextAction());
-    }
-
     @Test
     void withNewOccupantThrowsOnIllegalNextAction() {
         assertThrows(IllegalArgumentException.class, () -> {
@@ -791,7 +777,8 @@ class MyGameStateTest {
 
         assertEquals(Collections.emptySet(), state.board().occupants());
     }
-    TileDecks shortGame = customDecks(List.of(30, 15, 62, 31,61, 91),
+
+    TileDecks shortGame = customDecks(List.of(30, 15, 62, 31, 61, 91),
             Collections.emptyList());
 
 
@@ -830,7 +817,7 @@ class MyGameStateTest {
 
         MessageBoard.Message expectedWinMessage = new MessageBoard.Message(
                 textMaker.playersWon(winners, pointsRedYellow),
-                0, winners, Collections.emptySet()
+                0, Collections.emptySet(), Collections.emptySet()
         );
         assertEquals(expectedWinMessage, state.messageBoard().messages().getLast());
     }
@@ -878,7 +865,6 @@ class MyGameStateTest {
 
     }
 
-    // TEST WFTRIVIAL
     @Test
     void withFinalPointsCountedWildfireJoinsMeadowsCase() {
         List<PlayerColor> players = List.of(BLUE, YELLOW);
@@ -901,12 +887,12 @@ class MyGameStateTest {
         );
         Occupant pawnM490 = new Occupant(PAWN, 490);
         PlacedTile t09RightSouthEastOf56 = new PlacedTile(
-                TILES.get(9), YELLOW, Rotation.RIGHT, pos(1,1)
+                TILES.get(9), YELLOW, Rotation.RIGHT, pos(1, 1)
         );
         Occupant pawnM094 = new Occupant(PAWN, 94);
 
         PlacedTile t37LeftEastOf56 = new PlacedTile(
-                TILES.get(37), BLUE, Rotation.LEFT, pos(1,0)
+                TILES.get(37), BLUE, Rotation.LEFT, pos(1, 0)
         );
         PlacedTile t85RotNoneNorthEastOf56 = new PlacedTile(
                 TILES.get(85), BLUE, Rotation.NONE, pos(1, -1)
@@ -916,20 +902,21 @@ class MyGameStateTest {
         GameState state = GameState.initial(players,
                         customDecks(stdTileIds, mnhTileIds), textMaker)
                 .withStartingTilePlaced()
-                        .withPlacedTile(t61RotNoneNorthOf56).withNewOccupant(pawnM610)
-                        .withPlacedTile(t62RotNoneNorthEastOf56)
-                        .withPlacedTile(t59RightWestOf56).withNewOccupant(null)
-                        .withPlacedTile(t47HalfTurnSouthOf56).withNewOccupant(null)
-                        .withPlacedTile(t49RotNoneSouthWestOf56).withNewOccupant(pawnM490)
-                        .withPlacedTile(t09RightSouthEastOf56).withNewOccupant(pawnM094)
-                        .withPlacedTile(t37LeftEastOf56).withNewOccupant(null)
-                        .withPlacedTile(t85RotNoneNorthEastOf56);
+                .withPlacedTile(t61RotNoneNorthOf56).withNewOccupant(pawnM610)
+                .withPlacedTile(t62RotNoneNorthEastOf56)
+                .withPlacedTile(t59RightWestOf56).withNewOccupant(null)
+                .withPlacedTile(t47HalfTurnSouthOf56).withNewOccupant(null)
+                .withPlacedTile(t49RotNoneSouthWestOf56).withNewOccupant(pawnM490)
+                .withPlacedTile(t09RightSouthEastOf56).withNewOccupant(pawnM094)
+                .withPlacedTile(t37LeftEastOf56).withNewOccupant(null)
+                .withPlacedTile(t85RotNoneNorthEastOf56);
         assertEquals(END_GAME, state.nextAction());
 
         assertEquals(9, state.messageBoard().points().get(BLUE));
         assertNull(state.messageBoard().points().get(YELLOW));
 
     }
+
     @Test
     void withFinalPointsCountedRespectsFinalPlacedTile() {
         List<PlayerColor> players = List.of(BLUE, YELLOW);
@@ -970,12 +957,12 @@ class MyGameStateTest {
         );
         Occupant pawnM490 = new Occupant(PAWN, 490);
         PlacedTile t09RightSouthEastOf56 = new PlacedTile(
-                TILES.get(9), YELLOW, Rotation.RIGHT, pos(1,1)
+                TILES.get(9), YELLOW, Rotation.RIGHT, pos(1, 1)
         );
         Occupant pawnM094 = new Occupant(PAWN, 94);
 
         PlacedTile t37LeftEastOf56 = new PlacedTile(
-                TILES.get(37), BLUE, Rotation.LEFT, pos(1,0)
+                TILES.get(37), BLUE, Rotation.LEFT, pos(1, 0)
         );
         PlacedTile t85RotNoneNorthEastOf56 = new PlacedTile(
                 TILES.get(85), BLUE, Rotation.NONE, pos(1, -1)
@@ -984,13 +971,13 @@ class MyGameStateTest {
                 TILES.get(42), BLUE, Rotation.NONE, pos(-2, 0)
         );
         PlacedTile t36RotNoneAtNeg2_Neg1 = new PlacedTile(
-                TILES.get(36), YELLOW, Rotation.NONE, pos(-2,-1)
+                TILES.get(36), YELLOW, Rotation.NONE, pos(-2, -1)
         );
         PlacedTile t94RotNoneAt0_Neg2 = new PlacedTile(
                 TILES.get(94), YELLOW, Rotation.NONE, pos(0, -2)
         );
         PlacedTile t46RotNoneAt2_1 = new PlacedTile(
-                TILES.get(46), BLUE, Rotation.NONE, pos(2,1)
+                TILES.get(46), BLUE, Rotation.NONE, pos(2, 1)
         );
 
 
@@ -1030,6 +1017,4 @@ class MyGameStateTest {
         assertEquals(huntingTrapBeforeFire.messageBoard().points(),
                 fireBeforeHuntingTrap.messageBoard().points());
     }
-
-
 }
