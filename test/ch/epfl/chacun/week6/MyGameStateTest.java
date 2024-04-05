@@ -32,6 +32,13 @@ class MyGameStateTest {
 
         return new TileDecks(startTiles, normalTiles, menhirTiles);
     }
+    static TileDecks customDecks(List<Integer> standartTileIds, List<Integer> menhirTileIds) {
+        return new TileDecks(
+                Collections.singletonList(TILES.get(56)),
+                standartTileIds.stream().map(TILES::get).toList(),
+                menhirTileIds.stream().map(TILES::get).toList()
+                );
+    }
 
     static TextMaker textMaker = new BasicTextMaker();
     static MessageBoard emptyMessageBoard = new MessageBoard(
@@ -850,4 +857,100 @@ class MyGameStateTest {
         );
         assertEquals(expectedWinMessage, state.messageBoard().messages().getLast());
     }
+
+    //==============================================================================================
+    //                     🔥WILDFIRE🔥
+    //==============================================================================================
+    /*
+        It should be noted that fire only drives smilodons out of the meadow when the final score is
+        being tallied, and has no influence on the score for the hunting trap.
+    */
+    // Testing if it has no effect where it should simply do nothing
+    @Test
+    void withFinalPointsCountedIdleCase() {
+        List<PlayerColor> players = List.of(BLUE, YELLOW);
+        List<Integer> tileIds = List.of(61, 85, 62, 59, 49);
+
+
+        PlacedTile t85RotNoneNorthEastOf56 = new PlacedTile(
+                TILES.get(85), YELLOW, Rotation.NONE, pos(1, -1)
+        );
+        PlacedTile t62RotNoneNorthEastOf56 = new PlacedTile(
+                TILES.get(62), BLUE, Rotation.NONE, pos(-1, -1)
+        );
+        PlacedTile t59RightWestOf56 = new PlacedTile(
+                TILES.get(59), YELLOW, Rotation.RIGHT, pos(-1, 0)
+        );
+        PlacedTile t49RotNoneSouthWestOf56 = new PlacedTile(
+                TILES.get(49), BLUE, Rotation.NONE, pos(-1, 1)
+        );
+        Occupant pawnM490 = new Occupant(PAWN, 490);
+
+        GameState state = GameState.initial(players,
+                        customDecks(tileIds, Collections.emptyList()), textMaker)
+                .withStartingTilePlaced()
+                .withPlacedTile(t61RotNoneNorthOf56).withNewOccupant(pawnM610)
+                .withPlacedTile(t85RotNoneNorthEastOf56)
+                .withPlacedTile(t62RotNoneNorthEastOf56)
+                .withPlacedTile(t59RightWestOf56).withNewOccupant(null)
+                .withPlacedTile(t49RotNoneSouthWestOf56).withNewOccupant(pawnM490);
+        assertEquals(END_GAME, state.nextAction());
+
+        assertEquals(6, state.messageBoard().points().get(BLUE));
+        assertNull(state.messageBoard().points().get(YELLOW));
+
+    }
+
+    @Test
+    void withFinalPointsCountedTrivialCase() {
+        List<PlayerColor> players = List.of(BLUE, YELLOW);
+        List<Integer> stdTileIds = List.of(61, 62, 59, 47, 49, 9, 37);
+        List<Integer> mnhTileIds = Collections.singletonList(85);
+
+
+        PlacedTile t62RotNoneNorthEastOf56 = new PlacedTile(
+                TILES.get(62), YELLOW, Rotation.NONE, pos(-1, -1)
+        );
+        PlacedTile t59RightWestOf56 = new PlacedTile(
+                TILES.get(59), BLUE, Rotation.RIGHT, pos(-1, 0)
+        );
+        PlacedTile t47HalfTurnSouthOf56 = new PlacedTile(
+                TILES.get(47), YELLOW, Rotation.HALF_TURN, pos(0, 1)
+        );
+
+        PlacedTile t49RotNoneSouthWestOf56 = new PlacedTile(
+                TILES.get(49), BLUE, Rotation.NONE, pos(-1, 1)
+        );
+        Occupant pawnM490 = new Occupant(PAWN, 490);
+        PlacedTile t09RightSouthEastOf56 = new PlacedTile(
+                TILES.get(9), YELLOW, Rotation.RIGHT, pos(1,1)
+        );
+        Occupant pawnM094 = new Occupant(PAWN, 94);
+
+        PlacedTile t37LeftEastOf56 = new PlacedTile(
+                TILES.get(37), BLUE, Rotation.LEFT, pos(1,0)
+        );
+        PlacedTile t85RotNoneNorthEastOf56 = new PlacedTile(
+                TILES.get(85), BLUE, Rotation.NONE, pos(1, -1)
+        );
+
+
+        GameState state = GameState.initial(players,
+                        customDecks(stdTileIds, mnhTileIds), textMaker)
+                .withStartingTilePlaced()
+                        .withPlacedTile(t61RotNoneNorthOf56).withNewOccupant(pawnM610)
+                        .withPlacedTile(t62RotNoneNorthEastOf56)
+                        .withPlacedTile(t59RightWestOf56).withNewOccupant(null)
+                        .withPlacedTile(t47HalfTurnSouthOf56).withNewOccupant(null)
+                        .withPlacedTile(t49RotNoneSouthWestOf56).withNewOccupant(pawnM490)
+                        .withPlacedTile(t09RightSouthEastOf56).withNewOccupant(pawnM094)
+                        .withPlacedTile(t37LeftEastOf56).withNewOccupant(null)
+                        .withPlacedTile(t85RotNoneNorthEastOf56);
+        assertEquals(END_GAME, state.nextAction());
+
+        assertEquals(13, state.messageBoard().points().get(BLUE));
+        assertEquals(0, state.messageBoard().points().get(YELLOW));
+
+    }
+
 }
