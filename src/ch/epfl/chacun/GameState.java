@@ -251,24 +251,21 @@ public record GameState(
                 .withTopTileDrawn(Tile.Kind.NORMAL);
 
         nextTile = newTileDecks.topTile(Tile.Kind.NORMAL);
-        // TODO Test WFTRIVIAL: Because the game thinks there are no more tiles in the menhir stack,
-        //      it tries to draw from the normal stack which is empty. This is not intended behavior
         if (nextTile != null) {
             return new GameState(shiftPlayers(), newTileDecks, nextTile, board,
                     Action.PLACE_TILE, newMessageBoard);
         } else {
-            return withFinalPointsCounted();
+            return withFinalPointsCounted(board);
         }
     }
 
-    private GameState withFinalPointsCounted() {
+    private GameState withFinalPointsCounted(Board board) {
 
-        Board newBoard = this.board;
         MessageBoard newMessageBoard = this.messageBoard;
         // TODO Test WFTRIVIAL:The wildFire does not appear in the placed tiles ???
         //      does this happen with any tile?
         // count meadow points
-        for (Area<Zone.Meadow> meadow : newBoard.meadowAreas()) {
+        for (Area<Zone.Meadow> meadow : board.meadowAreas()) {
             Set<Animal> cancelledDeer;
 
             if (meadow.zoneWithSpecialPower(WILD_FIRE) != null)
@@ -280,7 +277,7 @@ public record GameState(
                 // if the pit trap is in the area, say hi
 
                 Area<Zone.Meadow> adjMeadow = this.board().adjacentMeadow(
-                        newBoard.tileWithId(pitTrapZone.tileId()).pos(),
+                        board.tileWithId(pitTrapZone.tileId()).pos(),
                         pitTrapZone
                 );
 
@@ -324,12 +321,12 @@ public record GameState(
                 cancelledDeer = cancelledDeerInMeadow(meadow);
             }
 
-            newBoard = newBoard.withMoreCancelledAnimals(cancelledDeer);
+            board = board.withMoreCancelledAnimals(cancelledDeer);
             newMessageBoard = newMessageBoard.withScoredMeadow(meadow, cancelledDeer);
         }
 
         // count points in river systems
-        for (Area<Zone.Water> riverSystem : newBoard.riverSystemAreas()) {
+        for (Area<Zone.Water> riverSystem : board.riverSystemAreas()) {
             if (riverSystem.zoneWithSpecialPower(RAFT) != null) {
                 // give additional points if there is the raft
                 newMessageBoard = newMessageBoard
@@ -355,7 +352,7 @@ public record GameState(
 
         newMessageBoard = newMessageBoard.withWinners(winners, maxPoints);
 
-        return new GameState(this.players, this.tileDecks, null, newBoard,
+        return new GameState(this.players, this.tileDecks, null, board,
                 Action.END_GAME, newMessageBoard);
     }
 

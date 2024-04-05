@@ -949,8 +949,8 @@ class MyGameStateTest {
                         .withPlacedTile(t85RotNoneNorthEastOf56);
         assertEquals(END_GAME, state.nextAction());
 
-        assertEquals(13, state.messageBoard().points().get(BLUE));
-        assertEquals(0, state.messageBoard().points().get(YELLOW));
+        assertEquals(9, state.messageBoard().points().get(BLUE));
+        assertNull(state.messageBoard().points().get(YELLOW));
 
     }
     @Test
