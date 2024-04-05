@@ -32,10 +32,10 @@ class MyGameStateTest {
 
         return new TileDecks(startTiles, normalTiles, menhirTiles);
     }
-    static TileDecks customDecks(List<Integer> standartTileIds, List<Integer> menhirTileIds) {
+    static TileDecks customDecks(List<Integer> standardTileIds, List<Integer> menhirTileIds) {
         return new TileDecks(
                 Collections.singletonList(TILES.get(56)),
-                standartTileIds.stream().map(TILES::get).toList(),
+                standardTileIds.stream().map(TILES::get).toList(),
                 menhirTileIds.stream().map(TILES::get).toList()
                 );
     }
@@ -128,28 +128,11 @@ class MyGameStateTest {
     );
     Occupant pawnM610 = new Occupant(PAWN, 610);
 
-    PlacedTile t22HalfTurnWestOf56 = new PlacedTile(
-            TILES.get(22), RED, Rotation.HALF_TURN, t56RotNone.pos().neighbor(Direction.W)
-    );
-
-    PlacedTile t24RotNoneSouthWestOf56 = new PlacedTile(
-            TILES.get(24), GREEN, Rotation.NONE, t56RotNone.pos().translated(-1, 1)
-    );
-    Occupant pawnM242 = new Occupant(PAWN, 242);
-
-    PlacedTile t29RotNoneSouthOf24 = new PlacedTile(
-            TILES.get(29), BLUE, Rotation.NONE, new Pos(-1, 2)
-    );
 
     PlacedTile t37RotNoneSouthOf56 = new PlacedTile(
             TILES.get(37), PURPLE, Rotation.NONE, t56RotNone.pos().neighbor(Direction.S)
     );
 
-    PlacedTile t19HalfTurn2SouthOf56 = new PlacedTile(
-            TILES.get(19), PURPLE, Rotation.HALF_TURN, t56RotNone.pos().translated(0, 2)
-    );
-    Occupant pawnR191 = new Occupant(PAWN, 191);
-    Occupant hutR292 = new Occupant(HUT, 292);
 
     PlacedTile t88RotNoneTwiceNorthOf56SHAMAN = new PlacedTile(
             TILES.get(88), GREEN, Rotation.NONE, t56RotNone.pos().translated(0, -2)
@@ -808,15 +791,9 @@ class MyGameStateTest {
 
         assertEquals(Collections.emptySet(), state.board().occupants());
     }
+    TileDecks shortGame = customDecks(List.of(30, 15, 62, 31,61, 91),
+            Collections.emptyList());
 
-    TileDecks shortGame = new TileDecks(
-            Collections.singletonList(TILES.get(56)),
-            List.of(
-                    TILES.get(30), TILES.get(15), TILES.get(62),
-                    TILES.get(31), TILES.get(61), TILES.get(91)
-            ),
-            Collections.emptyList()
-    );
 
     @Test
     void endOfGameBehavesCorrectlyOnTrivialState() {
@@ -867,7 +844,7 @@ class MyGameStateTest {
     */
     // Testing if it has no effect where it should simply do nothing
     @Test
-    void withFinalPointsCountedIdleCase() {
+    void withFinalPointsCountedWildFireIdleCase() {
         List<PlayerColor> players = List.of(BLUE, YELLOW);
         List<Integer> tileIds = List.of(61, 85, 62, 59, 49);
 
@@ -954,7 +931,7 @@ class MyGameStateTest {
 
     }
     @Test
-    void withFinalPointsCountedSmallCase() {
+    void withFinalPointsCountedRespectsFinalPlacedTile() {
         List<PlayerColor> players = List.of(BLUE, YELLOW);
         TileDecks smallDecks = new TileDecks(Collections.singletonList(TILES.get(56)),
                 Collections.singletonList(TILES.get(59)), Collections.emptyList());
@@ -969,5 +946,90 @@ class MyGameStateTest {
                 .withNewOccupant(pawnM590);
         assertEquals(2, state.messageBoard().points().get(BLUE));
     }
+
+    @Test
+    void withFinalPointsCountedHuntingTrapIsIndependentOfWildFire() {
+
+        List<PlayerColor> players = List.of(BLUE, YELLOW);
+        List<Integer> stdTileIds = List.of(61, 62, 59, 47, 49, 9, 42, 36, 37);
+        List<Integer> mnhTileIds = List.of(94, 85);
+
+
+        PlacedTile t62RotNoneNorthEastOf56 = new PlacedTile(
+                TILES.get(62), YELLOW, Rotation.NONE, pos(-1, -1)
+        );
+        PlacedTile t59RightWestOf56 = new PlacedTile(
+                TILES.get(59), BLUE, Rotation.RIGHT, pos(-1, 0)
+        );
+        PlacedTile t47HalfTurnSouthOf56 = new PlacedTile(
+                TILES.get(47), YELLOW, Rotation.HALF_TURN, pos(0, 1)
+        );
+
+        PlacedTile t49RotNoneSouthWestOf56 = new PlacedTile(
+                TILES.get(49), BLUE, Rotation.NONE, pos(-1, 1)
+        );
+        Occupant pawnM490 = new Occupant(PAWN, 490);
+        PlacedTile t09RightSouthEastOf56 = new PlacedTile(
+                TILES.get(9), YELLOW, Rotation.RIGHT, pos(1,1)
+        );
+        Occupant pawnM094 = new Occupant(PAWN, 94);
+
+        PlacedTile t37LeftEastOf56 = new PlacedTile(
+                TILES.get(37), BLUE, Rotation.LEFT, pos(1,0)
+        );
+        PlacedTile t85RotNoneNorthEastOf56 = new PlacedTile(
+                TILES.get(85), BLUE, Rotation.NONE, pos(1, -1)
+        );
+        PlacedTile t42RotNoneAtMinus2_0 = new PlacedTile(
+                TILES.get(42), BLUE, Rotation.NONE, pos(-2, 0)
+        );
+        PlacedTile t36RotNoneAtNeg2_Neg1 = new PlacedTile(
+                TILES.get(36), YELLOW, Rotation.NONE, pos(-2,-1)
+        );
+        PlacedTile t94RotNoneAt0_Neg2 = new PlacedTile(
+                TILES.get(94), YELLOW, Rotation.NONE, pos(0, -2)
+        );
+        PlacedTile t46RotNoneAt2_1 = new PlacedTile(
+                TILES.get(46), BLUE, Rotation.NONE, pos(2,1)
+        );
+
+
+        GameState huntingTrapBeforeFire = GameState.initial(players,
+                        customDecks(stdTileIds, mnhTileIds), textMaker)
+                .withStartingTilePlaced()
+                .withPlacedTile(t61RotNoneNorthOf56).withNewOccupant(pawnM610)
+                .withPlacedTile(t62RotNoneNorthEastOf56)
+                .withPlacedTile(t59RightWestOf56).withNewOccupant(null)
+                .withPlacedTile(t47HalfTurnSouthOf56).withNewOccupant(null)
+                .withPlacedTile(t49RotNoneSouthWestOf56).withNewOccupant(pawnM490)
+                .withPlacedTile(t09RightSouthEastOf56).withNewOccupant(pawnM094)
+                .withPlacedTile(t42RotNoneAtMinus2_0).withNewOccupant(null)
+                .withPlacedTile(t36RotNoneAtNeg2_Neg1).withNewOccupant(null)
+                .withPlacedTile(t94RotNoneAt0_Neg2).withNewOccupant(null)
+                .withPlacedTile(t37LeftEastOf56).withNewOccupant(null)
+                .withPlacedTile(t85RotNoneNorthEastOf56);
+
+        List<Integer> stdTileIds2 = List.of(61, 62, 59, 47, 49, 9, 37, 42, 46, 36);
+        List<Integer> mnhTileIds2 = List.of(85, 94);
+        GameState fireBeforeHuntingTrap = GameState.initial(players,
+                        customDecks(stdTileIds2, mnhTileIds2), textMaker)
+                .withStartingTilePlaced()
+                .withPlacedTile(t61RotNoneNorthOf56).withNewOccupant(pawnM610)
+                .withPlacedTile(t62RotNoneNorthEastOf56)
+                .withPlacedTile(t59RightWestOf56).withNewOccupant(null)
+                .withPlacedTile(t47HalfTurnSouthOf56).withNewOccupant(null)
+                .withPlacedTile(t49RotNoneSouthWestOf56).withNewOccupant(pawnM490)
+                .withPlacedTile(t09RightSouthEastOf56).withNewOccupant(pawnM094)
+                .withPlacedTile(t37LeftEastOf56).withNewOccupant(null)
+                .withPlacedTile(t85RotNoneNorthEastOf56)
+                .withPlacedTile(t42RotNoneAtMinus2_0).withNewOccupant(null)
+                .withPlacedTile(t46RotNoneAt2_1).withNewOccupant(null)
+                .withPlacedTile(t36RotNoneAtNeg2_Neg1).withNewOccupant(null)
+                .withPlacedTile(t94RotNoneAt0_Neg2).withNewOccupant(null);
+
+        assertEquals(huntingTrapBeforeFire.messageBoard().points(),
+                fireBeforeHuntingTrap.messageBoard().points());
+    }
+
 
 }
