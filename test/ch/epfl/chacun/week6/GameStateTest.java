@@ -1,4 +1,4 @@
-package ch.epfl.chacun;
+package ch.epfl.chacun.week6;
 
 import org.junit.jupiter.api.Test;
 
@@ -6,6 +6,8 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import ch.epfl.chacun.*;
 
 import static ch.epfl.chacun.GameState.Action;
 import static ch.epfl.chacun.GameState.initial;

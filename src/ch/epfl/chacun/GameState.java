@@ -219,6 +219,9 @@ public record GameState(
             }
         }
 
+        // remove pawns
+        board = board.withoutGatherersOrFishersIn(closedForests, closedRivers);
+
         // check next tile and handle accordingly
         TileDecks newTileDecks;
         Tile nextTile;

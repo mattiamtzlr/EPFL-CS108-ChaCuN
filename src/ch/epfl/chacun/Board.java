@@ -415,11 +415,6 @@ public final class Board {
      * @throws IllegalArgumentException if the occupant that should be removed is not on the board.
      */
     public Board withoutOccupant(Occupant occupant) {
-
-        if (Objects.nonNull(occupant) && !occupants().contains(occupant)) {
-            throw new IllegalArgumentException("Illegal Occupant");
-        }
-
         PlacedTile targetTile = tileWithId(Zone.tileId(occupant.zoneId()));
         Zone targetZone = targetTile.zoneWithId(occupant.zoneId());
         ZonePartitions.Builder builder = new ZonePartitions.Builder(zonePartitions);
