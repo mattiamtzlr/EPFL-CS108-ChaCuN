@@ -1,6 +1,7 @@
 package ch.epfl.chacun;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Area record used to represent areas, a combination of multiple zones, usually spanning multiple
@@ -36,10 +37,10 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
      * @return true if there is at least one zone with a menhir
      */
     public static boolean hasMenhir(Area<Zone.Forest> forest) {
-        for (Zone.Forest zone : forest.zones()) {
+        for (Zone.Forest zone : forest.zones())
             if (zone.kind() == Zone.Forest.Kind.WITH_MENHIR)
                 return true;
-        }
+
         return false;
     }
 
@@ -51,10 +52,10 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
      */
     public static int mushroomGroupCount(Area<Zone.Forest> forest) {
         int count = 0;
-        for (Zone.Forest zone : forest.zones()) {
+        for (Zone.Forest zone : forest.zones())
             if (zone.kind() == Zone.Forest.Kind.WITH_MUSHROOMS)
                 count += 1;
-        }
+
         return count;
     }
 
@@ -67,12 +68,11 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
      * @return (Set < Animal >) set of animals living in the area
      */
     public static Set<Animal> animals(Area<Zone.Meadow> meadow, Set<Animal> cancelledAnimals) {
-        Set<Animal> animals = new HashSet<>();
-        for (Zone.Meadow zone : meadow.zones()) {
-            animals.addAll(Set.copyOf(zone.animals()));
-        }
-        animals.removeAll(cancelledAnimals);
-        return animals;
+        return Set.copyOf(meadow.zones()).stream()
+                .map(Zone.Meadow::animals)
+                .flatMap(Collection::stream)
+                .filter(a -> !cancelledAnimals.contains(a))
+                .collect(Collectors.toSet());
     }
 
     /**
@@ -100,9 +100,9 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
      */
     public static int riverSystemFishCount(Area<Zone.Water> riverSystem) {
         int count = 0;
-        for (Zone.Water zone : riverSystem.zones()) {
+        for (Zone.Water zone : riverSystem.zones())
             count += zone.fishCount();
-        }
+
         return count;
     }
 
@@ -114,9 +114,8 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
      */
     public static int lakeCount(Area<Zone.Water> riverSystem) {
         int count = 0;
-        for (Zone.Water zone : riverSystem.zones()) {
+        for (Zone.Water zone : riverSystem.zones())
             if (zone instanceof Zone.Lake) count += 1;
-        }
 
         return count;
     }
@@ -146,14 +145,14 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
      * Returns the set of majority occupants of the current instance, meaning the set of player
      * colors of which there are the most occupants in an area.
      *
-     * @return (Set < PlayerColor >) the set of majority occupants
+     * @return (Set <PlayerColor>) the set of majority occupants
      */
     public Set<PlayerColor> majorityOccupants() {
         Set<PlayerColor> majorityOccupants = new HashSet<>();
         int[] counts = new int[PlayerColor.ALL.size()];
         int max = -1;
 
-        for (PlayerColor occupant : occupants) {
+        for (PlayerColor occupant : this.occupants) {
             int index = occupant.ordinal();
 
             counts[index] += 1;
@@ -161,10 +160,9 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
                 max = counts[index];
         }
 
-        for (int i = 0; i < counts.length; i++) {
+        for (int i = 0; i < counts.length; i++)
             if (counts[i] == max)
                 majorityOccupants.add(PlayerColor.ALL.get(i));
-        }
 
         return majorityOccupants;
     }
@@ -178,10 +176,13 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
      */
     public Area<Z> connectTo(Area<Z> that) {
 
+        // case 1: connect area to itself: reduce open connections by 2
         if (this.equals(that))
             return new Area<>(
-                this.zones, this.occupants, this.openConnections - 2
+                    this.zones, this.occupants, this.openConnections - 2
             );
+
+        // case 2: connect area with other area: add zones and occupants and adjust open connections
         Set<Z> newZones = new HashSet<>(Set.copyOf(this.zones));
         newZones.addAll(Set.copyOf(that.zones));
 
@@ -189,9 +190,9 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
         newOccupants.addAll(List.copyOf(that.occupants));
 
         return new Area<>(
-            newZones,
-            newOccupants,
-            this.openConnections + that.openConnections - 2
+                newZones,
+                newOccupants,
+                this.openConnections + that.openConnections - 2
         );
     }
 
@@ -205,7 +206,7 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
     public Area<Z> withInitialOccupant(PlayerColor occupant) {
         Preconditions.checkArgument(!this.isOccupied());
         return new Area<>(this.zones, Collections.singletonList(occupant),
-            this.openConnections);
+                this.openConnections);
     }
 
     /**
@@ -224,7 +225,7 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
     /**
      * Returns the same area as the current instance without any occupants.
      *
-     * @return (Area < Z >) the same area without any occupants
+     * @return (Area) the same area without any occupants
      */
     public Area<Z> withoutOccupants() {
         return new Area<>(this.zones, Collections.emptyList(), this.openConnections);
@@ -233,37 +234,23 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
     /**
      * Returns the set of tile ids of the tiles containing the zone.
      *
-     * @return (Set < Integer >) set containing the tile ids
+     * @return (Set <Integer>) set containing the tile ids
      */
     public Set<Integer> tileIds() {
-        Set<Integer> ids = new HashSet<>();
-        for (Z z : zones) {
-            if (z instanceof Zone zone)
-                ids.add(zone.tileId());
-        }
-
-        return ids;
+        return zones.stream()
+                .map(Zone::tileId)
+                .collect(Collectors.toSet());
     }
 
     /**
      * Returns the zone in the area with the given special power, or null if there is no such zone
      *
      * @param specialPower (Zone.SpecialPower) the special power to be retrieved
-     * @return (Zone) the zone containing the special power.
+     * @return (Zone) the zone containing the special power or null if there is none;
      */
     public Zone zoneWithSpecialPower(Zone.SpecialPower specialPower) {
-        for (Z z : zones) {
-            if (
-                z instanceof Zone zone &&
-                    zone.specialPower() != null &&
-                    zone.specialPower().equals(specialPower)
-            ) {
-                if (zone instanceof Zone.River || zone instanceof Zone.Forest)
-                    return null;
-                return zone;
-            }
-        }
-
-        return null;
+        return this.zones.stream()
+                .filter(z -> z.specialPower() != null && z.specialPower().equals(specialPower))
+                .findFirst().orElse(null);
     }
 }
