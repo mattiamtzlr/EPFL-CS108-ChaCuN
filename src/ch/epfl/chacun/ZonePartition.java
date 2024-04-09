@@ -2,7 +2,9 @@ package ch.epfl.chacun;
 
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * ZonePartition record used to represent a partition of zones that form areas.
@@ -34,8 +36,10 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
      *
      * @param zone (Z) the zone to be found
      * @return (Area < Z >) the area containing the given zone
+     * @throws IllegalArgumentException if zone is not found in partition
      */
     public Area<Z> areaContaining(Z zone) {
+
         for (Area<Z> area : areas) {
             if (area.zones().contains(zone)) {
                 return area;
@@ -87,8 +91,8 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
         }
 
         /**
-         * Removes an occupant from the given zone of the given color
-         *
+         * Removes an occupant from the given zone of the given color.
+         * The occupant has to exist in the zone and of the color specified.
          * @param zone  the zone to remove the occupant from
          * @param color the color of the occupant
          */
@@ -102,7 +106,7 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
         /**
          * Removes all occupant from the given area
          *
-         * @param area the area to remove the occupant from
+         * @param area the area to remove the occupant from, has to be in the partition
          */
         public void removeAllOccupantsOf(Area<Z> area) {
             Preconditions.checkArgument(areas.contains(area));
