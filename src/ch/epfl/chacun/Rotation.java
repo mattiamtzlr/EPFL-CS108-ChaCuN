@@ -14,7 +14,14 @@ public enum Rotation {
     HALF_TURN,
     LEFT;
 
+    /**
+     * List of all possible rotations in order
+     */
     public static final List<Rotation> ALL = List.of(Rotation.values());
+
+    /**
+     * Number of all possible rotations
+     */
     public static final int COUNT = ALL.size();
 
     /**

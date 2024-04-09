@@ -10,6 +10,9 @@ package ch.epfl.chacun;
  * @author Leoluca Bernardi (374107)
  */
 public record Pos(int x, int y) {
+    /**
+     * Origin of the game board: (0,0)
+     */
     public static final Pos ORIGIN = new Pos(0, 0);
 
     /**

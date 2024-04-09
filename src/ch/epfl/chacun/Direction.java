@@ -9,8 +9,17 @@ import java.util.List;
  * @author Leoluca Bernardi (374107)
  */
 public enum Direction {
+
     N, E, S, W;
+
+    /**
+     * List of all possible directions in order
+     */
     public static final List<Direction> ALL = List.of(Direction.values());
+
+    /**
+     * Number of all possible rotations
+     */
     public static final int COUNT = ALL.size();
 
     /**

@@ -11,5 +11,8 @@ import java.util.List;
 public enum PlayerColor {
     RED, BLUE, GREEN, YELLOW, PURPLE;
 
+    /**
+     * List containing all the possible player colors in order
+     */
     public static final List<PlayerColor> ALL = List.of(PlayerColor.values());
 }

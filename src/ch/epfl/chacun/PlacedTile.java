@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * Record which handles placed tiles and their attributes
@@ -78,11 +79,12 @@ public record PlacedTile(
      */
     public Zone zoneWithId(int id) {
         if (Zone.tileId(id) == this.id())
-            for (Zone zone : tile.zones()) {
+            for (Zone zone : tile.zones())
                 if (zone.id() == id)
                     return zone;
-            }
-        throw new IllegalArgumentException("invalid id");
+
+        throw new IllegalArgumentException(
+                String.format("Can't find Zone belonging to id %d.", id));
     }
 
     /**
@@ -91,11 +93,9 @@ public record PlacedTile(
      * @return the special power zone, or null if there is none
      */
     public Zone specialPowerZone() {
-        for (Zone zone : tile.zones()) {
-            if (zone.specialPower() != null)
-                return zone;
-        }
-        return null;
+        return this.tile.zones().stream()
+                .filter(z -> z.specialPower() != null)
+                .findFirst().orElse(null);
     }
 
     /**
@@ -104,12 +104,10 @@ public record PlacedTile(
      * @return a set containing all forest zones
      */
     public Set<Zone.Forest> forestZones() {
-        HashSet<Zone.Forest> forests = new HashSet<>();
-        for (Zone zone : tile.zones()) {
-            if (zone instanceof Zone.Forest forest)
-                forests.add(forest);
-        }
-        return forests;
+        return this.tile.zones().stream()
+                .filter(z -> z instanceof Zone.Forest)
+                .map(z -> (Zone.Forest) z)
+                .collect(Collectors.toSet());
     }
 
     /**
@@ -118,12 +116,10 @@ public record PlacedTile(
      * @return a set containing all meadow zones
      */
     public Set<Zone.Meadow> meadowZones() {
-        HashSet<Zone.Meadow> meadows = new HashSet<>();
-        for (Zone zone : tile.zones()) {
-            if (zone instanceof Zone.Meadow meadow)
-                meadows.add(meadow);
-        }
-        return meadows;
+        return this.tile.zones().stream()
+                .filter(z -> z instanceof Zone.Meadow)
+                .map(z -> (Zone.Meadow) z)
+                .collect(Collectors.toSet());
     }
 
     /**
@@ -132,12 +128,10 @@ public record PlacedTile(
      * @return a set containing all river zones
      */
     public Set<Zone.River> riverZones() {
-        HashSet<Zone.River> rivers = new HashSet<>();
-        for (Zone zone : tile.zones()) {
-            if (zone instanceof Zone.River river)
-                rivers.add(river);
-        }
-        return rivers;
+        return this.tile.zones().stream()
+                .filter(z -> z instanceof Zone.River)
+                .map(z -> (Zone.River) z)
+                .collect(Collectors.toSet());
     }
 
     /**
@@ -146,9 +140,9 @@ public record PlacedTile(
      * @return a set of the occupants that are placeable
      */
     public Set<Occupant> potentialOccupants() {
-        if (placer == null)
+        if (this.placer == null)
             return Collections.emptySet();
-        HashSet<Occupant> occupants = new HashSet<>();
+        Set<Occupant> occupants = new HashSet<>();
         for (Zone zone : tile.zones()) {
             if (!(zone instanceof Zone.Lake)) {
                 // Pawns are always possible if the zone isn't a lake.

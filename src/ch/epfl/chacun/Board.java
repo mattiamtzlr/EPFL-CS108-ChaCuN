@@ -243,7 +243,7 @@ public final class Board {
      */
     public Set<Pos> insertionPositions() {
         if (this.equals(Board.EMPTY))
-            return Set.of(new Pos(0, 0));
+            return Set.of(Pos.ORIGIN);
 
         Set<Pos> occupiedPositions = Arrays.stream(placedTiles.clone())
                 .filter(Objects::nonNull)
@@ -427,13 +427,12 @@ public final class Board {
             throw new IllegalArgumentException(
                     String.format("Tile with id %d is already occupied", targetTile.id()));
 
-
         builder.addInitialOccupant(occupantColor, occupant.kind(), targetZone);
 
         PlacedTile[] placedTilesWithNewOccupant = placedTiles.clone();
-        placedTilesWithNewOccupant[calculateTileIndex(targetTile.pos())] =
-                placedTilesWithNewOccupant[calculateTileIndex(targetTile.pos())]
-                        .withOccupant(occupant);
+        int targetIndex = calculateTileIndex(targetTile.pos());
+        placedTilesWithNewOccupant[targetIndex] =
+                placedTilesWithNewOccupant[targetIndex].withOccupant(occupant);
 
         return new Board(placedTilesWithNewOccupant, placedTileIndices.clone(),
                 builder.build(), cancelledAnimals());
@@ -455,8 +454,9 @@ public final class Board {
         builder.removePawn(occupantColor, targetZone);
 
         PlacedTile[] placedTilesWithoutOccupant = placedTiles.clone();
-        placedTilesWithoutOccupant[calculateTileIndex(targetTile.pos())] =
-                placedTilesWithoutOccupant[calculateTileIndex(targetTile.pos())].withNoOccupant();
+        int targetIndex = calculateTileIndex(targetTile.pos());
+        placedTilesWithoutOccupant[targetIndex] =
+                placedTilesWithoutOccupant[targetIndex].withNoOccupant();
 
         return new Board(placedTilesWithoutOccupant, placedTileIndices.clone(),
                 builder.build(), cancelledAnimals());
@@ -470,18 +470,18 @@ public final class Board {
      * @return A new board without pawns in the given areas.
      */
     public Board withoutGatherersOrFishersIn(
-            Set<Area<Zone.Forest>> forests, Set<Area<Zone.River>> rivers) {
+            Set<Area<Zone.Forest>> forests, Set<Area<Zone.River>> rivers
+    ) {
 
         ZonePartitions.Builder builder = new ZonePartitions.Builder(zonePartitions);
 
-        PlacedTile[] placedTilesWithoutGatherersOrFishers = placedTiles.clone();
+        PlacedTile[] newPlacedTiles = placedTiles.clone();
         for (Area<Zone.Forest> forest : forests) {
             builder.clearGatherers(forest);
 
             for (Integer tileId : forest.tileIds()) {
-                placedTilesWithoutGatherersOrFishers[calculateTileIndex(tileWithId(tileId).pos())] =
-                        placedTilesWithoutGatherersOrFishers[
-                                calculateTileIndex(tileWithId(tileId).pos())].withNoOccupant();
+                int targetIndex = calculateTileIndex(tileWithId(tileId).pos());
+                newPlacedTiles[targetIndex] = newPlacedTiles[targetIndex].withNoOccupant();
             }
 
         }
@@ -489,21 +489,16 @@ public final class Board {
             builder.clearFishers(river);
 
             for (Integer tileId : river.tileIds()) {
-                if (Objects.nonNull(placedTilesWithoutGatherersOrFishers[
-                        calculateTileIndex(tileWithId(tileId).pos())].occupant()) &&
-                        placedTilesWithoutGatherersOrFishers[
-                                calculateTileIndex(tileWithId(tileId).pos())]
-                                .occupant().kind() == Occupant.Kind.PAWN) {
-
-                    placedTilesWithoutGatherersOrFishers[
-                            calculateTileIndex(tileWithId(tileId).pos())] =
-                            placedTilesWithoutGatherersOrFishers[
-                                    calculateTileIndex(tileWithId(tileId).pos())]
-                                    .withNoOccupant();
+                int targetIndex = calculateTileIndex(tileWithId(tileId).pos());
+                if (
+                        Objects.nonNull(newPlacedTiles[targetIndex].occupant())
+                        && newPlacedTiles[targetIndex].occupant().kind().equals(Occupant.Kind.PAWN)
+                ) {
+                    newPlacedTiles[targetIndex] = newPlacedTiles[targetIndex].withNoOccupant();
                 }
             }
         }
-        return new Board(placedTilesWithoutGatherersOrFishers, placedTileIndices.clone(),
+        return new Board(newPlacedTiles, placedTileIndices.clone(),
                 builder.build(), cancelledAnimals());
     }
 
@@ -516,13 +511,11 @@ public final class Board {
     public Board withMoreCancelledAnimals(Set<Animal> newlyCancelledAnimals) {
 
         ZonePartitions.Builder builder = new ZonePartitions.Builder(zonePartitions);
-        Set<Animal> freshCancelledAnimals = new HashSet<>();
-        freshCancelledAnimals.addAll(cancelledAnimals());
-
-        freshCancelledAnimals.addAll(newlyCancelledAnimals);
+        Set<Animal> newCancelledAnimals = new HashSet<>(cancelledAnimals());
+        newCancelledAnimals.addAll(newlyCancelledAnimals);
 
         return new Board(placedTiles.clone(), placedTileIndices.clone(),
-                builder.build(), freshCancelledAnimals);
+                builder.build(), newCancelledAnimals);
     }
 
     @Override

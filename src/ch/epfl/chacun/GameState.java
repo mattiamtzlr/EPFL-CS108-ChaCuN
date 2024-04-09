@@ -135,6 +135,12 @@ public record GameState(
        |                           Helper methods, used for methods below                       |
        ========================================================================================== */
 
+    /**
+     * Helper method which takes the current instance's players and shifts the list by one position,
+     * thus essentially initiating the next player's turn.
+     *
+     * @return the new list of players, shifted by one position
+     */
     private List<PlayerColor> shiftPlayers() {
         List<PlayerColor> newList = new ArrayList<>(List.copyOf(this.players))
                 .subList(1, this.players.size());
@@ -142,64 +148,57 @@ public record GameState(
         return newList;
     }
 
-    private GameState withOccupationIfDeOccupationImpossible(
-            Board newBoard, MessageBoard newMessageBoard) {
+    /**
+     * Helper method to skip the de-occupation step invoked by the shaman if impossible.
+     *
+     * @return the new GameState
+     */
+    private GameState withOccupationIfDeOccupationImpossible() {
 
         if (freeOccupantsCount(currentPlayer(), Occupant.Kind.PAWN)
                 < Occupant.occupantsCount(Occupant.Kind.PAWN)) {
 
-            return new GameState(this.players, this.tileDecks, null, newBoard,
-                    Action.RETAKE_PAWN, newMessageBoard);
+            return new GameState(this.players, this.tileDecks, null, this.board,
+                    Action.RETAKE_PAWN, this.messageBoard);
         }
 
-        return withTurnFinishedIfOccupationImpossible(newBoard, newMessageBoard);
+        return this.withTurnFinishedIfOccupationImpossible();
     }
 
-    private Set<Occupant> lastTilePotentialOccupants(Board newBoard) {
-        assert newBoard.lastPlacedTile() != null;
-        return newBoard.lastPlacedTile().potentialOccupants().stream()
-                .filter(o -> {
-                    Zone zone = newBoard.lastPlacedTile().zoneWithId(o.zoneId());
-                    return switch (zone) {
-                        case Zone.Meadow meadow -> !newBoard.meadowArea(meadow).isOccupied();
-                        case Zone.Forest forest -> !newBoard.forestArea(forest).isOccupied();
-
-                        case Zone.Water water when o.kind().equals(Occupant.Kind.PAWN) ->
-                                !newBoard.riverArea((Zone.River) water).isOccupied();
-
-                        case Zone.Water water when o.kind().equals(Occupant.Kind.HUT) ->
-                                !newBoard.riverSystemArea(water).isOccupied();
-
-                        default -> false;
-                    };
-                }).collect(Collectors.toSet());
-
-    }
-
-    private GameState withTurnFinishedIfOccupationImpossible(
-            Board newBoard, MessageBoard newMessageBoard) {
-
+    /**
+     * Helper method to skip the occupation step if impossible.
+     *
+     * @return the new GameState
+     */
+    private GameState withTurnFinishedIfOccupationImpossible() {
         boolean enoughOccupants = false;
+        GameState temp = new GameState(this.players, this.tileDecks,
+                this.tileToPlace, this.board, this.nextAction, this.messageBoard);
 
-        for (Occupant occupant : lastTilePotentialOccupants(newBoard)) {
+        for (Occupant occupant : temp.lastTilePotentialOccupants()) {
             if (freeOccupantsCount(currentPlayer(), occupant.kind()) > 0)
                 enoughOccupants = true;
         }
 
-        if (enoughOccupants && !lastTilePotentialOccupants(newBoard).isEmpty())
-            return new GameState(this.players, this.tileDecks, null, newBoard,
-                    Action.OCCUPY_TILE, newMessageBoard);
+        if (enoughOccupants && !temp.lastTilePotentialOccupants().isEmpty())
+            return new GameState(this.players, this.tileDecks, null, this.board,
+                    Action.OCCUPY_TILE, this.messageBoard);
 
-        return withTurnFinished(newBoard, newMessageBoard);
+        return this.withTurnFinished();
     }
 
-    private GameState withTurnFinished(Board board, MessageBoard messageBoard) {
+    /**
+     * Helper method to finish the turn of the current player
+     *
+     * @return
+     */
+    private GameState withTurnFinished() {
         boolean menhir = false;
         MessageBoard newMessageBoard = new MessageBoard(
-                messageBoard.textMaker(), messageBoard.messages());
+                this.messageBoard.textMaker(), this.messageBoard.messages());
 
         // add points for closed forests and check for menhir forests
-        Set<Area<Zone.Forest>> closedForests = board.forestsClosedByLastTile();
+        Set<Area<Zone.Forest>> closedForests = this.board.forestsClosedByLastTile();
         if (!closedForests.isEmpty()) {
             for (Area<Zone.Forest> forest : closedForests) {
                 newMessageBoard = newMessageBoard.withScoredForest(forest);
@@ -212,7 +211,7 @@ public record GameState(
         }
 
         // add points for closed rivers
-        Set<Area<Zone.River>> closedRivers = board.riversClosedByLastTile();
+        Set<Area<Zone.River>> closedRivers = this.board.riversClosedByLastTile();
         if (!closedRivers.isEmpty()) {
             for (Area<Zone.River> river : closedRivers) {
                 newMessageBoard = newMessageBoard.withScoredRiver(river);
@@ -220,7 +219,7 @@ public record GameState(
         }
 
         // remove pawns
-        board = board.withoutGatherersOrFishersIn(closedForests, closedRivers);
+        Board newBoard = board.withoutGatherersOrFishersIn(closedForests, closedRivers);
 
         // check next tile and handle accordingly
         TileDecks newTileDecks;
@@ -228,39 +227,43 @@ public record GameState(
         if (menhir) {
             newTileDecks = this.tileDecks.withTopTileDrawnUntil(
                     Tile.Kind.MENHIR,
-                    board::couldPlaceTile
+                    newBoard::couldPlaceTile
             );
-            // this seems weird but is necessary as withTopTileDrawnUntil doesn't actually
-            // take the first tile that satisfies the condition
 
             nextTile = newTileDecks.topTile(Tile.Kind.MENHIR);
             if (nextTile != null)
                 return new GameState(this.players, newTileDecks.withTopTileDrawn(Tile.Kind.MENHIR),
-                        nextTile, board, Action.PLACE_TILE, newMessageBoard);
+                        nextTile, newBoard, Action.PLACE_TILE, newMessageBoard);
         }
 
         newTileDecks = this.tileDecks.withTopTileDrawnUntil(
-                        Tile.Kind.NORMAL,
-                        board::couldPlaceTile
-                );
-                // this seems weird but is necessary as withTopTileDrawnUntil doesn't actually take
-                // the first tile that satisfies the condition
-//                .withTopTileDrawn(Tile.Kind.NORMAL);
+                Tile.Kind.NORMAL,
+                newBoard::couldPlaceTile
+        );
 
         nextTile = newTileDecks.topTile(Tile.Kind.NORMAL);
         if (nextTile != null) {
             return new GameState(shiftPlayers(), newTileDecks.withTopTileDrawn(Tile.Kind.NORMAL),
-                    nextTile, board, Action.PLACE_TILE, newMessageBoard);
+                    nextTile, newBoard, Action.PLACE_TILE, newMessageBoard);
         } else {
-            return withFinalPointsCounted(board, newMessageBoard);
+            return new GameState(this.players, newTileDecks, null, newBoard,
+                    Action.END_GAME, newMessageBoard)
+                    .withFinalPointsCounted();
         }
     }
 
-    private GameState withFinalPointsCounted(Board board, MessageBoard messageBoard) {
+    /**
+     * Helper method to count the points
+     *
+     * @return
+     */
+    private GameState withFinalPointsCounted() {
+        Board newBoard = this.board;
+        MessageBoard newMessageBoard = new MessageBoard(
+                this.messageBoard.textMaker(), this.messageBoard.messages());
 
-        MessageBoard newMessageBoard = messageBoard;
         // count meadow points
-        for (Area<Zone.Meadow> meadow : board.meadowAreas()) {
+        for (Area<Zone.Meadow> meadow : newBoard.meadowAreas()) {
             Set<Animal> cancelledDeer;
 
             if (meadow.zoneWithSpecialPower(WILD_FIRE) != null)
@@ -271,8 +274,8 @@ public record GameState(
                 Zone.Meadow pitTrapZone = (Zone.Meadow) meadow.zoneWithSpecialPower(PIT_TRAP);
                 // if the pit trap is in the area, say hi
 
-                Area<Zone.Meadow> adjMeadow = this.board().adjacentMeadow(
-                        board.tileWithId(pitTrapZone.tileId()).pos(),
+                Area<Zone.Meadow> adjMeadow = newBoard.adjacentMeadow(
+                        newBoard.tileWithId(pitTrapZone.tileId()).pos(),
                         pitTrapZone
                 );
 
@@ -283,8 +286,8 @@ public record GameState(
                 // add all deer that are not in the adjacent meadow
                 cancelledDeer = Set.copyOf(animals).stream()
                         .filter(a ->
-                                a.kind().equals(Animal.Kind.DEER) &&
-                                !Area.animals(adjMeadow, Collections.emptySet()).contains(a)
+                                a.kind().equals(Animal.Kind.DEER)
+                                        && !Area.animals(adjMeadow, Collections.emptySet()).contains(a)
                         )
                         .limit(animalCounts.getOrDefault(Animal.Kind.TIGER, 0))
                         .collect(Collectors.toSet());
@@ -299,7 +302,7 @@ public record GameState(
                 cancelledDeer = cancelledDeerInMeadow(meadow);
             }
 
-            board = board.withMoreCancelledAnimals(cancelledDeer);
+            newBoard = newBoard.withMoreCancelledAnimals(cancelledDeer);
             newMessageBoard = newMessageBoard.withScoredMeadow(meadow, cancelledDeer);
         }
 
@@ -329,10 +332,16 @@ public record GameState(
 
         newMessageBoard = newMessageBoard.withWinners(winners, maxPoints);
 
-        return new GameState(this.players, this.tileDecks, null, board,
+        return new GameState(this.players, this.tileDecks, null, newBoard,
                 Action.END_GAME, newMessageBoard);
     }
 
+    /**
+     * Helper method to get the set of cancelled deer in a meadow
+     *
+     * @param meadowArea the meadow area to get the set of cancelled deer in
+     * @return set of cancelled deer
+     */
     private static Set<Animal> cancelledDeerInMeadow(Area<Zone.Meadow> meadowArea) {
         // get all animals, count them
         Set<Animal> animals = Area.animals(meadowArea, Collections.emptySet());
@@ -341,19 +350,11 @@ public record GameState(
 
         Set<Animal> cancelledDeer;
 
-        // this should actually be enough: cancel as many deer as there are tigers, or all
-        // if there are >= tigers than deer ☠ 🪦
-        // 5.4.23: changed animalCounts.get(Animal.Kind.TIGER) to getOrDefault, as sometimes there
-        // might not be any tigers
-        AtomicInteger cancelCount = new AtomicInteger();
         cancelledDeer = Set.copyOf(animals).stream()
                 .filter(a -> a.kind().equals(Animal.Kind.DEER))
                 // limit the number of deer cancelled to the number of tigers
                 .limit(animalCounts.getOrDefault(Animal.Kind.TIGER, 0))
                 .collect(Collectors.toSet());
-
-        // dunno if this is necessary but hey
-        animalCounts.computeIfPresent(Animal.Kind.DEER, (k, v) -> v - cancelCount.get());
 
         return cancelledDeer;
     }
@@ -371,7 +372,7 @@ public record GameState(
         Preconditions.checkArgument(this.nextAction.equals(Action.START_GAME));
 
         PlacedTile startTile = new PlacedTile(
-                tileDecks.topTile(Tile.Kind.START), null, Rotation.NONE, new Pos(0, 0)
+                tileDecks.topTile(Tile.Kind.START), null, Rotation.NONE, Pos.ORIGIN
         );
         Board newBoard = this.board.withNewTile(startTile);
         Tile next = this.tileDecks.topTile(Tile.Kind.NORMAL);
@@ -435,9 +436,13 @@ public record GameState(
         }
 
         if (shaman)
-            return withOccupationIfDeOccupationImpossible(newBoard, newMessageBoard);
+            return new GameState(this.players, this.tileDecks, this.tileToPlace, newBoard,
+                    this.nextAction, newMessageBoard)
+                    .withOccupationIfDeOccupationImpossible();
         else
-            return withTurnFinishedIfOccupationImpossible(newBoard, newMessageBoard);
+            return new GameState(this.players, this.tileDecks, this.tileToPlace, newBoard,
+                    this.nextAction, newMessageBoard)
+                    .withTurnFinishedIfOccupationImpossible();
     }
 
     /**
@@ -456,19 +461,13 @@ public record GameState(
         Preconditions.checkArgument(occupant == null
                 || occupant.kind().equals(Occupant.Kind.PAWN));
 
-        if (
-                occupant == null
-                /* this condition is never explicitly mentioned, but it seems logical - Mattia
-                also removed the other condition as that is checked in the helper method. */
-                        || !this.board.tileWithId(Zone.tileId(occupant.zoneId())).placer()
-                        .equals(currentPlayer())
-        )
+        if (occupant == null)
+            return this.withTurnFinishedIfOccupationImpossible();
 
-            return withTurnFinishedIfOccupationImpossible(this.board, this.messageBoard);
-
-        return withTurnFinishedIfOccupationImpossible(
-                this.board.withoutOccupant(occupant), this.messageBoard
-        );
+        Board newBoard = this.board.withoutOccupant(occupant);
+        return new GameState(this.players, this.tileDecks, this.tileToPlace,
+                newBoard, this.nextAction, this.messageBoard)
+                .withTurnFinishedIfOccupationImpossible();
     }
 
     /**
@@ -481,9 +480,11 @@ public record GameState(
         Preconditions.checkArgument(nextAction.equals(Action.OCCUPY_TILE));
 
         if (occupant == null)
-            return withTurnFinished(this.board, this.messageBoard);
+            return this.withTurnFinished();
 
         Board newBoard = board.withOccupant(occupant);
-        return withTurnFinished(newBoard, this.messageBoard);
+        return new GameState(this.players, this.tileDecks, this.tileToPlace, newBoard,
+                this.nextAction, this.messageBoard)
+                .withTurnFinished();
     }
 }
