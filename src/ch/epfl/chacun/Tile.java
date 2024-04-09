@@ -1,8 +1,7 @@
 package ch.epfl.chacun;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Tile record
@@ -34,11 +33,10 @@ public record Tile(
      * @return a set of all zones that touch the border
      */
     public Set<Zone> sideZones() {
-        HashSet<Zone> sideZones = new HashSet<>();
-        for (TileSide side : sides()) {
-            sideZones.addAll(side.zones());
-        }
-        return sideZones;
+        return sides().stream()
+                .map(TileSide::zones)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toSet());
     }
 
     /**
@@ -48,6 +46,7 @@ public record Tile(
      */
     public Set<Zone> zones() {
         HashSet<Zone> zones = (HashSet<Zone>) this.sideZones();
+
         for (Zone zone : this.sideZones()) {
             if (zone instanceof Zone.River river)
                 if (river.hasLake())
