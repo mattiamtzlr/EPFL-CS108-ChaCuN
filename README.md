@@ -39,7 +39,7 @@ idiot language
     2. awarding any points obtained from placing the traps 
     3. determining the next action 
       + which may be *RETAKEPAWN* if the tile placed contains the shaman 
-  + raises IllegalArgumentExeption if 
+  + raises IllegalArgumentException if 
     + the next action is not *PLACETILE* 
     + the tile passed is already occupied
 

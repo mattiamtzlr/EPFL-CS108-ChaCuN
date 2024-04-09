@@ -181,6 +181,12 @@ public final class Board {
         return new Area<>(zones, meadowArea(meadowZone).occupants(), 0);
     }
 
+    /**
+     * Helper method that returns all adjacent tiles that are not null
+     *
+     * @param pos the position of the tile around which the tiles need to be retrieved
+     * @return the set of 8 tiles around the given position
+     */
     private Set<PlacedTile> getTileAdjacentPositions(Pos pos) {
         Set<PlacedTile> returnSet = getNeighborTiles(pos);
         returnSet.add(tileAt(pos.translated(-1, -1)));
@@ -231,7 +237,7 @@ public final class Board {
     }
 
     /**
-     * A method to get all positions at which a new tile could be added to the board
+     * Method to get all positions at which a new tile could be added to the board
      *
      * @return The set of possible insertion positions
      */
@@ -246,7 +252,7 @@ public final class Board {
 
         return Arrays.stream(placedTiles.clone())
                 .filter(Objects::nonNull)
-                .map((a) -> getNeighborPositions(a.pos()))
+                .map((p) -> getNeighborPositions(p.pos()))
                 .flatMap(Collection::stream)
                 .filter(p -> !occupiedPositions.contains(p))
                 .filter(p -> Math.abs(p.x()) <= REACH && Math.abs(p.y()) <= REACH)
@@ -254,10 +260,10 @@ public final class Board {
     }
 
     /**
-     * A method to get the positions of the immediate neighboring tiles.
+     * Method to get the positions of the immediate neighboring tiles.
      *
      * @param pos Position of the middle tile.
-     * @return A set of the requested positions.
+     * @return Set of the requested positions.
      */
     private Set<Pos> getNeighborPositions(Pos pos) {
         return Set.of(
@@ -267,10 +273,10 @@ public final class Board {
     }
 
     /**
-     * A method to get the immediate neighbor tiles (Cross)
+     * Method to get the immediate neighbor tiles (Cross)
      *
      * @param pos The position of the middle tile.
-     * @return A sets that contains all (placed) tiles that share a border with the middle tile
+     * @return Set that contains all (placed) tiles that share a border with the middle tile
      */
     private Set<PlacedTile> getNeighborTiles(Pos pos) {
 
@@ -295,31 +301,33 @@ public final class Board {
     }
 
     /**
-     * Method to find that forest areas that were closed by the placement of the last tile
+     * Method to find the forest areas that were closed by the placement of the last tile
      *
      * @return The forest areas that were closed, empty set if none
      */
     public Set<Area<Zone.Forest>> forestsClosedByLastTile() {
-        Set<Area<Zone.Forest>> closedForestAreas = new HashSet<>();
-        for (Zone.Forest forestZone : lastPlacedTile().forestZones()) {
-            if (forestArea(forestZone).isClosed())
-                closedForestAreas.add(forestArea(forestZone));
-        }
-        return closedForestAreas;
+        if (lastPlacedTile() == null)
+            return Collections.emptySet();
+
+        return lastPlacedTile().forestZones().stream()
+                .filter(fz -> forestArea(fz).isClosed())
+                .map(this::forestArea)
+                .collect(Collectors.toSet());
     }
 
     /**
-     * Method to find that river areas that were closed by the placement of the last tile
+     * Method to find the river areas that were closed by the placement of the last tile
      *
      * @return The river areas that were closed, empty set if none
      */
     public Set<Area<Zone.River>> riversClosedByLastTile() {
-        Set<Area<Zone.River>> closedRiverAreas = new HashSet<>();
-        for (Zone.River riverZone : lastPlacedTile().riverZones()) {
-            if (riverArea(riverZone).isClosed())
-                closedRiverAreas.add(riverArea(riverZone));
-        }
-        return closedRiverAreas;
+        if (lastPlacedTile() == null)
+            return Collections.emptySet();
+
+        return lastPlacedTile().riverZones().stream()
+                .filter(rz -> riverArea(rz).isClosed())
+                .map(this::riverArea)
+                .collect(Collectors.toSet());
     }
 
     /**
@@ -334,17 +342,16 @@ public final class Board {
             return false;
 
         for (Direction direction : Direction.ALL) {
-            if (tileAt(tile.pos().neighbor(direction)) != null &&
-                    !tile.side(direction).isSameKindAs(
-                            tileAt(tile.pos().neighbor(direction))
-                                    .side(direction.opposite())))
+            PlacedTile neighbor = tileAt(tile.pos().neighbor(direction));
+            if (neighbor != null &&
+                    !tile.side(direction).isSameKindAs(neighbor.side(direction.opposite())))
                 return false;
         }
         return true;
     }
 
     /**
-     * Determine whether there exists a a position on the board where the give tile could be placed
+     * Determine whether there exists a position on the board where the given tile could be placed
      *
      * @param tile The tile to be tested
      * @return True if there exists a position where the tile can be added, false otherwise
@@ -369,26 +376,30 @@ public final class Board {
     public Board withNewTile(PlacedTile tile) {
 
         if (!canAddTile(tile) || placedTileIndices.length == TOTAL_TILES_AVAILABLE)
-            throw new IllegalArgumentException("Cannot add tile");
+            throw new IllegalArgumentException(
+                    String.format("Cannot add tile with id %d.", tile.id()));
 
-        // This part seems pretty right to me, the cloning should be safe
         PlacedTile[] placedTilesWithNewTile = placedTiles.clone();
         placedTilesWithNewTile[calculateTileIndex(tile.pos())] = tile;
 
-        int[] placedTileIndicesWithNewTile = Arrays.copyOf(placedTileIndices,
-                placedTileIndices.length + 1);
-        placedTileIndicesWithNewTile[placedTileIndices.length] =
-                calculateTileIndex(tile.pos());
+        int[] placedTileIndicesWithNewTile = Arrays.copyOf(
+                placedTileIndices,
+                placedTileIndices.length + 1
+        );
+
+        placedTileIndicesWithNewTile[placedTileIndices.length]
+                = calculateTileIndex(tile.pos());
 
         ZonePartitions.Builder builder = new ZonePartitions.Builder(zonePartitions);
         builder.addTile(tile.tile());
         for (Direction direction : Direction.ALL) {
-            if (tileAt(tile.pos().neighbor(direction)) != null) {
+            PlacedTile neighbor = tileAt(tile.pos().neighbor(direction));
+
+            if (neighbor != null)
                 builder.connectSides(
                         tile.side(direction),
-                        tileAt(tile.pos().neighbor(direction))
-                                .side(direction.opposite()));
-            }
+                        neighbor.side(direction.opposite())
+                );
         }
 
         return new Board(
@@ -412,9 +423,10 @@ public final class Board {
         PlayerColor occupantColor = targetTile.placer();
 
         Objects.requireNonNull(occupantColor);
-        if (Objects.nonNull(targetTile.occupant())) {
-            throw new IllegalArgumentException("Tile already occupied");
-        }
+        if (Objects.nonNull(targetTile.occupant()))
+            throw new IllegalArgumentException(
+                    String.format("Tile with id %d is already occupied", targetTile.id()));
+
 
         builder.addInitialOccupant(occupantColor, occupant.kind(), targetZone);
 

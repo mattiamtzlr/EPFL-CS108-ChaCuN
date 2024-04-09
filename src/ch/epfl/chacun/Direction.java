@@ -26,7 +26,7 @@ public enum Direction {
     /**
      * Method to change the direction to opposite
      *
-     * @return new direction in oposite direction
+     * @return new direction in opposite direction
      */
     public Direction opposite() {
         return ALL.get((this.ordinal() + (COUNT / 2)) % COUNT);

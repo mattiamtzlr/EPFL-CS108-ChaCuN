@@ -47,7 +47,7 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests,
         }
 
         /**
-         * A method to add a new tile. Adds all of the areas on said tile to the partitions
+         * A method to add a new tile. Adds all the areas on said tile to the partitions
          *
          * @param tile The tile of which we want to add areas to the partitions
          */
@@ -117,13 +117,9 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests,
             Preconditions.checkArgument(!s1.equals(s2));
             switch (s1) {
                 case TileSide.Forest(Zone.Forest f1)
-                    when s2 instanceof TileSide.Forest(Zone.Forest f2) -> {
-                    forestBuilder.union(f1, f2);
-                }
+                    when s2 instanceof TileSide.Forest(Zone.Forest f2) -> forestBuilder.union(f1, f2);
                 case TileSide.Meadow(Zone.Meadow m1)
-                    when s2 instanceof TileSide.Meadow(Zone.Meadow m2) -> {
-                    meadowBuilder.union(m1, m2);
-                }
+                    when s2 instanceof TileSide.Meadow(Zone.Meadow m2) -> meadowBuilder.union(m1, m2);
                 case TileSide.River(Zone.Meadow m11, Zone.River r1, Zone.Meadow m12)
                     when s2 instanceof TileSide.River(
                     Zone.Meadow m21, Zone.River r2, Zone.Meadow m22) -> {
@@ -134,9 +130,7 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests,
                     riverSystemsBuilder.union(r1, r2);
 
                 }
-                default -> {
-                    throw new IllegalArgumentException("Not matching TileSide");
-                }
+                default -> throw new IllegalArgumentException("Not matching TileSide");
 
             }
         }
@@ -154,18 +148,12 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests,
             switch (occupantKind) {
                 case PAWN -> {
                     switch (occupiedZone) {
-                        case Zone.Forest forestZone -> {
-                            forestBuilder.addInitialOccupant(
-                                forestZone, player);
-                        }
-                        case Zone.Meadow meadowZone -> {
-                            meadowBuilder.addInitialOccupant(
-                                meadowZone, player);
-                        }
-                        case Zone.River riverZone -> {
-                            riverBuilder.addInitialOccupant(
-                                riverZone, player);
-                        }
+                        case Zone.Forest forestZone -> forestBuilder.addInitialOccupant(
+                            forestZone, player);
+                        case Zone.Meadow meadowZone -> meadowBuilder.addInitialOccupant(
+                            meadowZone, player);
+                        case Zone.River riverZone -> riverBuilder.addInitialOccupant(
+                            riverZone, player);
                         default -> throw new IllegalArgumentException("Cannot add pawn here");
                     }
                 }
@@ -191,15 +179,9 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests,
          */
         public void removePawn(PlayerColor player, Zone occupiedZone) {
             switch (occupiedZone) {
-                case Zone.Forest forestZone -> {
-                    forestBuilder.removeOccupant(forestZone, player);
-                }
-                case Zone.Meadow meadowZone -> {
-                    meadowBuilder.removeOccupant(meadowZone, player);
-                }
-                case Zone.River riverZone -> {
-                    riverBuilder.removeOccupant(riverZone, player);
-                }
+                case Zone.Forest forestZone -> forestBuilder.removeOccupant(forestZone, player);
+                case Zone.Meadow meadowZone -> meadowBuilder.removeOccupant(meadowZone, player);
+                case Zone.River riverZone -> riverBuilder.removeOccupant(riverZone, player);
                 default -> throw new IllegalArgumentException("Lake cannot be occupied by pawn");
             }
         }
