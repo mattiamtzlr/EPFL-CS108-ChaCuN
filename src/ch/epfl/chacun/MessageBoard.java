@@ -256,9 +256,6 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages) {
                                           Set<Animal> cancelledAnimals) {
         List<Message> newMessages = new ArrayList<>(List.copyOf(this.messages));
 
-        Zone.Meadow specialPowerZone = (Zone.Meadow)
-            adjacentMeadow.zoneWithSpecialPower(Zone.SpecialPower.PIT_TRAP);
-
         if (adjacentMeadow.isOccupied()) {
             Set<Animal> animals = Area.animals(
                 adjacentMeadow,

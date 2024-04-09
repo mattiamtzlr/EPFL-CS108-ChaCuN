@@ -280,7 +280,6 @@ public record GameState(
                 Map<Animal.Kind, Integer> animalCounts = new HashMap<>();
                 animals.forEach(a -> animalCounts.merge(a.kind(), 1, Integer::sum));
 
-                AtomicInteger cancelCount = new AtomicInteger();
                 // add all deer that are not in the adjacent meadow
                 cancelledDeer = Set.copyOf(animals).stream()
                         .filter(a ->

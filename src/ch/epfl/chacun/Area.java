@@ -177,10 +177,6 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
      * @return (Area < Z >) the connection of the two areas
      */
     public Area<Z> connectTo(Area<Z> that) {
-        // TODO maybe this needs to be removed later, depending on how the open connections are
-        //  handled
-        if (this.openConnections() == 0 || that.openConnections() == 0)
-            return this;
 
         if (this.equals(that))
             return new Area<>(

@@ -121,6 +121,7 @@ final class SignatureChecks_1 {
         v03 = v24.fishCount();
     }
 
+    @SuppressWarnings("unchecked")
     void checkZone_Meadow() throws Exception {
         v25 = new ch.epfl.chacun.Zone.Meadow(v03, v26, v21);
         v27 = v25.animals();

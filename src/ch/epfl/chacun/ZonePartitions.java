@@ -2,7 +2,6 @@ package ch.epfl.chacun;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * Class that groups together multiple ZonePartitions
@@ -24,10 +23,10 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests,
     );
 
     public static final class Builder {
-        private ZonePartition.Builder<Zone.Forest> forestBuilder;
-        private ZonePartition.Builder<Zone.Meadow> meadowBuilder;
-        private ZonePartition.Builder<Zone.River> riverBuilder;
-        private ZonePartition.Builder<Zone.Water> riverSystemsBuilder;
+        private final ZonePartition.Builder<Zone.Forest> forestBuilder;
+        private final ZonePartition.Builder<Zone.Meadow> meadowBuilder;
+        private final ZonePartition.Builder<Zone.River> riverBuilder;
+        private final ZonePartition.Builder<Zone.Water> riverSystemsBuilder;
 
         /**
          * Constructor for the builder of ZonePartitions
