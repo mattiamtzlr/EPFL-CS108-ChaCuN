@@ -9,8 +9,8 @@ mmh yes overcomplication
 idiot language
 
 ### State machine
-![states](./game-state-machine.png)
-![statesByHand](./gameState.png)
+![states](cornucopia/game-state-machine.png)
+![statesByHand](cornucopia/gameState.png)
 ## Links
 - [Stage 3](https://cs108.epfl.ch/p/03_areas.html)
 - [Stage 4](https://cs108.epfl.ch/p/04_partitions.html)
