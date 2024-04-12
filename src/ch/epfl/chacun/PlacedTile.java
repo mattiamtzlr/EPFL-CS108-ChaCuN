@@ -164,6 +164,7 @@ public record PlacedTile(
      *
      * @param occupant (Occupant) the occupant to add
      * @return (PlacedTile) The new PlacedTile with the occupant
+     * @throws IllegalArgumentException if the tile is already occupied
      */
     public PlacedTile withOccupant(Occupant occupant) {
         // check whether there isn't already an occupant

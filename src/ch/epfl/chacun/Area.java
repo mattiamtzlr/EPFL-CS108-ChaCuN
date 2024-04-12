@@ -19,6 +19,7 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
      * @param occupants       (List<PlayerColor>) the list of players occupying the area, these are
      *                        the colors, not the occupants themselves (!)
      * @param openConnections (int) the number of open connections of the area
+     * @throws IllegalArgumentException if openConnections < 0
      */
     public Area {
         Preconditions.checkArgument(openConnections >= 0);
@@ -193,6 +194,7 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
      *
      * @param occupant (PlayerColor) the color of occupant to be added
      * @return (Area) the new area with the added occupant
+     * @throws IllegalArgumentException if this area is already occupied
      */
     public Area<Z> withInitialOccupant(PlayerColor occupant) {
         Preconditions.checkArgument(!this.isOccupied());
@@ -205,6 +207,7 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
      *
      * @param occupant (PlayerColor) the color of occupant of which one needs to be removed
      * @return (Area) the new area with the new occupants list
+     * @throws IllegalArgumentException if this area does not contain the occupant
      */
     public Area<Z> withoutOccupant(PlayerColor occupant) {
         Preconditions.checkArgument(this.occupants.contains(occupant));

@@ -342,6 +342,7 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages) {
          * @param scorers set of players that got points, can be empty
          * @param tileIds set of tile ids of the tiles which have a connection to this message,
          *                can be empty
+         * @throws IllegalArgumentException if points is less than zero
          */
         public Message {
             Objects.requireNonNull(text);

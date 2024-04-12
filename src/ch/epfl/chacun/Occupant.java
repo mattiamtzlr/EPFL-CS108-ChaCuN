@@ -13,6 +13,7 @@ import java.util.Objects;
 public record Occupant(Kind kind, int zoneId) {
     /**
      * Compact Constructor for Occupant, which checks whether the params are valid.
+     * @throws IllegalArgumentException if the zoneId is smaller than zero
      */
     public Occupant {
         Objects.requireNonNull(kind);

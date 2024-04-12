@@ -42,6 +42,9 @@ public record GameState(
      * @param board        the board of this game
      * @param nextAction   the next action to be performed
      * @param messageBoard the message board containing all current messages
+     * @throws IllegalArgumentException if there are less than two players
+     * @throws IllegalArgumentException if not either tileToPlace is null or the next action is
+     *                                  PLACE_TILE
      */
     public GameState {
         Objects.requireNonNull(tileDecks);
@@ -107,6 +110,7 @@ public record GameState(
      * Returns the potential occupants of the most recently placed tile.
      *
      * @return Set of occupants that could be placed on the most recently placed tile
+     * @throws IllegalArgumentException if the board is still empty
      */
     public Set<Occupant> lastTilePotentialOccupants() {
         Preconditions.checkArgument(!this.board.equals(Board.EMPTY));
@@ -367,6 +371,7 @@ public record GameState(
      * Returns the same GameState, but with the starting tile placed in the center of the board
      *
      * @return the GameState with the starting tile
+     * @throws IllegalArgumentException if the next action is not START_GAME
      */
     public GameState withStartingTilePlaced() {
         Preconditions.checkArgument(this.nextAction.equals(Action.START_GAME));
@@ -388,6 +393,8 @@ public record GameState(
      *
      * @param tile the tile (PlacedTile) to be added to the board
      * @return the new game state
+     * @throws IllegalArgumentException if the next action is not PLACE_TILE
+     * @throws IllegalArgumentException if the placedTile object has an occupant
      */
     public GameState withPlacedTile(PlacedTile tile) {
         Preconditions.checkArgument(this.nextAction.equals(Action.PLACE_TILE));
@@ -475,6 +482,7 @@ public record GameState(
      *
      * @param occupant The occupant to be added to the board.
      * @return A new GameState with the additional occupant.
+     * @throws IllegalArgumentException if the next action is not OCCUPY_TILE
      */
     public GameState withNewOccupant(Occupant occupant) {
         Preconditions.checkArgument(nextAction.equals(Action.OCCUPY_TILE));

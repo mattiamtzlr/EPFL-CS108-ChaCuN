@@ -15,6 +15,8 @@ public final class Points {
      * @param tileCount          number of tiles the forest spans
      * @param mushroomGroupCount number of mushroom groups within the forest
      * @return points for a closed forest
+     * @throws IllegalArgumentException if the tileCount is smaller or equal to one
+     * @throws IllegalArgumentException if the mushroomGroupCount is negative
      */
     public static int forClosedForest(int tileCount, int mushroomGroupCount) {
         Preconditions.checkArgument(tileCount > 1);
@@ -29,6 +31,8 @@ public final class Points {
      * @param tileCount the number of tiles the river stretches
      * @param fishCount the number of fishes in the river
      * @return points for closed river
+     * @throws IllegalArgumentException if the tileCount is smaller or equal to one
+     * @throws IllegalArgumentException if the fishCount is negative
      */
     public static int forClosedRiver(int tileCount, int fishCount) {
         Preconditions.checkArgument(tileCount > 1);
@@ -45,6 +49,7 @@ public final class Points {
      * @param aurochsCount the number of aurochs in a meadow
      * @param deerCount    the number of deer in a meadow
      * @return points for a given meadow
+     * @throws IllegalArgumentException if any of the parameters is negative
      */
     public static int forMeadow(int mammothCount, int aurochsCount, int deerCount) {
         Preconditions.checkArgument(mammothCount >= 0);
@@ -59,6 +64,7 @@ public final class Points {
      *
      * @param fishCount the number of fish in the river system
      * @return points for a given river system
+     * @throws IllegalArgumentException if the fishCount is negative
      */
     public static int forRiverSystem(int fishCount) {
         Preconditions.checkArgument(fishCount >= 0);
@@ -70,6 +76,7 @@ public final class Points {
      *
      * @param lakeCount the number of lakes connected to the Logboat
      * @return points for the logboat
+     * @throws IllegalArgumentException if the lakeCount is negative or zero
      */
     public static int forLogboat(int lakeCount) {
         Preconditions.checkArgument(lakeCount > 0);
@@ -81,6 +88,7 @@ public final class Points {
      *
      * @param lakeCount the number of lakes connected to the Raft
      * @return points for the raft
+     * @throws IllegalArgumentException if the lakeCount is negative or zero
      */
     public static int forRaft(int lakeCount) {
         Preconditions.checkArgument(lakeCount > 0);

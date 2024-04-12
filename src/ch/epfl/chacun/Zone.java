@@ -132,6 +132,7 @@ public sealed interface Zone {
          * @param id           (int) global id of the lake
          * @param fishCount    (int) number of fish in the lake
          * @param specialPower (Zone.SpecialPower) special power of the lake, may be null
+         * @throws IllegalArgumentException if the fishCount is negative
          */
         public Lake {
             Preconditions.checkArgument(fishCount >= 0);
@@ -154,6 +155,7 @@ public sealed interface Zone {
          * @param fishCount (int) number of fish in the river
          * @param lake      (Zone.Lake) lake that this river connects to, may be null, if it doesn't
          *                  connect to a river
+         * @throws IllegalArgumentException if the fishCount is negative
          */
         public River {
             Preconditions.checkArgument(fishCount >= 0);

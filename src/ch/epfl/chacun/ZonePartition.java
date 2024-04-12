@@ -94,6 +94,7 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
          *
          * @param zone  the zone to remove the occupant from
          * @param color the color of the occupant
+         * @throws IllegalArgumentException if the zone does not contain an occupant of the color
          */
         public void removeOccupant(Z zone, PlayerColor color) {
             Area<Z> area = new ZonePartition<>(areas).areaContaining(zone);
@@ -106,6 +107,7 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
          * Removes all occupant from the given area
          *
          * @param area the area to remove the occupant from, has to be in the partition
+         * @throws IllegalArgumentException if the partition does not contain the area
          */
         public void removeAllOccupantsOf(Area<Z> area) {
             Preconditions.checkArgument(areas.contains(area));

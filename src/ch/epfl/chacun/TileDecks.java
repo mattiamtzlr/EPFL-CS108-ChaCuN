@@ -65,6 +65,7 @@ public record TileDecks(List<Tile> startTiles, List<Tile> normalTiles, List<Tile
      *
      * @param kind Deck kind
      * @return a TileDecks instance with one tile missing from a chosen deck
+     * @throws IllegalArgumentException if the deck does not have a tile to be drawn
      */
     public TileDecks withTopTileDrawn(Tile.Kind kind) {
         Preconditions.checkArgument(deckSize(kind) != 0);
