@@ -6,6 +6,9 @@ mmh yes overcomplication
 - `fosse à pieux` = `hunting trap`
 - `grande fosse à pieux` = `pit trap`  
 
+### Message generation
+[messages.md](./cornucopia/messages.md)
+
 idiot language
 
 ### State machine
