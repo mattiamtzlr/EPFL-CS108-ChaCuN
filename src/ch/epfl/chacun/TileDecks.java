@@ -15,7 +15,7 @@ import java.util.function.Predicate;
  */
 public record TileDecks(List<Tile> startTiles, List<Tile> normalTiles, List<Tile> menhirTiles) {
     /**
-     * Compact constructor to ensure immutability
+     * Constructs a new TileDecks instance
      *
      * @param startTiles  the starting tile
      * @param normalTiles a collection containing all normal tiles
@@ -70,17 +70,17 @@ public record TileDecks(List<Tile> startTiles, List<Tile> normalTiles, List<Tile
         Preconditions.checkArgument(deckSize(kind) != 0);
         return switch (kind) {
             case START -> new TileDecks(
-                startTiles.subList(1, startTiles.size()),
-                normalTiles,
-                menhirTiles);
+                    startTiles.subList(1, startTiles.size()),
+                    normalTiles,
+                    menhirTiles);
             case NORMAL -> new TileDecks(
-                startTiles,
-                normalTiles.subList(1, normalTiles.size()),
-                menhirTiles);
+                    startTiles,
+                    normalTiles.subList(1, normalTiles.size()),
+                    menhirTiles);
             case MENHIR -> new TileDecks(
-                startTiles,
-                normalTiles,
-                menhirTiles.subList(1, menhirTiles.size())
+                    startTiles,
+                    normalTiles,
+                    menhirTiles.subList(1, menhirTiles.size())
             );
         };
     }
@@ -94,11 +94,10 @@ public record TileDecks(List<Tile> startTiles, List<Tile> normalTiles, List<Tile
      * predicate test removed
      */
     public TileDecks withTopTileDrawnUntil(Tile.Kind kind, Predicate<Tile> predicate) {
-        TileDecks temporaryDeck = new TileDecks(startTiles, normalTiles, menhirTiles);
-        while (temporaryDeck.topTile(kind) != null && !predicate.test(temporaryDeck.topTile(kind)))
-        {
-            temporaryDeck = temporaryDeck.withTopTileDrawn(kind);
+        TileDecks tempDeck = new TileDecks(startTiles, normalTiles, menhirTiles);
+        while (tempDeck.topTile(kind) != null && !predicate.test(tempDeck.topTile(kind))) {
+            tempDeck = tempDeck.withTopTileDrawn(kind);
         }
-        return temporaryDeck;
+        return tempDeck;
     }
 }

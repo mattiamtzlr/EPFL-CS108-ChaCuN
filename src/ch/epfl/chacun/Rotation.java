@@ -9,10 +9,7 @@ import java.util.List;
  * @author Leoluca Bernardi (374107)
  */
 public enum Rotation {
-    NONE,
-    RIGHT,
-    HALF_TURN,
-    LEFT;
+    NONE, RIGHT, HALF_TURN, LEFT;
 
     /**
      * List of all possible rotations in order

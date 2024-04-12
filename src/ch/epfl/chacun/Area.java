@@ -37,11 +37,9 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
      * @return true if there is at least one zone with a menhir
      */
     public static boolean hasMenhir(Area<Zone.Forest> forest) {
-        for (Zone.Forest zone : forest.zones())
-            if (zone.kind() == Zone.Forest.Kind.WITH_MENHIR)
-                return true;
+        return forest.zones().stream()
+                .anyMatch(f -> f.kind().equals(Zone.Forest.Kind.WITH_MENHIR));
 
-        return false;
     }
 
     /**
@@ -51,12 +49,9 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
      * @return (int) the total number of mushrooms
      */
     public static int mushroomGroupCount(Area<Zone.Forest> forest) {
-        int count = 0;
-        for (Zone.Forest zone : forest.zones())
-            if (zone.kind() == Zone.Forest.Kind.WITH_MUSHROOMS)
-                count += 1;
-
-        return count;
+        return (int) forest.zones().stream()
+                .filter(f -> f.kind().equals(Zone.Forest.Kind.WITH_MUSHROOMS))
+                .count();
     }
 
     /**
@@ -83,13 +78,14 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
      */
     public static int riverFishCount(Area<Zone.River> river) {
         Set<Zone.Lake> knownLakes = new HashSet<>();
-        int count = 0;
-        for (Zone.River zone : river.zones()) {
-            if (zone.hasLake() && knownLakes.add(zone.lake()))
-                count += zone.lake().fishCount();
-            count += zone.fishCount();
-        }
-        return count;
+        return river.zones().stream()
+                .mapToInt(r -> {
+                    int c = 0;
+                    if (r.hasLake() && knownLakes.add(r.lake()))
+                        c += r.lake().fishCount();
+                    return c + r.fishCount();
+                })
+                .sum();
     }
 
     /**
@@ -99,11 +95,9 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
      * @return (int) number of fish in the river system
      */
     public static int riverSystemFishCount(Area<Zone.Water> riverSystem) {
-        int count = 0;
-        for (Zone.Water zone : riverSystem.zones())
-            count += zone.fishCount();
-
-        return count;
+        return riverSystem.zones().stream()
+                .mapToInt(Zone.Water::fishCount)
+                .sum();
     }
 
     /**
@@ -113,11 +107,9 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
      * @return (int) number of lakes in the river system
      */
     public static int lakeCount(Area<Zone.Water> riverSystem) {
-        int count = 0;
-        for (Zone.Water zone : riverSystem.zones())
-            if (zone instanceof Zone.Lake) count += 1;
-
-        return count;
+        return (int) riverSystem.zones().stream()
+                .filter(w -> w instanceof Zone.Lake)
+                .count();
     }
 
     // ================================================================== Non-static methods
@@ -145,7 +137,7 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
      * Returns the set of majority occupants of the current instance, meaning the set of player
      * colors of which there are the most occupants in an area.
      *
-     * @return (Set <PlayerColor>) the set of majority occupants
+     * @return (Set < PlayerColor >) the set of majority occupants
      */
     public Set<PlayerColor> majorityOccupants() {
         Set<PlayerColor> majorityOccupants = new HashSet<>();
@@ -190,8 +182,7 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
         newOccupants.addAll(List.copyOf(that.occupants));
 
         return new Area<>(
-                newZones,
-                newOccupants,
+                newZones, newOccupants,
                 this.openConnections + that.openConnections - 2
         );
     }
@@ -234,7 +225,7 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
     /**
      * Returns the set of tile ids of the tiles containing the zone.
      *
-     * @return (Set <Integer>) set containing the tile ids
+     * @return (Set < Integer >) set containing the tile ids
      */
     public Set<Integer> tileIds() {
         return zones.stream()

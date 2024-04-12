@@ -2,9 +2,7 @@ package ch.epfl.chacun;
 
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * ZonePartition record used to represent a partition of zones that form areas.
@@ -74,8 +72,8 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
          */
         public void addSingleton(Z zone, int openConnections) {
             areas.add(new Area<>(
-                Collections.singleton(zone), Collections.emptyList(),
-                openConnections));
+                    Collections.singleton(zone), Collections.emptyList(),
+                    openConnections));
         }
 
         /**
@@ -93,6 +91,7 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
         /**
          * Removes an occupant from the given zone of the given color.
          * The occupant has to exist in the zone and of the color specified.
+         *
          * @param zone  the zone to remove the occupant from
          * @param color the color of the occupant
          */

@@ -51,14 +51,14 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages) {
 
         if (forest.isOccupied()) {
             int pointsGained = Points.forClosedForest(forest.tileIds().size(),
-                Area.mushroomGroupCount(forest));
+                    Area.mushroomGroupCount(forest));
 
             if (pointsGained > 0)
                 newMessages.add(new Message(
-                    this.textMaker.playersScoredForest(
-                        forest.majorityOccupants(), pointsGained,
-                        Area.mushroomGroupCount(forest), forest.tileIds().size()
-                    ), pointsGained, forest.majorityOccupants(), forest.tileIds()
+                        this.textMaker.playersScoredForest(
+                                forest.majorityOccupants(), pointsGained,
+                                Area.mushroomGroupCount(forest), forest.tileIds().size()
+                        ), pointsGained, forest.majorityOccupants(), forest.tileIds()
                 ));
         }
 
@@ -79,8 +79,8 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages) {
 
         if (forest.isClosed() && Area.hasMenhir(forest)) {
             newMessages.add(new Message(
-                this.textMaker.playerClosedForestWithMenhir(player),
-                0, Collections.emptySet(), forest.tileIds()
+                    this.textMaker.playerClosedForestWithMenhir(player),
+                    0, Collections.emptySet(), forest.tileIds()
             ));
         }
 
@@ -100,14 +100,14 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages) {
 
         if (river.isOccupied()) {
             int pointsGained = Points.forClosedRiver(river.tileIds().size(),
-                Area.riverFishCount(river));
+                    Area.riverFishCount(river));
 
             if (pointsGained > 0)
                 newMessages.add(new Message(
-                    this.textMaker.playersScoredRiver(
-                        river.majorityOccupants(), pointsGained,
-                        Area.riverFishCount(river), river.tileIds().size()
-                    ), pointsGained, river.majorityOccupants(), river.tileIds()
+                        this.textMaker.playersScoredRiver(
+                                river.majorityOccupants(), pointsGained,
+                                Area.riverFishCount(river), river.tileIds().size()
+                        ), pointsGained, river.majorityOccupants(), river.tileIds()
                 ));
         }
 
@@ -127,12 +127,12 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages) {
         List<Message> newMessages = new ArrayList<>(List.copyOf(this.messages));
 
         Zone.Meadow specialPowerZone = (Zone.Meadow)
-            adjacentMeadow.zoneWithSpecialPower(Zone.SpecialPower.HUNTING_TRAP);
+                adjacentMeadow.zoneWithSpecialPower(Zone.SpecialPower.HUNTING_TRAP);
 
         if (specialPowerZone != null) {
             Set<Animal> animals = Area.animals(
-                adjacentMeadow,
-                Collections.emptySet()
+                    adjacentMeadow,
+                    Collections.emptySet()
                 /* TODO: replace Collections.emptySet() with passed cancelled animals as soon as the
                     new version is known */
             );
@@ -143,16 +143,16 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages) {
             }
 
             int pointsGained = Points.forMeadow(
-                animalCounts.getOrDefault(Animal.Kind.MAMMOTH, 0),
-                animalCounts.getOrDefault(Animal.Kind.AUROCHS, 0),
-                animalCounts.getOrDefault(Animal.Kind.DEER, 0)
+                    animalCounts.getOrDefault(Animal.Kind.MAMMOTH, 0),
+                    animalCounts.getOrDefault(Animal.Kind.AUROCHS, 0),
+                    animalCounts.getOrDefault(Animal.Kind.DEER, 0)
             );
 
             if (pointsGained > 0)
                 newMessages.add(new Message(
-                    this.textMaker.playerScoredHuntingTrap(scorer, pointsGained,
-                        animalCounts), pointsGained,
-                    Collections.singleton(scorer), adjacentMeadow.tileIds()
+                        this.textMaker.playerScoredHuntingTrap(scorer, pointsGained,
+                                animalCounts), pointsGained,
+                        Collections.singleton(scorer), adjacentMeadow.tileIds()
                 ));
         }
 
@@ -173,9 +173,9 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages) {
 
         int pointsGained = Points.forLogboat(Area.lakeCount(riverSystem));
         newMessages.add(new Message(
-            this.textMaker.playerScoredLogboat(
-                scorer, pointsGained, Area.lakeCount(riverSystem)),
-            pointsGained, Collections.singleton(scorer), riverSystem.tileIds()
+                this.textMaker.playerScoredLogboat(
+                        scorer, pointsGained, Area.lakeCount(riverSystem)),
+                pointsGained, Collections.singleton(scorer), riverSystem.tileIds()
         ));
 
         return new MessageBoard(this.textMaker, newMessages);
@@ -202,16 +202,16 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages) {
         }
 
         int pointsGained = Points.forMeadow(
-            animalCounts.getOrDefault(Animal.Kind.MAMMOTH, 0),
-            animalCounts.getOrDefault(Animal.Kind.AUROCHS, 0),
-            animalCounts.getOrDefault(Animal.Kind.DEER, 0)
+                animalCounts.getOrDefault(Animal.Kind.MAMMOTH, 0),
+                animalCounts.getOrDefault(Animal.Kind.AUROCHS, 0),
+                animalCounts.getOrDefault(Animal.Kind.DEER, 0)
         );
 
         if (meadow.isOccupied() && pointsGained > 0)
             newMessages.add(new Message(
-                this.textMaker.playersScoredMeadow(
-                    meadow.majorityOccupants(), pointsGained, animalCounts),
-                pointsGained, meadow.majorityOccupants(), meadow.tileIds()
+                    this.textMaker.playersScoredMeadow(
+                            meadow.majorityOccupants(), pointsGained, animalCounts),
+                    pointsGained, meadow.majorityOccupants(), meadow.tileIds()
             ));
 
         return new MessageBoard(this.textMaker, newMessages);
@@ -258,8 +258,8 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages) {
 
         if (adjacentMeadow.isOccupied()) {
             Set<Animal> animals = Area.animals(
-                adjacentMeadow,
-                Set.copyOf(cancelledAnimals)
+                    adjacentMeadow,
+                    Set.copyOf(cancelledAnimals)
             );
 
             Map<Animal.Kind, Integer> animalCounts = new HashMap<>();
@@ -268,17 +268,17 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages) {
             }
 
             int pointsGained = Points.forMeadow(
-                animalCounts.getOrDefault(Animal.Kind.MAMMOTH, 0),
-                animalCounts.getOrDefault(Animal.Kind.AUROCHS, 0),
-                animalCounts.getOrDefault(Animal.Kind.DEER, 0)
+                    animalCounts.getOrDefault(Animal.Kind.MAMMOTH, 0),
+                    animalCounts.getOrDefault(Animal.Kind.AUROCHS, 0),
+                    animalCounts.getOrDefault(Animal.Kind.DEER, 0)
             );
 
             if (pointsGained > 0)
                 newMessages.add(new Message(
-                    this.textMaker.playersScoredPitTrap(
-                        adjacentMeadow.majorityOccupants(), pointsGained,
-                        animalCounts), pointsGained,
-                    adjacentMeadow.majorityOccupants(), adjacentMeadow.tileIds()
+                        this.textMaker.playersScoredPitTrap(
+                                adjacentMeadow.majorityOccupants(), pointsGained,
+                                animalCounts), pointsGained,
+                        adjacentMeadow.majorityOccupants(), adjacentMeadow.tileIds()
                 ));
         }
 
@@ -325,8 +325,8 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages) {
         List<Message> newMessages = new ArrayList<>(List.copyOf(this.messages));
 
         newMessages.add(new Message(
-            this.textMaker.playersWon(winners, points), 0, Collections.emptySet(),
-            Collections.emptySet()
+                this.textMaker.playersWon(winners, points), 0, Collections.emptySet(),
+                Collections.emptySet()
         ));
 
         return new MessageBoard(this.textMaker, newMessages);

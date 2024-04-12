@@ -12,19 +12,11 @@ import java.util.stream.Collectors;
  * @author Leoluca Bernardi (374107)
  */
 public final class Board {
-    private final PlacedTile[] placedTiles;
-    private final int[] placedTileIndices;
-    private final ZonePartitions zonePartitions;
-    private final Set<Animal> cancelledAnimals;
-
     /**
      * Number of spaces from the middle tile to the edges
      */
     public static final int REACH = 12;
     private static final int NUMBER_OF_POSITIONS = 625;
-    private static final int TOTAL_TILES_AVAILABLE = 95;
-    private static final int BOARD_SIZE = 25;
-
     /**
      * A preset for an empty board
      */
@@ -33,6 +25,12 @@ public final class Board {
             new int[]{}, ZonePartitions.EMPTY,
             Collections.emptySet()
     );
+    private static final int TOTAL_TILES_AVAILABLE = 95;
+    private static final int BOARD_SIZE = 25;
+    private final PlacedTile[] placedTiles;
+    private final int[] placedTileIndices;
+    private final ZonePartitions zonePartitions;
+    private final Set<Animal> cancelledAnimals;
 
     private Board(PlacedTile[] placedTiles, int[] placedTileIndices, ZonePartitions zonePartitions,
                   Set<Animal> cancelledAnimals) {
@@ -40,6 +38,32 @@ public final class Board {
         this.placedTileIndices = placedTileIndices;
         this.zonePartitions = zonePartitions;
         this.cancelledAnimals = cancelledAnimals;
+    }
+
+    /**
+     * Calculate the index corresponding to some position
+     *
+     * @param pos The position to convert from
+     * @return The index that corresponds to position
+     */
+    private static int calculateTileIndex(Pos pos) {
+        return (pos.x() + REACH) + (REACH + pos.y()) * BOARD_SIZE;
+    }
+
+    /**
+     * Helper method to count occupants in a given area of a given player
+     * @param area the area (type Z) of which the occupants need to be counted
+     * @param player the player (color) of which the occupants need to be counted
+     * @return the number of occupants in that area of that player
+     * @param <Z> the type of the zones of the area, extends zone
+     * @see Board#occupantCount
+     */
+    private static <Z extends Zone> int countOccupantsInArea(Area<Z> area, PlayerColor player) {
+        int occupantCount = 0;
+        for (PlayerColor occupantColor : area.occupants()) {
+            occupantCount += (occupantColor.equals(player)) ? 1 : 0;
+        }
+        return occupantCount;
     }
 
     /**
@@ -52,16 +76,6 @@ public final class Board {
         return (Math.abs(pos.x()) <= REACH && Math.abs(pos.y()) <= REACH)
                 ? placedTiles[calculateTileIndex(pos)]
                 : null;
-    }
-
-    /**
-     * Calculate the index corresponding to some position
-     *
-     * @param pos The position to convert from
-     * @return The index that corresponds to position
-     */
-    private static int calculateTileIndex(Pos pos) {
-        return (pos.x() + REACH) + (REACH + pos.y()) * BOARD_SIZE;
     }
 
     /**
@@ -196,14 +210,6 @@ public final class Board {
         returnSet.removeIf(Objects::isNull);
 
         return returnSet;
-    }
-
-    private static <Z extends Zone> int countOccupantsInArea(Area<Z> area, PlayerColor player) {
-        int occupantCount = 0;
-        for (PlayerColor occupantColor : area.occupants()) {
-            occupantCount += (occupantColor.equals(player)) ? 1 : 0;
-        }
-        return occupantCount;
     }
 
     /**
@@ -492,7 +498,7 @@ public final class Board {
                 int targetIndex = calculateTileIndex(tileWithId(tileId).pos());
                 if (
                         Objects.nonNull(newPlacedTiles[targetIndex].occupant())
-                        && newPlacedTiles[targetIndex].occupant().kind().equals(Occupant.Kind.PAWN)
+                                && newPlacedTiles[targetIndex].occupant().kind().equals(Occupant.Kind.PAWN)
                 ) {
                     newPlacedTiles[targetIndex] = newPlacedTiles[targetIndex].withNoOccupant();
                 }

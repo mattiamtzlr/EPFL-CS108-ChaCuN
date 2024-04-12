@@ -1,6 +1,5 @@
 package ch.epfl.chacun;
 
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -22,8 +21,8 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests,
      * A ZonePartitions object that contains four empty partitions
      */
     public final static ZonePartitions EMPTY = new ZonePartitions(
-        new ZonePartition<>(), new ZonePartition<>(),
-        new ZonePartition<>(), new ZonePartition<>()
+            new ZonePartition<>(), new ZonePartition<>(),
+            new ZonePartition<>(), new ZonePartition<>()
     );
 
     /**
@@ -37,6 +36,7 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests,
 
         /**
          * Constructor for the builder of ZonePartitions
+         *
          * @param initial The ZonePartitions upon which we desire to build
          */
         public Builder(ZonePartitions initial) {
@@ -75,25 +75,22 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests,
             for (Zone zone : tile.zones()) {
 
                 switch (zone) {
-                    case Zone.Forest forestZone ->
-                            forestBuilder.addSingleton(forestZone,
-                                    openConnections[forestZone.localId()]);
+                    case Zone.Forest forestZone -> forestBuilder.addSingleton(forestZone,
+                            openConnections[forestZone.localId()]);
 
-                    case Zone.Meadow meadowZone ->
-                            meadowBuilder.addSingleton(meadowZone,
-                                    openConnections[meadowZone.localId()]);
+                    case Zone.Meadow meadowZone -> meadowBuilder.addSingleton(meadowZone,
+                            openConnections[meadowZone.localId()]);
 
                     case Zone.River riverZone -> {
                         riverBuilder.addSingleton(riverZone,
-                            (riverZone.hasLake())
-                            ? openConnections[riverZone.localId()] - 1
-                            : openConnections[riverZone.localId()]);
+                                (riverZone.hasLake())
+                                        ? openConnections[riverZone.localId()] - 1
+                                        : openConnections[riverZone.localId()]);
 
                         riverSystemsBuilder.addSingleton(riverZone,
-                            openConnections[riverZone.localId()]);
+                                openConnections[riverZone.localId()]);
                     }
-                    case Zone.Lake lakeZone->
-                        riverSystemsBuilder.addSingleton(lakeZone,
+                    case Zone.Lake lakeZone -> riverSystemsBuilder.addSingleton(lakeZone,
                             openConnections[lakeZone.localId()]);
                 }
             }
@@ -101,7 +98,7 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests,
             for (Zone zone : tile.zones()) {
                 if (zone instanceof Zone.River riverZone && riverZone.hasLake())
                     riverSystemsBuilder.union(
-                        riverZone, riverZone.lake());
+                            riverZone, riverZone.lake());
             }
 
         }
@@ -117,12 +114,16 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests,
             Preconditions.checkArgument(!s1.equals(s2));
             switch (s1) {
                 case TileSide.Forest(Zone.Forest f1)
-                    when s2 instanceof TileSide.Forest(Zone.Forest f2) -> forestBuilder.union(f1, f2);
+                        when s2 instanceof TileSide.Forest(Zone.Forest f2) ->
+                        forestBuilder.union(f1, f2);
+
                 case TileSide.Meadow(Zone.Meadow m1)
-                    when s2 instanceof TileSide.Meadow(Zone.Meadow m2) -> meadowBuilder.union(m1, m2);
+                        when s2 instanceof TileSide.Meadow(Zone.Meadow m2) ->
+                        meadowBuilder.union(m1, m2);
+
                 case TileSide.River(Zone.Meadow m11, Zone.River r1, Zone.Meadow m12)
-                    when s2 instanceof TileSide.River(
-                    Zone.Meadow m21, Zone.River r2, Zone.Meadow m22) -> {
+                        when s2 instanceof TileSide.River(
+                        Zone.Meadow m21, Zone.River r2, Zone.Meadow m22) -> {
 
                     meadowBuilder.union(m11, m22);
                     riverBuilder.union(r1, r2);
@@ -149,19 +150,19 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests,
                 case PAWN -> {
                     switch (occupiedZone) {
                         case Zone.Forest forestZone -> forestBuilder.addInitialOccupant(
-                            forestZone, player);
+                                forestZone, player);
                         case Zone.Meadow meadowZone -> meadowBuilder.addInitialOccupant(
-                            meadowZone, player);
+                                meadowZone, player);
                         case Zone.River riverZone -> riverBuilder.addInitialOccupant(
-                            riverZone, player);
+                                riverZone, player);
                         default -> throw new IllegalArgumentException("Cannot add pawn here");
                     }
                 }
                 case HUT -> {
                     if (Objects.requireNonNull(occupiedZone) instanceof Zone.Lake ||
-                        Objects.requireNonNull(occupiedZone) instanceof Zone.River ) {
+                            Objects.requireNonNull(occupiedZone) instanceof Zone.River) {
                         riverSystemsBuilder.addInitialOccupant(
-                            (Zone.Water) occupiedZone, player);
+                                (Zone.Water) occupiedZone, player);
                     } else {
                         throw new IllegalArgumentException("Cannot add Hut here");
                     }
@@ -211,8 +212,8 @@ public record ZonePartitions(ZonePartition<Zone.Forest> forests,
          */
         public ZonePartitions build() {
             return new ZonePartitions(
-                forestBuilder.build(), meadowBuilder.build(),
-                riverBuilder.build(), riverSystemsBuilder.build()
+                    forestBuilder.build(), meadowBuilder.build(),
+                    riverBuilder.build(), riverSystemsBuilder.build()
             );
         }
 
