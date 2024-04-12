@@ -37,12 +37,9 @@ public class ColorMap {
      * @return the stroke color
      */
     public static Color strokeColor(PlayerColor color) {
-        return switch (color) {
-            case PlayerColor.GREEN -> Color.LIME
-                    .deriveColor(0, 1, 0.6, 1);
-            case PlayerColor.YELLOW -> Color.YELLOW
-                    .deriveColor(0, 1, 0.6, 1);
-            default -> Color.WHITE;
-        };
+        return (color.equals(PlayerColor.GREEN) || color.equals(PlayerColor.YELLOW)) ?
+                fillColor(color)
+                        .deriveColor(0, 1, 0.6, 1)
+                : Color.WHITE;
     }
 }

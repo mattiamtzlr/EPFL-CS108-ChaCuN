@@ -19,7 +19,7 @@ public class Icon {
 
     }
 
-    public Node newFor(PlayerColor color, Occupant.Kind kind) {
+    public static Node newFor(PlayerColor color, Occupant.Kind kind) {
        SVGPath svg = new SVGPath();
        svg.setFill(ColorMap.fillColor(color));
        svg.setStroke(ColorMap.strokeColor(color));
