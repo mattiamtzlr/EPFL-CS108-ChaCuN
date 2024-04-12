@@ -1,6 +1,7 @@
 package ch.epfl.chacun.week4;
 
 import ch.epfl.chacun.*;
+import ch.epfl.chacun.BasicTextMaker;
 import org.junit.jupiter.api.Test;
 
 import java.util.*;
@@ -8,7 +9,7 @@ import java.util.*;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MyMessageBoardTest {
-    TextMaker textMaker = new TextMakerTEST();
+    TextMaker textMaker = new BasicTextMaker();
     MessageBoard.Message points1 = new MessageBoard.Message(textMaker.points(20), 20,
             Set.of(PlayerColor.RED, PlayerColor.BLUE), Collections.emptySet());
     MessageBoard.Message points2 = new MessageBoard.Message(textMaker.points(30), 30,
