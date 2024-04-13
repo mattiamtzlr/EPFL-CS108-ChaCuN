@@ -11,11 +11,10 @@ import javafx.scene.paint.Color;
  */
 public class ColorMap {
 
-    private ColorMap() {
-    }
+    private ColorMap() {}
 
     /**
-     * Static method that maps PlayerColors to the corresponding color for JavaFx
+     * Static method that maps PlayerColors to the corresponding color for JavaFX
      *
      * @param color the color to map
      * @return the color it maps to
@@ -37,9 +36,9 @@ public class ColorMap {
      * @return the stroke color
      */
     public static Color strokeColor(PlayerColor color) {
-        return (color.equals(PlayerColor.GREEN) || color.equals(PlayerColor.YELLOW)) ?
-                fillColor(color)
-                        .deriveColor(0, 1, 0.6, 1)
+        return (color.equals(PlayerColor.GREEN) || color.equals(PlayerColor.YELLOW))
+                ? fillColor(color)
+                .deriveColor(0, 1, 0.6, 1)
                 : Color.WHITE;
     }
 }
