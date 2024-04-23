@@ -28,7 +28,7 @@ public class ImageLoader {
      */
     public static Image normalForTileId(int tileId) {
         Preconditions.checkArgument(tileId >= 0 && tileId <= 94);
-        return new Image(STR."/256/\{tileId}.jpg");
+        return new Image(STR."/\{NORMAL_TILE_PIXEL_SIZE}/\{tileId}.jpg");
     }
 
     /**
@@ -39,6 +39,6 @@ public class ImageLoader {
      */
     public static Image largeForTileId(int tileId) {
         Preconditions.checkArgument(tileId >= 0 && tileId <= 94);
-        return new Image(STR."/512/\{tileId}.jpg");
+        return new Image(STR."/\{LARGE_TILE_PIXEL_SIZE}/\{tileId}.jpg");
     }
 }

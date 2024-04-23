@@ -139,7 +139,7 @@ public final class TextMakerFr implements TextMaker {
 
     @Override
     public String playerName(PlayerColor playerColor) {
-        return this.playerNames.getOrDefault(playerColor, "");
+        return this.playerNames.getOrDefault(playerColor, null);
     }
 
     @Override
