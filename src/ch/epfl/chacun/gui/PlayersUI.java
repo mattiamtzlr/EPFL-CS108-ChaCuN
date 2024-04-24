@@ -1,6 +1,7 @@
 package ch.epfl.chacun.gui;
 
 import ch.epfl.chacun.GameState;
+import ch.epfl.chacun.Occupant;
 import ch.epfl.chacun.PlayerColor;
 import ch.epfl.chacun.TextMaker;
 import javafx.beans.value.ObservableValue;
@@ -8,6 +9,7 @@ import javafx.scene.Node;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextFlow;
 
 import java.util.Map;
 import java.util.Set;
@@ -24,6 +26,8 @@ public class PlayersUI {
     }
 
     public static Node create(ObservableValue<GameState> observableGameState, TextMaker textMaker) {
+        VBox vBox = new VBox();
+
         Set<PlayerColor> players = PlayerColor.ALL.stream()
                 .filter(pc -> textMaker.playerName(pc) != null)
                 .collect(Collectors.toSet());
@@ -44,10 +48,9 @@ public class PlayersUI {
             circle.setFill(ColorMap.fillColor(color));
 
 
-
             // Observable value containing the text with the points for each player color
             ObservableValue<String> observablePointsText =
-                    observablePoints.map(map ->
+                    observablePoints.map(map -> 
                         STR."""
                          \{textMaker.playerName(color)} : \{textMaker.points(map.get(color))}
                         """
@@ -57,7 +60,19 @@ public class PlayersUI {
             Text pointsText = new Text();
             pointsText.textProperty().bind(observablePointsText);
 
-            // TODO: add everything to a TextFlow instance
+            TextFlow textFlow = new TextFlow(
+                    circle,
+                    pointsText,
+                    /* Huts */
+                    new Text("   ") // separator
+                    /* Pawns */
+            );
+
+            // TODO: generate correct svg paths for huts and pawns
+            for (int i = 0; i < Occupant.occupantsCount(Occupant.Kind.HUT); i++) {
+                // wtf
+            }
+
         }
 
         // TODO: return vBox containing everything
