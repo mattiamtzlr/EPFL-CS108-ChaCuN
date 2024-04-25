@@ -28,17 +28,17 @@ public class MessageBoardUI {
     /**
      *
      * @param observableMessages
-     * @param observableTileIds
+     * @param tileIdsProperties
      * @return
      */
     public static Node create(ObservableValue<List<MessageBoard.Message>> observableMessages,
-                              ObjectProperty<Set<Integer>> observableTileIds) {
+                              ObjectProperty<Set<Integer>> tileIdsProperties) {
         ScrollPane messageBoardScrollPane = new ScrollPane();
         VBox scrollableMessages = new VBox();
         List<Text> messages = new ArrayList<>();
 
         messageBoardScrollPane.setId("message-board");
-        messageBoardScrollPane.setStyle("message-board.css");
+        // messageBoardScrollPane.setStyle("message-board.css");
         messageBoardScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         messageBoardScrollPane.setContent(scrollableMessages);
         scrollableMessages.setAlignment(Pos.TOP_LEFT);
