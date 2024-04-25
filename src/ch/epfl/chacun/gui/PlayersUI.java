@@ -33,7 +33,7 @@ public class PlayersUI {
      * instances.
      *
      * @param observableGameState the observable (!) game state to be used
-     * @param textMaker the text maker to be used
+     * @param textMaker           the text maker to be used
      * @return the root node of the players ui (VBox)
      */
     public static Node create(ObservableValue<GameState> observableGameState, TextMaker textMaker) {
@@ -59,14 +59,15 @@ public class PlayersUI {
             circle.setRadius(5);
             circle.setFill(ColorMap.fillColor(color));
 
-
             // Observable value containing the text with the points for each player color
             ObservableValue<String> observablePointsText =
-                    observablePoints.map(map ->
-                            STR."""
-                         \{textMaker.playerName(color)} : \{textMaker.points(map.get(color))}
-                        """
-                    );
+                    observablePoints.map(map -> {
+                        int points = map.getOrDefault(color, 0);
+
+                        return STR."""
+                         \{textMaker.playerName(color)} : \{textMaker.points(points)}
+                        """;
+                    });
 
             Text pointsText = new Text();
             pointsText.textProperty().bind(observablePointsText);

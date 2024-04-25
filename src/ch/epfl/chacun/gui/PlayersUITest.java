@@ -1,7 +1,6 @@
-package ch.epfl.chacun.stage8;
+package ch.epfl.chacun.gui;
 
 import ch.epfl.chacun.*;
-import ch.epfl.chacun.gui.PlayersUI;
 import ch.epfl.chacun.tile.Tiles;
 import javafx.application.Application;
 import javafx.beans.property.SimpleObjectProperty;
