@@ -3,7 +3,6 @@ package ch.epfl.chacun.gui;
 
 import ch.epfl.chacun.MessageBoard;
 import javafx.beans.property.ObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -11,10 +10,11 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
+
+import static javafx.application.Platform.runLater;
 
 /**
  * TODO Description
@@ -33,24 +33,30 @@ public class MessageBoardUI {
      */
     public static Node create(ObservableValue<List<MessageBoard.Message>> observableMessages,
                               ObjectProperty<Set<Integer>> observableTileIds) {
-        ScrollPane messageBoardRoot = new ScrollPane();
+        ScrollPane messageBoardScrollPane = new ScrollPane();
         VBox scrollableMessages = new VBox();
+        List<Text> messages = new ArrayList<>();
 
-        messageBoardRoot.setId("message-board");
-        messageBoardRoot.setStyle("message-board.css");
-        messageBoardRoot.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        messageBoardRoot.setContent(scrollableMessages);
+        messageBoardScrollPane.setId("message-board");
+        messageBoardScrollPane.setStyle("message-board.css");
+        messageBoardScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        messageBoardScrollPane.setContent(scrollableMessages);
         scrollableMessages.setAlignment(Pos.TOP_LEFT);
+
         observableMessages.addListener(
-                (o, oldMessages, newMessages) -> ())
-
-
-
-                newMessages.stream()
-                        .filter(f -> !oldMessages.contains(f))
+                (o, newValue, oldValue) -> newValue.stream()
+                        .filter(m -> !oldValue.contains(m))
                         .map(MessageBoard.Message::text)
-                        .map(m -> new Text(m))
-                        .forEach(t -> scrollableMessages.getChildren().add(t));
+                        .map(Text::new)
+                        .forEach(messages::add));
+
+        for (Text message : messages) {
+            message.setWrappingWidth(ImageLoader.LARGE_TILE_FIT_SIZE);
+            scrollableMessages.getChildren().add(message);
+        }
+        runLater(() -> messageBoardScrollPane.setVvalue(1));
+
+
 
     }
 }
