@@ -11,12 +11,15 @@ import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 
+import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * TODO DESCRIPTION
+ * Class that generates the UI for the interface showing the players and their available occupants
+ * as well as their points.
  *
  * @author Mattia Metzler (372025)
  * @author Leoluca Bernardi (374107)
@@ -25,9 +28,15 @@ public class PlayersUI {
     private PlayersUI() {
     }
 
+    /**
+     * Creates the players interface using the given game state (observable) and text maker
+     * instances.
+     *
+     * @param observableGameState the observable (!) game state to be used
+     * @param textMaker the text maker to be used
+     * @return the root node of the players ui (VBox)
+     */
     public static Node create(ObservableValue<GameState> observableGameState, TextMaker textMaker) {
-        VBox vBox = new VBox();
-
         Set<PlayerColor> players = PlayerColor.ALL.stream()
                 .filter(pc -> textMaker.playerName(pc) != null)
                 .collect(Collectors.toSet());
@@ -41,6 +50,9 @@ public class PlayersUI {
         ObservableValue<Map<PlayerColor, Integer>> observablePoints =
                 observableGameState.map(gs -> gs.messageBoard().points());
 
+        // TextFlow array to add to vbox later
+        TextFlow[] textFlows = new TextFlow[PlayerColor.ALL.size()];
+
         // Construct TextFlow instance for each player
         for (PlayerColor color : players) {
             Circle circle = new Circle();
@@ -50,32 +62,73 @@ public class PlayersUI {
 
             // Observable value containing the text with the points for each player color
             ObservableValue<String> observablePointsText =
-                    observablePoints.map(map -> 
-                        STR."""
+                    observablePoints.map(map ->
+                            STR."""
                          \{textMaker.playerName(color)} : \{textMaker.points(map.get(color))}
                         """
                     );
 
-            // JavaFX Node
             Text pointsText = new Text();
             pointsText.textProperty().bind(observablePointsText);
 
             TextFlow textFlow = new TextFlow(
                     circle,
-                    pointsText,
-                    /* Huts */
-                    new Text("   ") // separator
-                    /* Pawns */
+                    pointsText
             );
 
-            // TODO: generate correct svg paths for huts and pawns
+            textFlow.getStyleClass().add("player");
+
+            // generate correct svg paths for huts
             for (int i = 0; i < Occupant.occupantsCount(Occupant.Kind.HUT); i++) {
-                // wtf
+                Node hutSVG = Icon.newFor(color, Occupant.Kind.HUT);
+
+                // to use in lambda
+                int index = i;
+                ObservableValue<Double> opacity = observableGameState.map(
+                        gs -> index <= gs.freeOccupantsCount(color, Occupant.Kind.HUT)
+                                ? 1 : 0.1
+                );
+
+                hutSVG.opacityProperty().bind(opacity);
+
+                textFlow.getChildren().add(hutSVG);
             }
 
+            textFlow.getChildren().add(new Text("   "));
+
+            // generate correct svg paths for pawns
+            for (int i = 0; i < Occupant.occupantsCount(Occupant.Kind.PAWN); i++) {
+                Node pawnSVG = Icon.newFor(color, Occupant.Kind.PAWN);
+
+                // to use in lambda
+                int index = i;
+                ObservableValue<Double> opacity = observableGameState.map(
+                        gs -> index <= gs.freeOccupantsCount(color, Occupant.Kind.PAWN)
+                                ? 1 : 0.1
+                );
+
+                pawnSVG.opacityProperty().bind(opacity);
+
+                textFlow.getChildren().add(pawnSVG);
+            }
+
+            textFlows[color.ordinal()] = textFlow;
         }
 
-        // TODO: return vBox containing everything
-        return null;
+        // update classes on current player
+        observableCurrentPlayer.addListener((_, oldColor, newColor) -> {
+            textFlows[oldColor.ordinal()].getStyleClass().remove("current");
+            textFlows[newColor.ordinal()].getStyleClass().add("current");
+        });
+
+        // remove null values, as not all players might be present.
+        VBox vBox = new VBox(
+                Arrays.stream(textFlows)
+                        .filter(Objects::nonNull)
+                        .toArray(TextFlow[]::new)
+        );
+        vBox.getStylesheets().add("players.css");
+        vBox.setId("players");
+        return vBox;
     }
 }
