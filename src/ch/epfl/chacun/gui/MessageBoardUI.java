@@ -3,6 +3,7 @@ package ch.epfl.chacun.gui;
 
 import ch.epfl.chacun.MessageBoard;
 import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
@@ -10,8 +11,10 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * TODO Description
@@ -38,11 +41,16 @@ public class MessageBoardUI {
         messageBoardRoot.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         messageBoardRoot.setContent(scrollableMessages);
         scrollableMessages.setAlignment(Pos.TOP_LEFT);
+        observableMessages.addListener(
+                (o, oldMessages, newMessages) -> ())
 
-        for (MessageBoard.Message message : observableMessages.getValue()) {
-            Text text = new Text(message.text());
-            scrollableMessages.getChildren().add(text);
-        }
+
+
+                newMessages.stream()
+                        .filter(f -> !oldMessages.contains(f))
+                        .map(MessageBoard.Message::text)
+                        .map(m -> new Text(m))
+                        .forEach(t -> scrollableMessages.getChildren().add(t));
 
     }
 }
