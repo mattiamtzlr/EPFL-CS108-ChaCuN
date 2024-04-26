@@ -42,11 +42,12 @@ public final class BoardUITest extends Application {
         TextMaker textMaker = new TextMakerFr(playerNames);
 
         GameState gameState = GameState.initial(playerColors, tileDecks, textMaker);
+        Occupant pawnR24 = new Occupant(Occupant.Kind.PAWN, 21);
 
         var tileToPlaceRotationP =
                 new SimpleObjectProperty<>(Rotation.NONE);
         var visibleOccupantsP =
-                new SimpleObjectProperty<>(Set.<Occupant>of());
+                new SimpleObjectProperty<>(Set.of(pawnR24));
         var highlightedTilesP =
                 new SimpleObjectProperty<>(Set.<Integer>of());
 
@@ -61,7 +62,6 @@ public final class BoardUITest extends Application {
                         t -> System.out.println("Place: " + t),
                         o -> System.out.println("Select: " + o));
 
-        Occupant pawnR24 = new Occupant(Occupant.Kind.PAWN, 21);
         PlacedTile t2WestOf56 = new PlacedTile(Tiles.TILES.get(2), YELLOW, Rotation.NONE, new Pos(-1, 0));
         gameStateO.set(gameStateO.get().withStartingTilePlaced());
 
