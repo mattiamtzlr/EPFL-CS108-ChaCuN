@@ -1,6 +1,7 @@
 package ch.epfl.chacun.gui.test;
 
 import ch.epfl.chacun.*;
+import ch.epfl.chacun.gui.ImageLoader;
 import ch.epfl.chacun.gui.PlayersUI;
 import ch.epfl.chacun.tile.Tiles;
 import javafx.application.Application;
@@ -53,6 +54,8 @@ public class PlayersUITest extends Application {
 
         primaryStage.setScene(new Scene(root));
         primaryStage.setTitle("PlayersUI Test");
+        primaryStage.setMinWidth(ImageLoader.LARGE_TILE_FIT_SIZE);
+        primaryStage.setMinHeight(ImageLoader.LARGE_TILE_FIT_SIZE);
         primaryStage.show();
     }
 }
