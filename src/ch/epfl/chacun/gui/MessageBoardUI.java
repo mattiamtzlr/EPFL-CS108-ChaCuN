@@ -11,6 +11,7 @@ import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -38,22 +39,32 @@ public class MessageBoardUI {
         List<Text> messages = new ArrayList<>();
 
         messageBoardScrollPane.setId("message-board");
-        // messageBoardScrollPane.setStyle("message-board.css");
+        messageBoardScrollPane.setStyle("message-board.css");
         messageBoardScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         messageBoardScrollPane.setContent(scrollableMessages);
         scrollableMessages.setAlignment(Pos.TOP_LEFT);
 
         observableMessages.addListener(
-                (o, newValue, oldValue) -> newValue.stream()
-                        .filter(m -> !oldValue.contains(m))
-                        .map(MessageBoard.Message::text)
-                        .map(Text::new)
-                        .forEach(messages::add));
+                (o, oldMessageList, newMessageList) -> {
 
-        for (Text message : messages) {
-            message.setWrappingWidth(ImageLoader.LARGE_TILE_FIT_SIZE);
-            scrollableMessages.getChildren().add(message);
-        }
+                    List<MessageBoard.Message> newMessages = newMessageList.stream()
+                        .filter(m -> !oldMessageList.contains(m))
+                        .toList();
+
+                    for (MessageBoard.Message message : newMessages) {
+                        Text newText = new Text(message.text());
+                        newText.setWrappingWidth(ImageLoader.LARGE_TILE_FIT_SIZE);
+                        newText.setOnMouseEntered(
+                                _ -> tileIdsProperties.setValue(message.tileIds()));
+                        newText.setOnMouseExited(
+                                _ -> tileIdsProperties.setValue(Collections.emptySet()));
+
+                        scrollableMessages.getChildren().add(newText);
+
+                    }
+                });
+
+
         runLater(() -> messageBoardScrollPane.setVvalue(1));
 
         return messageBoardScrollPane;
