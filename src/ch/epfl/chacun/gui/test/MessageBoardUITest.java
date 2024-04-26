@@ -62,7 +62,7 @@ public class MessageBoardUITest extends Application {
 
         primaryStage.setScene(new Scene(root));
         primaryStage.setTitle("MessageBoardUI Test");
-        primaryStage.setMaxWidth(ImageLoader.LARGE_TILE_FIT_SIZE);
+        primaryStage.setMinWidth(ImageLoader.LARGE_TILE_FIT_SIZE);
         primaryStage.setMaxHeight(ImageLoader.LARGE_TILE_FIT_SIZE);
         primaryStage.show();
 
