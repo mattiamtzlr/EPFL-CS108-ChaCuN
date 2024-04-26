@@ -10,7 +10,6 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
@@ -18,7 +17,7 @@ import java.util.Set;
 import static javafx.application.Platform.runLater;
 
 /**
- * TODO Description
+ * UI Class that manages the display of messages during a game of ChaCuN
  *
  * @author Mattia Metzler (372025)
  * @author Leoluca Bernardi (374107)
@@ -27,16 +26,16 @@ public class MessageBoardUI {
     private MessageBoardUI() {}
 
     /**
-     *
-     * @param observableMessages
-     * @param tileIdsProperties
-     * @return
+     * Method that creates the node where messages are displayed
+     * @param observableMessages the messages to display
+     * @param relevantTileIds a set where the ids of tiles that should be highlighted are added in
+     *                        the method.
+     * @return The node for the JavaFX tree
      */
     public static Node create(ObservableValue<List<MessageBoard.Message>> observableMessages,
-                              ObjectProperty<Set<Integer>> tileIdsProperties) {
+                              ObjectProperty<Set<Integer>> relevantTileIds) {
         ScrollPane messageBoardScrollPane = new ScrollPane();
         VBox scrollableMessages = new VBox();
-        List<Text> messages = new ArrayList<>();
 
         messageBoardScrollPane.setId("message-board");
         messageBoardScrollPane.setStyle("message-board.css");
@@ -55,9 +54,9 @@ public class MessageBoardUI {
                         Text newText = new Text(message.text());
                         newText.setWrappingWidth(ImageLoader.LARGE_TILE_FIT_SIZE);
                         newText.setOnMouseEntered(
-                                _ -> tileIdsProperties.setValue(message.tileIds()));
+                                _ -> relevantTileIds.setValue(message.tileIds()));
                         newText.setOnMouseExited(
-                                _ -> tileIdsProperties.setValue(Collections.emptySet()));
+                                _ -> relevantTileIds.setValue(Collections.emptySet()));
 
                         scrollableMessages.getChildren().add(newText);
 
