@@ -24,7 +24,7 @@ import java.util.stream.Collectors;
  * @author Mattia Metzler (372025)
  * @author Leoluca Bernardi (374107)
  */
-public class PlayersUI {
+public final class PlayersUI {
     private PlayersUI() {
     }
 

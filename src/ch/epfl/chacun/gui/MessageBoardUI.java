@@ -22,7 +22,7 @@ import static javafx.application.Platform.runLater;
  * @author Mattia Metzler (372025)
  * @author Leoluca Bernardi (374107)
  */
-public class MessageBoardUI {
+public final class MessageBoardUI {
     private MessageBoardUI() {}
 
     /**

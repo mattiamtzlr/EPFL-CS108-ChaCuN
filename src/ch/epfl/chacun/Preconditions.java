@@ -6,7 +6,7 @@ package ch.epfl.chacun;
  * @author Mattia Metzler (372025)
  * @author Leoluca Bernardi (374107)
  */
-public class Preconditions {
+public final class Preconditions {
     private Preconditions() {}
 
     /**

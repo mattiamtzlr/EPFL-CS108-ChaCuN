@@ -20,12 +20,6 @@ import java.util.stream.Collectors;
 import static ch.epfl.chacun.PlayerColor.PURPLE;
 import static ch.epfl.chacun.PlayerColor.YELLOW;
 
-/**
- * TODO Description
- *
- * @author Mattia Metzler (372025)
- * @author Leoluca Bernardi (374107)
- */
 public class MessageBoardUITest extends Application {
     public static void main(String[] args) {
         launch(args);
