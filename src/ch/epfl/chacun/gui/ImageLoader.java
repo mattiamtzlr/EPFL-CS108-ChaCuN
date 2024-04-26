@@ -28,7 +28,8 @@ public final class ImageLoader {
      */
     public static Image normalForTileId(int tileId) {
         Preconditions.checkArgument(tileId >= 0 && tileId <= 94);
-        return new Image(STR."/\{NORMAL_TILE_PIXEL_SIZE}/\{tileId}.jpg");
+        String tileIdStr = tileId < 10 ? STR."0\{tileId}" : String.valueOf(tileId);
+        return new Image(STR."/\{NORMAL_TILE_PIXEL_SIZE}/\{tileIdStr}.jpg");
     }
 
     /**
@@ -39,6 +40,7 @@ public final class ImageLoader {
      */
     public static Image largeForTileId(int tileId) {
         Preconditions.checkArgument(tileId >= 0 && tileId <= 94);
-        return new Image(STR."/\{LARGE_TILE_PIXEL_SIZE}/\{tileId}.jpg");
+        String tileIdStr = tileId < 10 ? STR."0\{tileId}" : String.valueOf(tileId);
+        return new Image(STR."/\{LARGE_TILE_PIXEL_SIZE}/\{tileIdStr}.jpg");
     }
 }
