@@ -62,7 +62,8 @@ public final class BoardUITest extends Application {
                         t -> System.out.println("Place: " + t),
                         o -> System.out.println("Select: " + o));
 
-        PlacedTile t2WestOf56 = new PlacedTile(Tiles.TILES.get(2), YELLOW, Rotation.NONE, new Pos(-1, 0));
+        PlacedTile t2WestOf56 = new PlacedTile(Tiles.TILES.get(2), PURPLE, Rotation.NONE, new Pos(-1, 0));
+        PlacedTile t61NorthOf56 = new PlacedTile(Tiles.TILES.get(61), YELLOW, Rotation.NONE, new Pos(0, -1));
         gameStateO.set(gameStateO.get().withStartingTilePlaced());
 
         var rootNode = new BorderPane(boardNode);
@@ -70,7 +71,10 @@ public final class BoardUITest extends Application {
 
         primaryStage.setTitle("ChaCuN test");
         primaryStage.show();
+
         gameStateO.set(gameStateO.get().withPlacedTile(t2WestOf56));
         gameStateO.set(gameStateO.get().withNewOccupant(pawnR24));
+        gameStateO.set(gameStateO.get().withPlacedTile(t61NorthOf56));
+        gameStateO.set(gameStateO.get().withNewOccupant(null));
     }
 }

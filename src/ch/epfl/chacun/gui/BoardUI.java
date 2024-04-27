@@ -8,6 +8,11 @@ import javafx.beans.value.ObservableValue;
 import javafx.scene.Group;
 import javafx.scene.Node;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.effect.Blend;
+import javafx.scene.effect.BlendMode;
+import javafx.scene.effect.ColorInput;
+import javafx.scene.effect.ImageInput;
+import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.GridPane;
@@ -42,6 +47,8 @@ public final class BoardUI {
         emptyTileImage
                 .getPixelWriter()
                 .setColor(0, 0, Color.gray(0.98));
+
+
         // Grid Pane
         GridPane boardPane = new GridPane();
         boardPane.setId("board-grid");
@@ -63,7 +70,7 @@ public final class BoardUI {
                     .addListener((_, _, newBoard) -> {
                         PlacedTile tile = newBoard.tileAt(new Pos(finalX, finalY));
                         if (Objects.nonNull(tile)) {
-                            System.out.println("yeah");
+
                             tileFace.imageProperty()
                                     .setValue(ImageLoader.normalForTileId(tile.id()));
 
@@ -113,6 +120,55 @@ public final class BoardUI {
 
                 //      Group
                 boardPane.add(boardSquare, x + boardSize, y + boardSize);
+
+                //==================================================================================
+                //   TODO actually implement this stuff don't just fuck around
+                //
+                //                          This is experimental !!!
+                //==================================================================================
+                Blend borderBlend = new Blend();
+                borderBlend.setMode(BlendMode.SRC_OVER);
+                ColorInput colorInput = new ColorInput();
+                colorInput.paintProperty().bind(observableGameState.map(g ->
+                        (g.currentPlayer() != null) ?
+                                ColorMap.fillColor(g.currentPlayer()) :
+                                Color.WHITE));
+                colorInput.setWidth(ImageLoader.NORMAL_TILE_FIT_SIZE);
+                colorInput.setHeight(ImageLoader.NORMAL_TILE_FIT_SIZE);
+
+
+                // Could not make this work with the next tile, so we got pikachu now
+                Image pika = new Image("file:cornucopia/pikachu.png");
+
+                ImageInput nextTileImage = new ImageInput();
+                nextTileImage.sourceProperty().bind(observableGameState.map(
+                                g -> (g.tileToPlace() != null) ?
+                                        pika :
+                                        emptyTileImage));
+
+
+                borderBlend.setTopInput(colorInput);
+                borderBlend.setBottomInput(nextTileImage);
+
+                borderBlend.setOpacity(0.5);
+
+                boardSquare.setOnMouseEntered(_ -> {
+                    if (observableGameState.getValue().board().insertionPositions()
+                            .contains(new Pos(finalX, finalY))){
+                        boardSquare.effectProperty().setValue(borderBlend);
+                        System.out.println(
+                                STR."InsertionPositions did contain: \{finalX}|\{finalY}");
+                        }
+                    else
+                        System.out.println(
+                                STR."InsertionPositions did not contain: \{finalX}|\{finalY}");
+                });
+                boardSquare.setOnMouseExited(_ -> {
+                    if (observableGameState.getValue().board().insertionPositions()
+                            .contains(new Pos(finalX, finalY)))
+                        boardSquare.effectProperty().setValue(null);
+                });
+                //==================================================================================
             }
         }
         // Scroll Pane
