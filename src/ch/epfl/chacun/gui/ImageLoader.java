@@ -25,6 +25,7 @@ public final class ImageLoader {
      *
      * @param tileId the tile id of the wanted tile
      * @return a JavaFX Image object containing the wanted image
+     * @throws IllegalArgumentException if the tile id is invalid i.e. not respecting 0 <= id <= 94
      */
     public static Image normalForTileId(int tileId) {
         Preconditions.checkArgument(tileId >= 0 && tileId <= 94);
@@ -37,6 +38,7 @@ public final class ImageLoader {
      *
      * @param tileId the tile id of the wanted tile
      * @return a JavaFX Image object containing the wanted image
+     * @throws IllegalArgumentException if the tile id is invalid i.e. not respecting 0 <= id <= 94
      */
     public static Image largeForTileId(int tileId) {
         Preconditions.checkArgument(tileId >= 0 && tileId <= 94);
