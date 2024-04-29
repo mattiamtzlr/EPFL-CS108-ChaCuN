@@ -118,7 +118,8 @@ public final class PlayersUI {
 
         // update classes on current player
         observableCurrentPlayer.addListener((_, oldColor, newColor) -> {
-            textFlows[oldColor.ordinal()].getStyleClass().remove("current");
+            if (oldColor != null)
+                textFlows[oldColor.ordinal()].getStyleClass().remove("current");
             textFlows[newColor.ordinal()].getStyleClass().add("current");
         });
 

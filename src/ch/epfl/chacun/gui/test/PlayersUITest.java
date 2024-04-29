@@ -47,10 +47,12 @@ public class PlayersUITest extends Application {
         TextMaker textMaker = new TextMakerFr(playerNames);
 
         GameState gameState = GameState.initial(playerColors, tileDecks, textMaker);
-        ObservableValue<GameState> observableGameState = new SimpleObjectProperty<>(gameState);
+        SimpleObjectProperty<GameState> observableGameState = new SimpleObjectProperty<>(gameState);
 
         Node playersUI = PlayersUI.create(observableGameState, textMaker);
         BorderPane root = new BorderPane(playersUI);
+
+        observableGameState.set(observableGameState.get().withStartingTilePlaced());
 
         primaryStage.setScene(new Scene(root));
         primaryStage.setTitle("PlayersUI Test");
