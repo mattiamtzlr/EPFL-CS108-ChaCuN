@@ -2,6 +2,8 @@ package ch.epfl.chacun.gui;
 
 
 import ch.epfl.chacun.*;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;
 import javafx.scene.Group;
 import javafx.scene.Node;
@@ -12,6 +14,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 
 import java.util.*;
 import java.util.function.Consumer;
@@ -60,13 +63,7 @@ public final class BoardUI {
         }
     }
 
-    private record CellData(
-            ObservableValue<Image> background,
-            ObservableValue<Rotation> rotation,
-            ObservableValue<Color> overlayColor
-    ) {
-        // TODO: find a way to integrate this wtf
-    }
+    private record CellData(Image background, Integer rotation, Color overlay) {}
 
     private static final CachedImageLoader cachedImageLoader = new CachedImageLoader();
 
@@ -126,23 +123,57 @@ public final class BoardUI {
             for (int y = -boardSize; y <= boardSize; y++) {
 
                 // ImageView for the Face of the tile
-                ImageView tileFace = new ImageView();
-                tileFace.setFitHeight(ImageLoader.NORMAL_TILE_FIT_SIZE);
-                tileFace.setFitWidth(ImageLoader.NORMAL_TILE_FIT_SIZE);
-                tileFace.imageProperty().setValue(emptyTileImage);
+                ObservableValue<ImageView> tileFace = new SimpleObjectProperty<>(new ImageView());
+                tileFace.getValue().setFitHeight(ImageLoader.NORMAL_TILE_FIT_SIZE);
+                tileFace.getValue().setFitWidth(ImageLoader.NORMAL_TILE_FIT_SIZE);
 
                 Pos currentPos = new Pos(x, y);
-                Group boardSquare = new Group(tileFace);
+                Group boardSquare = new Group(tileFace.getValue());
 
                 ObservableValue<PlacedTile> currentTile = observableGameState
                         .map(gs -> gs.board().tileAt(currentPos));
 
+                ObservableValue<PlacedTile> tileToPlace;
+                if (observableGameState.getValue().tileToPlace() != null)
+                    tileToPlace = new SimpleObjectProperty<>(new PlacedTile(
+                            observableGameState.getValue().tileToPlace(),
+                            observableGameState.getValue().currentPlayer(),
+                            observableRotation.getValue(),
+                            currentPos
+                    ));
+                else tileToPlace = new SimpleObjectProperty<>();
+
+                ObservableValue<CellData> cellData = Bindings.createObjectBinding(
+                        () -> {
+                            Image image = currentTile.getValue() != null
+                                    ? cachedImageLoader.get(currentTile.getValue().id())
+                                    : emptyTileImage;
+
+                            int rotation = currentTile.getValue() != null
+                                    ? currentTile.getValue().rotation().degreesCW()
+                                    : 0;
+
+                            Color color;
+                            if (fringe.getValue().contains(currentPos)) {
+
+                                if (tileToPlace.getValue() != null
+                                        && !observableGameState.getValue().board()
+                                        .canAddTile(tileToPlace.getValue()))
+                                    color = Color.WHITE;
+
+                                else color = ColorMap.fillColor(observableGameState
+                                        .map(GameState::currentPlayer).getValue());
+                            }
+
+                            return null;
+                        },
+                        currentTile,
+                        observableGameState
+                 );
+
                 // Listener pointing to the correct tile on the board
                 currentTile.addListener((_, _, newTile) -> {
                         if (Objects.nonNull(newTile)) {
-
-                            tileFace.imageProperty()
-                                    .setValue(cachedImageLoader.get(newTile.id()));
 
                             // construct markers for all cancelled animals
                             newTile.meadowZones().stream()
@@ -190,31 +221,16 @@ public final class BoardUI {
                 //      Group
                 boardPane.add(boardSquare, x + boardSize, y + boardSize);
 
-                //==================================================================================
-                //   TODO actually implement this stuff don't just fuck around
-                //
-                //                          This is still experimental !!!
-                //
-                //          I have no idea what needs to be in the listener above and what
-                //          doesn't, for example, trying to construct the next tile to place
-                //          throws an exception as the game is still in the START_GAME state when
-                //          the create method gets called.
-                //
-                //          I think almost everything has to be inside the or a listener wtf
-                //
-                //==================================================================================
-
-                // TODO: this should probably be observable
-                Blend overlay = new Blend(BlendMode.SRC_OVER);
-
 /*
-                PlacedTile possibleTileToPlace = new PlacedTile(
-                                observableGameState.getValue().tileToPlace(),
-                                observableGameState.getValue().currentPlayer(),
-                                observableRotation.getValue(),
-                                currentPos
-                        );
-*/
+                PlacedTile tileToPlace;
+                if (observableGameState.getValue().tileToPlace() != null)
+                    tileToPlace = new PlacedTile(
+                                    observableGameState.getValue().tileToPlace(),
+                                    observableGameState.getValue().currentPlayer(),
+                                    observableRotation.getValue(),
+                                    currentPos
+                            );
+                else tileToPlace = null;
 
                 ColorInput colorInput = new ColorInput();
                 colorInput.paintProperty().bind(observableGameState.map(gs -> {
@@ -225,11 +241,9 @@ public final class BoardUI {
                         return Color.BLACK;
 
                     else if (fringe.getValue().contains(currentPos)) {
-/*
-                        if (!gs.board().canAddTile(possibleTileToPlace))
+
+                        if (tileToPlace != null && !gs.board().canAddTile(tileToPlace))
                             return Color.WHITE;
-                            // handle mouse hovering
-*/
 
                         return ColorMap.fillColor(gs.currentPlayer());
                     }
@@ -242,20 +256,21 @@ public final class BoardUI {
                 colorInput.setHeight(ImageLoader.NORMAL_TILE_FIT_SIZE);
 
                 ImageInput bottomInput = new ImageInput();
-                bottomInput.sourceProperty().set(tileFace.getImage());
+                bottomInput.sourceProperty().set(
+                        cellData.getValue().background().getValue().getImage());
 
-                overlay.setTopInput(colorInput);
-                overlay.setBottomInput(bottomInput);
+                cellData.getValue().overlay().getValue().setTopInput(colorInput);
+                cellData.getValue().overlay().getValue().setBottomInput(bottomInput);
 
-                overlay.setOpacity(0.5);
+                cellData.getValue().overlay().getValue().setOpacity(0.5);
 
                 boardSquare.effectProperty().bind(fringe.map(
-                        p -> p.contains(currentPos) ? overlay : null
+                        p -> p.contains(currentPos)
+                                ? cellData.getValue().overlay().getValue()
+                                : null
                 ));
+*/
 
-                // TODO: handle mouse hovering
-
-                //==================================================================================
             }
         }
         // Scroll Pane
