@@ -42,12 +42,12 @@ public final class BoardUITest extends Application {
         TextMaker textMaker = new TextMakerFr(playerNames);
 
         GameState gameState = GameState.initial(playerColors, tileDecks, textMaker);
-        Occupant pawnR24 = new Occupant(Occupant.Kind.PAWN, 21);
+        Occupant pawnR11 = new Occupant(Occupant.Kind.PAWN, 11);
 
         var tileToPlaceRotationP =
                 new SimpleObjectProperty<>(Rotation.NONE);
         var visibleOccupantsP =
-                new SimpleObjectProperty<>(Set.of(pawnR24));
+                new SimpleObjectProperty<>(Set.of(pawnR11));
         var highlightedTilesP =
                 new SimpleObjectProperty<>(Set.<Integer>of());
 
@@ -62,8 +62,8 @@ public final class BoardUITest extends Application {
                         t -> System.out.println("Place: " + t),
                         o -> System.out.println("Select: " + o));
 
-        PlacedTile t2WestOf56 = new PlacedTile(
-                Tiles.TILES.get(2), PURPLE, Rotation.NONE, new Pos(-1, 0)
+        PlacedTile t1WestOf56 = new PlacedTile(
+                Tiles.TILES.get(1), PURPLE, Rotation.NONE, new Pos(-1, 0)
         );
         PlacedTile t61NorthOf56 = new PlacedTile(
                 Tiles.TILES.get(61), YELLOW, Rotation.NONE, new Pos(0, -1)
@@ -77,8 +77,8 @@ public final class BoardUITest extends Application {
         primaryStage.setTitle("ChaCuN test");
         primaryStage.show();
 
-        gameStateO.set(gameStateO.get().withPlacedTile(t2WestOf56));
-        gameStateO.set(gameStateO.get().withNewOccupant(pawnR24));
+        gameStateO.set(gameStateO.get().withPlacedTile(t1WestOf56));
+        gameStateO.set(gameStateO.get().withNewOccupant(pawnR11));
         gameStateO.set(gameStateO.get().withPlacedTile(t61NorthOf56));
         gameStateO.set(gameStateO.get().withNewOccupant(null));
     }

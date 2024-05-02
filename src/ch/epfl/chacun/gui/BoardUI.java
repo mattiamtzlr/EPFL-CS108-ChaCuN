@@ -12,6 +12,8 @@ import javafx.scene.effect.*;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.image.WritableImage;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
@@ -124,8 +126,6 @@ public final class BoardUI {
 
                 // ImageView for the Face of the tile
                 ObservableValue<ImageView> tileFace = new SimpleObjectProperty<>(new ImageView());
-                tileFace.getValue().setFitHeight(ImageLoader.NORMAL_TILE_FIT_SIZE);
-                tileFace.getValue().setFitWidth(ImageLoader.NORMAL_TILE_FIT_SIZE);
 
                 Pos currentPos = new Pos(x, y);
                 Group boardSquare = new Group(tileFace.getValue());
@@ -133,21 +133,35 @@ public final class BoardUI {
                 ObservableValue<PlacedTile> currentTile = observableGameState
                         .map(gs -> gs.board().tileAt(currentPos));
 
-                ObservableValue<PlacedTile> tileToPlace;
-                if (observableGameState.getValue().tileToPlace() != null)
-                    tileToPlace = new SimpleObjectProperty<>(new PlacedTile(
-                            observableGameState.getValue().tileToPlace(),
-                            observableGameState.getValue().currentPlayer(),
-                            observableRotation.getValue(),
-                            currentPos
-                    ));
-                else tileToPlace = new SimpleObjectProperty<>();
+                ObservableValue<PlacedTile> tileToPlace = Bindings.createObjectBinding(
+                        () -> observableGameState.getValue().tileToPlace() != null
+                                ? new PlacedTile(
+                                    observableGameState.getValue().tileToPlace(),
+                                    observableGameState.getValue().currentPlayer(),
+                                    observableRotation.getValue(),
+                                    currentPos
+                                )
+                                : null,
+                        observableGameState,
+                        observableRotation
+                );
+
+                ObservableValue<Boolean> isHovered = boardSquare.hoverProperty();
 
                 ObservableValue<CellData> cellData = Bindings.createObjectBinding(
                         () -> {
-                            Image image = currentTile.getValue() != null
-                                    ? cachedImageLoader.get(currentTile.getValue().id())
-                                    : emptyTileImage;
+                            Image image;
+                            if (currentTile.getValue() != null) {
+                                image = cachedImageLoader.get(currentTile.getValue().id());
+
+                            } else if (isHovered.getValue() && tileToPlace.getValue() != null
+                                    && fringe.getValue().contains(currentPos)) {
+
+                                image = cachedImageLoader.get(tileToPlace.getValue().id());
+
+                            } else {
+                                image = emptyTileImage;
+                            }
 
                             int rotation = currentTile.getValue() != null
                                     ? currentTile.getValue().rotation().degreesCW()
@@ -155,21 +169,50 @@ public final class BoardUI {
 
                             Color color;
                             if (fringe.getValue().contains(currentPos)) {
-
                                 if (tileToPlace.getValue() != null
+                                        && isHovered.getValue()
                                         && !observableGameState.getValue().board()
-                                        .canAddTile(tileToPlace.getValue()))
+                                        .canAddTile(tileToPlace.getValue())) {
                                     color = Color.WHITE;
 
-                                else color = ColorMap.fillColor(observableGameState
+                                }
+                                else if (!isHovered.getValue())
+                                    color = ColorMap.fillColor(observableGameState
                                         .map(GameState::currentPlayer).getValue());
-                            }
 
-                            return null;
+                                else
+                                    color = Color.TRANSPARENT;
+                            }
+                            else if (currentTile.getValue() != null
+                                    && !observableHighlightedTiles.getValue().isEmpty()
+                                    && !observableHighlightedTiles.getValue()
+                                    .contains(currentTile.getValue().id()))
+                                color = Color.BLACK;
+
+                            else
+                                color = Color.TRANSPARENT;
+
+                            return new CellData(image, rotation, color);
                         },
                         currentTile,
-                        observableGameState
+                        observableGameState,
+                        tileToPlace,
+                        isHovered,
+                        observableHighlightedTiles,
+                        fringe
                  );
+
+                boardSquare.setOnMouseClicked(e -> {
+                    switch (e.getButton()) {
+                        case PRIMARY -> positionHandler.accept(currentPos);
+                        case SECONDARY -> {
+                            if (e.isAltDown())
+                                rotationHandler.accept(Rotation.RIGHT);
+                            else
+                                rotationHandler.accept(Rotation.LEFT);
+                        }
+                    }
+                });
 
                 // Listener pointing to the correct tile on the board
                 currentTile.addListener((_, _, newTile) -> {
@@ -216,60 +259,27 @@ public final class BoardUI {
                                     }
                                 );
                         }
-                    });
+                });
+
+                tileFace.getValue().setFitHeight(ImageLoader.NORMAL_TILE_FIT_SIZE);
+                tileFace.getValue().setFitWidth(ImageLoader.NORMAL_TILE_FIT_SIZE);
+
+                tileFace.getValue().imageProperty().bind(cellData.map(CellData::background));
+                tileFace.getValue().rotateProperty().bind(cellData.map(CellData::rotation));
+
+                ColorInput overlayColor = new ColorInput();
+                overlayColor.paintProperty().bind(cellData.map(CellData::overlay));
+                overlayColor.setWidth(ImageLoader.NORMAL_TILE_FIT_SIZE);
+                overlayColor.setHeight(ImageLoader.NORMAL_TILE_FIT_SIZE);
+
+                Blend overlay = new Blend(BlendMode.SRC_OVER);
+                overlay.setTopInput(overlayColor);
+                overlay.setOpacity(0.5);
+
+                boardSquare.setEffect(overlay);
 
                 //      Group
                 boardPane.add(boardSquare, x + boardSize, y + boardSize);
-
-/*
-                PlacedTile tileToPlace;
-                if (observableGameState.getValue().tileToPlace() != null)
-                    tileToPlace = new PlacedTile(
-                                    observableGameState.getValue().tileToPlace(),
-                                    observableGameState.getValue().currentPlayer(),
-                                    observableRotation.getValue(),
-                                    currentPos
-                            );
-                else tileToPlace = null;
-
-                ColorInput colorInput = new ColorInput();
-                colorInput.paintProperty().bind(observableGameState.map(gs -> {
-                    if (currentTile.getValue() != null
-                            && !observableHighlightedTiles.getValue().isEmpty()
-                            && !observableHighlightedTiles.getValue()
-                            .contains(currentTile.getValue().id()))
-                        return Color.BLACK;
-
-                    else if (fringe.getValue().contains(currentPos)) {
-
-                        if (tileToPlace != null && !gs.board().canAddTile(tileToPlace))
-                            return Color.WHITE;
-
-                        return ColorMap.fillColor(gs.currentPlayer());
-                    }
-
-                    else return Color.TRANSPARENT; // TODO: what to do here?
-                }));
-
-
-                colorInput.setWidth(ImageLoader.NORMAL_TILE_FIT_SIZE);
-                colorInput.setHeight(ImageLoader.NORMAL_TILE_FIT_SIZE);
-
-                ImageInput bottomInput = new ImageInput();
-                bottomInput.sourceProperty().set(
-                        cellData.getValue().background().getValue().getImage());
-
-                cellData.getValue().overlay().getValue().setTopInput(colorInput);
-                cellData.getValue().overlay().getValue().setBottomInput(bottomInput);
-
-                cellData.getValue().overlay().getValue().setOpacity(0.5);
-
-                boardSquare.effectProperty().bind(fringe.map(
-                        p -> p.contains(currentPos)
-                                ? cellData.getValue().overlay().getValue()
-                                : null
-                ));
-*/
 
             }
         }
