@@ -223,12 +223,14 @@ public final class BoardUI {
                                                 observableGameState.map(gs -> gs.board()
                                                         .cancelledAnimals().contains(a));
 
-                                        ImageView cancellationMarker = new ImageView();
-                                        cancellationMarker.getStyleClass().add("marker");
-                                        cancellationMarker.setId(STR."marker_\{a.id()}");
-                                        cancellationMarker.visibleProperty().bind(isVisible);
+                                        ImageView cancelMarker = new ImageView();
+                                        cancelMarker.setFitWidth(ImageLoader.MARKER_FIT_SIZE);
+                                        cancelMarker.setFitHeight(ImageLoader.MARKER_FIT_SIZE);
+                                        cancelMarker.getStyleClass().add("marker");
+                                        cancelMarker.setId(STR."marker_\{a.id()}");
+                                        cancelMarker.visibleProperty().bind(isVisible);
 
-                                        boardSquare.getChildren().add(cancellationMarker);
+                                        boardSquare.getChildren().add(cancelMarker);
                                     });
 
                             // construct svg's for all visible occupants
