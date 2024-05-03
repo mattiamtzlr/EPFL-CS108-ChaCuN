@@ -10,7 +10,7 @@ public final class Base32 {
     /**
      * Constant that contains the base 32 alphabet.
      */
-    public static final String ALPHABET = "abcdefghijklmnopqrstuvwxyz234567";
+    public static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
     private Base32(){}
 
     /**
@@ -19,7 +19,7 @@ public final class Base32 {
      * @return true if all characters can be represented in base 32.
      */
     public static boolean isValid(String word) {
-        return word.toLowerCase().chars().allMatch(c -> ALPHABET.contains(Character.toString(c)));
+        return word.toUpperCase().chars().allMatch(c -> ALPHABET.contains(Character.toString(c)));
     }
 
     /**
@@ -51,8 +51,8 @@ public final class Base32 {
      */
     public static int decode(String cipher) {
         Preconditions.checkArgument(cipher.length() <= 2 && !cipher.isEmpty());
-        int[] digits = cipher.toLowerCase().chars().map(ALPHABET::indexOf).toArray();
-        return digits.length == 1 ? digits[0] : digits[0] + digits[1]*32;
+        int[] digits = cipher.toUpperCase().chars().map(ALPHABET::indexOf).toArray();
+        return digits.length == 1 ? digits[0] : digits[1] + digits[0]*32;
     }
 
 }

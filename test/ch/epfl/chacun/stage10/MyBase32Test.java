@@ -60,14 +60,10 @@ public class MyBase32Test {
         int i = 0;
         for (char c : Base32.ALPHABET.toCharArray()) {
             for (char d : Base32.ALPHABET.toCharArray()) {
-                testCases.put(i++, String.join("", Character.toString(c), Character.toString(d)));
+                assertEquals(i++, Base32.decode(String.join("", Character.toString(c), Character.toString(d))));
 
             }
         }
-        for (int j = 0; j < i; j++) {
-            assertEquals(testCases.get(j), Base32.encodeBits10(j));
-        }
-
     }
 
 
