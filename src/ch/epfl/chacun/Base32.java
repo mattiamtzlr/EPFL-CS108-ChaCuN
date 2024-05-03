@@ -10,7 +10,7 @@ public final class Base32 {
     /**
      * Constant that contains the base 32 alphabet.
      */
-    public static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+    public static final String ALPHABET = "abcdefghijklmnopqrstuvwxyz234567";
     private Base32(){}
 
     /**
@@ -19,7 +19,7 @@ public final class Base32 {
      * @return true if all characters can be represented in base 32.
      */
     public static boolean isValid(String word) {
-        return word.chars().allMatch(c -> ALPHABET.contains(String.valueOf(c)));
+        return word.toLowerCase().chars().allMatch(c -> ALPHABET.contains(Character.toString(c)));
     }
 
     /**
@@ -28,8 +28,8 @@ public final class Base32 {
      * @return encoded integer in base 32, one character.
      */
     public static String encodeBits5(int plain) {
-        Preconditions.checkArgument(plain < 31 && plain > 0);
-        return String.valueOf(ALPHABET.charAt(plain));
+        Preconditions.checkArgument(plain < 32 && plain >= 0);
+        return Character.toString(ALPHABET.charAt(plain));
     }
 
     /**
@@ -39,9 +39,9 @@ public final class Base32 {
      * @return encoded integer in base 32, two characters.
      */
     public static String encodeBits10(int plain) {
-        Preconditions.checkArgument(plain < 63 && plain > 0);
+        Preconditions.checkArgument(plain < 1024 && plain >= 0);
         return String.join("",
-                encodeBits5(plain & 0b0000011111), encodeBits5(plain & 0b1111100000));
+                encodeBits5((plain & 0b1111100000) >> 5), encodeBits5(plain & 0b11111));
     }
 
     /**
@@ -51,7 +51,7 @@ public final class Base32 {
      */
     public static int decode(String cipher) {
         Preconditions.checkArgument(cipher.length() <= 2 && !cipher.isEmpty());
-        int[] digits = cipher.chars().map(ALPHABET::indexOf).toArray();
+        int[] digits = cipher.toLowerCase().chars().map(ALPHABET::indexOf).toArray();
         return digits.length == 1 ? digits[0] : digits[0] + digits[1]*32;
     }
 
