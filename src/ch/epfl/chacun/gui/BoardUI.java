@@ -150,47 +150,42 @@ public final class BoardUI {
 
                 ObservableValue<CellData> cellData = Bindings.createObjectBinding(
                         () -> {
-                            Image image;
-                            if (currentTile.getValue() != null) {
+                            Image image = emptyTileImage;
+                            if (currentTile.getValue() != null)
                                 image = cachedImageLoader.get(currentTile.getValue().id());
 
-                            } else if (isHovered.getValue() && tileToPlace.getValue() != null
-                                    && fringe.getValue().contains(currentPos)) {
+                            else if (isHovered.getValue() && tileToPlace.getValue() != null
+                                    && fringe.getValue().contains(currentPos))
 
                                 image = cachedImageLoader.get(tileToPlace.getValue().id());
 
-                            } else {
-                                image = emptyTileImage;
-                            }
 
-                            int rotation = currentTile.getValue() != null
-                                    ? currentTile.getValue().rotation().degreesCW()
-                                    : 0;
+                            int rotation = 0;
+                            if (currentTile.getValue() != null)
+                                rotation = currentTile.getValue().rotation().degreesCW();
 
-                            Color color;
+                            else if (tileToPlace.getValue() != null)
+                                rotation = tileToPlace.getValue().rotation().degreesCW();
+
+
+                            Color color = Color.TRANSPARENT;
                             if (fringe.getValue().contains(currentPos)) {
                                 if (tileToPlace.getValue() != null
                                         && isHovered.getValue()
                                         && !observableGameState.getValue().board()
-                                        .canAddTile(tileToPlace.getValue())) {
+                                        .canAddTile(tileToPlace.getValue()))
                                     color = Color.WHITE;
 
-                                }
+
                                 else if (!isHovered.getValue())
                                     color = ColorMap.fillColor(observableGameState
-                                        .map(GameState::currentPlayer).getValue());
+                                            .map(GameState::currentPlayer).getValue());
 
-                                else
-                                    color = Color.TRANSPARENT;
-                            }
-                            else if (currentTile.getValue() != null
+                            } else if (currentTile.getValue() != null
                                     && !observableHighlightedTiles.getValue().isEmpty()
                                     && !observableHighlightedTiles.getValue()
                                     .contains(currentTile.getValue().id()))
                                 color = Color.BLACK;
-
-                            else
-                                color = Color.TRANSPARENT;
 
                             return new CellData(image, rotation, color);
                         },
@@ -203,15 +198,16 @@ public final class BoardUI {
                  );
 
                 boardSquare.setOnMouseClicked(e -> {
-                    switch (e.getButton()) {
-                        case PRIMARY -> positionHandler.accept(currentPos);
-                        case SECONDARY -> {
-                            if (e.isAltDown())
-                                rotationHandler.accept(Rotation.RIGHT);
-                            else
-                                rotationHandler.accept(Rotation.LEFT);
+                    if (fringe.getValue().contains(currentPos))
+                        switch (e.getButton()) {
+                            case PRIMARY -> positionHandler.accept(currentPos);
+                            case SECONDARY -> {
+                                if (e.isAltDown())
+                                    rotationHandler.accept(Rotation.RIGHT);
+                                else
+                                    rotationHandler.accept(Rotation.LEFT);
+                            }
                         }
-                    }
                 });
 
                 // Listener pointing to the correct tile on the board

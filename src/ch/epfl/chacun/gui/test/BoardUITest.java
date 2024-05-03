@@ -23,7 +23,7 @@ public final class BoardUITest extends Application {
     public void start(Stage primaryStage) throws Exception {
         Map<PlayerColor, String> playerNames = Map.of(
                 PURPLE, "Leo",
-                YELLOW, "Mattia"
+                GREEN, "Mattia"
         );
 
         List<PlayerColor> playerColors = playerNames.keySet().stream()
@@ -53,7 +53,7 @@ public final class BoardUITest extends Application {
 
         var gameStateO = new SimpleObjectProperty<>(gameState);
         var boardNode = BoardUI
-                .create(2,
+                .create(1,
                         gameStateO,
                         tileToPlaceRotationP,
                         visibleOccupantsP,
@@ -77,9 +77,11 @@ public final class BoardUITest extends Application {
         primaryStage.setTitle("ChaCuN test");
         primaryStage.show();
 
+/*
         gameStateO.set(gameStateO.get().withPlacedTile(t1WestOf56));
         gameStateO.set(gameStateO.get().withNewOccupant(pawnR11));
         gameStateO.set(gameStateO.get().withPlacedTile(t61NorthOf56));
         gameStateO.set(gameStateO.get().withNewOccupant(null));
+*/
     }
 }
