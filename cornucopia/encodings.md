@@ -36,7 +36,6 @@ The `r` bits represent the rotation as the index of the Rotation enum. Thus, `00
 `01 = RIGHT`, `10 = HALF_TURN`, `11 = LEFT`.  
 
 The `k` bit represents the occupant type, where `0 = PAWN` and `1 = HUT`.  
-
 The `z` bits are used for the id of the zone to be occupied, between 0 (inc) and 10 (exc). The case
 where no occupant is placed is represented by `11111`.
 

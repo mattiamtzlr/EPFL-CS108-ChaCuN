@@ -28,7 +28,7 @@ public sealed interface Zone {
      * @return (int) the local id of the zone
      */
     static int localId(int zoneId) {
-        return zoneId - (tileId(zoneId) * 10);
+        return zoneId % 10;
     }
 
     /**
