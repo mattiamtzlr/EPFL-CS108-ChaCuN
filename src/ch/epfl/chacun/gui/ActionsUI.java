@@ -2,8 +2,6 @@ package ch.epfl.chacun.gui;
 
 import ch.epfl.chacun.Base32;
 import javafx.beans.value.ObservableValue;
-import javafx.event.ActionEvent;
-import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
@@ -53,11 +51,19 @@ public final class ActionsUI {
                 change -> {
                     change.setText(change.getText().chars()
                             .mapToObj(Character::toString)
+                            .map(String::toUpperCase)
                             .filter(Base32::isValid)
+                            .filter(s -> actionInput.getText().length() <= 1)
                             .collect(Collectors.joining()));
                     return change;
 
                 }));
+        actionInput.setOnAction(a -> {
+            if (!actionInput.getText().isEmpty()) {
+                actionHandler.accept(String.valueOf(actionInput.getText()));
+                actionInput.setText("");
+            }
+        });
 
         HBox actionInputBox = new HBox(actionHistory, actionInput);
         actionInputBox.setStyle("actions.css");
