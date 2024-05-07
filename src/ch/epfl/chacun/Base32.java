@@ -23,7 +23,7 @@ public final class Base32 {
     }
 
     /**
-     * Method to encode positive integers smaller than 31.
+     * Method to encode positive integers smaller than 32.
      * @param plain number to encode to base 32.
      * @return encoded integer in base 32, one character.
      */
@@ -33,7 +33,7 @@ public final class Base32 {
     }
 
     /**
-     * Method to encode positive integers smaller than 63.
+     * Method to encode positive integers smaller than 1024.
      * Less efficient than encodeBits5
      * @param plain number to encode to base 32.
      * @return encoded integer in base 32, two characters.
