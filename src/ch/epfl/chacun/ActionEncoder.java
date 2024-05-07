@@ -125,6 +125,10 @@ public final class ActionEncoder {
                 }
                 case OCCUPY_TILE -> {
                     Preconditions.checkArgument(encodedAction.length() == 1);
+
+                    if (decoded == NO_OCCUPANT)
+                        return withNewOccupant(state, null);
+
                     int localZoneId = decoded & ((1 << 4) - 1);
                     int kindIndex = decoded & (1 << OCC_KIND_SHIFT);
                     Occupant.Kind kind = Occupant.Kind.values()[kindIndex];
@@ -139,6 +143,10 @@ public final class ActionEncoder {
                 }
                 case RETAKE_PAWN -> {
                     Preconditions.checkArgument(encodedAction.length() == 1);
+
+                    if (decoded == NO_OCCUPANT)
+                        return withNewOccupant(state, null);
+                    
                     Occupant occupant = getOccupantsSorted(state).get(decoded);
                     Preconditions.checkArgument(
                         state.board().tileWithId(Zone.tileId(occupant.zoneId())).placer()
