@@ -16,7 +16,8 @@ import java.util.stream.Collectors;
 import static java.util.FormatProcessor.FMT;
 
 /**
- * TODO Description
+ * This class contains the logic for the UI that handles the user inputting actions that
+ * a remote player took.
  *
  * @author Mattia Metzler (372025)
  * @author Leoluca Bernardi (374107)
@@ -24,6 +25,13 @@ import static java.util.FormatProcessor.FMT;
 public final class ActionsUI {
     private ActionsUI() {}
 
+    /**
+     * Create method for the actions user interface. This is where a user will enter the
+     * encoded actions for players who are not currently present at the same computer.
+     * @param observableActions all actions that were taken during the game, in order.
+     * @param actionHandler the consumer that will be called if a action should be executed.
+     * @return a node for the javafx scene.
+     */
     public static Node create(
             ObservableValue<List<String>> observableActions,
             Consumer<String> actionHandler) {

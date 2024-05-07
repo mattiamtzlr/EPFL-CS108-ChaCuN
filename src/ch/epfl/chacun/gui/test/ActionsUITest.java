@@ -28,12 +28,13 @@ public class ActionsUITest extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
 
-        List<String> actions = new ArrayList<>();
-        actions.add("OOOOO");
+        List<String> actions = new ArrayList<>(List.of("HE", "OO", "23", "F3", "H4"));
+
         ObservableValue<List<String>> observableActions = new SimpleObjectProperty<>(actions);
+
         Node actionsUI = ActionsUI.create(
                 observableActions,
-                s -> System.out.println(STR."Action: \{s}")
+                s -> System.out.println(STR."Accept: \{s}")
         );
         BorderPane root = new BorderPane(actionsUI);
 
