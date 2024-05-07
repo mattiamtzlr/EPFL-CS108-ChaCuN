@@ -19,7 +19,7 @@ public final class Base32 {
      * @return true if all characters can be represented in base 32.
      */
     public static boolean isValid(String word) {
-        return word.toUpperCase().chars().allMatch(c -> ALPHABET.contains(Character.toString(c)));
+        return word.chars().allMatch(c -> ALPHABET.contains(Character.toString(c)));
     }
 
     /**
@@ -51,7 +51,7 @@ public final class Base32 {
      */
     public static int decode(String cipher) {
         Preconditions.checkArgument(cipher.length() <= 2 && !cipher.isEmpty());
-        int[] digits = cipher.toUpperCase().chars().map(ALPHABET::indexOf).toArray();
+        int[] digits = cipher.chars().map(ALPHABET::indexOf).toArray();
         return digits.length == 1 ? digits[0] : digits[1] + digits[0]*32;
     }
 
