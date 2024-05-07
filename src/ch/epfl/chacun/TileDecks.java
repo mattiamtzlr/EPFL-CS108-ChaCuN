@@ -1,7 +1,6 @@
 package ch.epfl.chacun;
 
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.function.Predicate;
 
 /**
@@ -27,6 +26,14 @@ public record TileDecks(List<Tile> startTiles, List<Tile> normalTiles, List<Tile
         menhirTiles = List.copyOf(menhirTiles);
     }
 
+    private List<Tile> getByKind(Tile.Kind kind) {
+        return switch (kind) {
+            case START -> startTiles;
+            case MENHIR -> menhirTiles;
+            case NORMAL -> normalTiles;
+        };
+    }
+
     /**
      * Method to calculate the size of a chosen deck
      *
@@ -34,12 +41,7 @@ public record TileDecks(List<Tile> startTiles, List<Tile> normalTiles, List<Tile
      * @return the number of cards in the chosen deck
      */
     public int deckSize(Tile.Kind kind) {
-        return switch (kind) {
-            case START -> startTiles.size();
-            case NORMAL -> normalTiles.size();
-            case MENHIR -> menhirTiles.size();
-        };
-
+        return getByKind(kind).size();
     }
 
     /**
@@ -49,15 +51,8 @@ public record TileDecks(List<Tile> startTiles, List<Tile> normalTiles, List<Tile
      * @return the Tile on the top of a chosen deck, null if the deck is empty
      */
     public Tile topTile(Tile.Kind kind) {
-        try {
-            return switch (kind) {
-                case START -> startTiles.getFirst();
-                case NORMAL -> normalTiles.getFirst();
-                case MENHIR -> menhirTiles.getFirst();
-            };
-        } catch (NoSuchElementException e) {
-            return null;
-        }
+        List<Tile> tiles = getByKind(kind);
+        return tiles.isEmpty() ? null : tiles.getFirst();
     }
 
     /**

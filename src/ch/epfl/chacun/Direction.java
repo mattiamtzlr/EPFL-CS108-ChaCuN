@@ -38,6 +38,6 @@ public enum Direction {
      * @return new direction in opposite direction
      */
     public Direction opposite() {
-        return ALL.get((this.ordinal() + (COUNT / 2)) % COUNT);
+        return rotated(Rotation.HALF_TURN);
     }
 }

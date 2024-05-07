@@ -39,7 +39,7 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
      */
     public static boolean hasMenhir(Area<Zone.Forest> forest) {
         return forest.zones().stream()
-                .anyMatch(f -> f.kind().equals(Zone.Forest.Kind.WITH_MENHIR));
+                .anyMatch(f -> f.kind() == Zone.Forest.Kind.WITH_MENHIR);
 
     }
 
@@ -177,10 +177,10 @@ public record Area<Z extends Zone>(Set<Z> zones, List<PlayerColor> occupants, in
 
         // case 2: connect area with other area: add zones and occupants and adjust open connections
         Set<Z> newZones = new HashSet<>(Set.copyOf(this.zones));
-        newZones.addAll(Set.copyOf(that.zones));
+        newZones.addAll(that.zones);
 
         List<PlayerColor> newOccupants = new ArrayList<>(List.copyOf(this.occupants));
-        newOccupants.addAll(List.copyOf(that.occupants));
+        newOccupants.addAll(that.occupants);
 
         return new Area<>(
                 newZones, newOccupants,

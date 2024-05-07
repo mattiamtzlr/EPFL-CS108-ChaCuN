@@ -48,9 +48,10 @@ public record Tile(
      * @return a set of all zones contained in the tile
      */
     public Set<Zone> zones() {
-        HashSet<Zone> zones = (HashSet<Zone>) this.sideZones();
+        Set<Zone> sideZones = sideZones();
+        HashSet<Zone> zones = new HashSet<>(Set.copyOf(sideZones));
 
-        for (Zone zone : this.sideZones()) {
+        for (Zone zone : sideZones) {
             if (zone instanceof Zone.River river && river.hasLake())
                 zones.add(river.lake());
         }

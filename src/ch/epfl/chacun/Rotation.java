@@ -14,7 +14,7 @@ public enum Rotation {
     /**
      * List of all possible rotations in order
      */
-    public static final List<Rotation> ALL = List.of(Rotation.values());
+    public static final List<Rotation> ALL = List.of(values());
 
     /**
      * Number of all possible rotations
@@ -49,7 +49,7 @@ public enum Rotation {
      * @return (int) the number of clock-wise quarter turns
      */
     public int quarterTurnsCW() {
-        return this.ordinal();
+        return ordinal();
     }
 
     /**
@@ -59,6 +59,6 @@ public enum Rotation {
      * @return the number of degrees.
      */
     public int degreesCW() {
-        return this.ordinal() * 90;
+        return quarterTurnsCW() * 90;
     }
 }

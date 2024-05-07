@@ -60,8 +60,7 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
          * @param partition the partition to modify
          */
         public Builder(ZonePartition<Z> partition) {
-            Set<Area<Z>> temp = Set.copyOf(partition.areas());
-            areas.addAll(temp);
+            areas.addAll(partition.areas());
         }
 
         /**
@@ -76,6 +75,16 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
                     openConnections));
         }
 
+        private Area<Z> areaContaining(Z zone) {
+            for (Area<Z> area : areas) {
+                if (area.zones().contains(zone)) {
+                    return area;
+                }
+            }
+            throw new IllegalArgumentException(
+                    String.format("Partition does not contain %s", zone));
+        }
+
         /**
          * Adds an occupant to the given zone of the given color
          *
@@ -83,9 +92,9 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
          * @param color the color of the occupant
          */
         public void addInitialOccupant(Z zone, PlayerColor color) {
-            Area<Z> area = new ZonePartition<>(areas).areaContaining(zone);
-            areas.remove(area);
+            Area<Z> area = areaContaining(zone);
             areas.add(area.withInitialOccupant(color));
+            areas.remove(area);
         }
 
         /**
@@ -97,10 +106,9 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
          * @throws IllegalArgumentException if the zone does not contain an occupant of the color
          */
         public void removeOccupant(Z zone, PlayerColor color) {
-            Area<Z> area = new ZonePartition<>(areas).areaContaining(zone);
-            Preconditions.checkArgument(area.occupants().contains(color));
-            areas.remove(area);
+            Area<Z> area = areaContaining(zone);
             areas.add(area.withoutOccupant(color));
+            areas.remove(area);
         }
 
         /**
@@ -110,8 +118,7 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
          * @throws IllegalArgumentException if the partition does not contain the area
          */
         public void removeAllOccupantsOf(Area<Z> area) {
-            Preconditions.checkArgument(areas.contains(area));
-            areas.remove(area);
+            Preconditions.checkArgument(areas.remove(area));
             areas.add(area.withoutOccupants());
         }
 
@@ -123,15 +130,15 @@ public record ZonePartition<Z extends Zone>(Set<Area<Z>> areas) {
          * @param zone2 the zone of the second area
          */
         public void union(Z zone1, Z zone2) {
-            Area<Z> area1 = new ZonePartition<>(areas).areaContaining(zone1);
-            Area<Z> area2 = new ZonePartition<>(areas).areaContaining(zone2);
+            Area<Z> area1 = areaContaining(zone1);
+            Area<Z> area2 = areaContaining(zone2);
 
             if (area1.equals(area2)) {
+                areas.add(area1.connectTo(area2));
                 areas.remove(area1);
-                areas.add(area1.connectTo(area2));
             } else {
-                areas.removeAll(Set.of(area1, area2));
                 areas.add(area1.connectTo(area2));
+                areas.removeAll(Set.of(area1, area2));
             }
         }
 
