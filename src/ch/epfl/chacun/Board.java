@@ -2,6 +2,7 @@ package ch.epfl.chacun;
 
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * This class represents the board that is played on, will be updated during the game.
@@ -21,11 +22,10 @@ public final class Board {
      * A preset for an empty board
      */
     public static final Board EMPTY = new Board(
-            new PlacedTile[NUMBER_OF_POSITIONS],
-            new int[]{}, ZonePartitions.EMPTY,
-            Collections.emptySet()
+        new PlacedTile[NUMBER_OF_POSITIONS],
+        new int[]{}, ZonePartitions.EMPTY,
+        Collections.emptySet()
     );
-    private static final int TOTAL_TILES_AVAILABLE = 95;
     private static final int BOARD_SIZE = 25;
     private final PlacedTile[] placedTiles;
     private final int[] placedTileIndices;
@@ -52,10 +52,11 @@ public final class Board {
 
     /**
      * Helper method to count occupants in a given area of a given player
-     * @param area the area (type Z) of which the occupants need to be counted
+     *
+     * @param area   the area (type Z) of which the occupants need to be counted
      * @param player the player (color) of which the occupants need to be counted
+     * @param <Z>    the type of the zones of the area, extends zone
      * @return the number of occupants in that area of that player
-     * @param <Z> the type of the zones of the area, extends zone
      * @see Board#occupantCount
      */
     private static <Z extends Zone> int countOccupantsInArea(Area<Z> area, PlayerColor player) {
@@ -74,8 +75,8 @@ public final class Board {
      */
     public PlacedTile tileAt(Pos pos) {
         return (Math.abs(pos.x()) <= REACH && Math.abs(pos.y()) <= REACH)
-                ? placedTiles[calculateTileIndex(pos)]
-                : null;
+            ? placedTiles[calculateTileIndex(pos)]
+            : null;
     }
 
     /**
@@ -91,7 +92,7 @@ public final class Board {
                 return placedTiles[placedTileIndex];
         }
         throw new IllegalArgumentException(
-                String.format("PlacedTile with id %d could not be found.", tileId));
+            String.format("PlacedTile with id %d could not be found.", tileId));
     }
 
     /**
@@ -100,20 +101,21 @@ public final class Board {
      * @return An immutable copy of cancelledAnimals
      */
     public Set<Animal> cancelledAnimals() {
-        return Set.copyOf(cancelledAnimals);
+        return Collections.unmodifiableSet(cancelledAnimals);
     }
 
     /**
      * Method to find all occupants on the board
      *
-     * @return The set of occupants present on the board (Not PlayerColor)
+     * @return The set of occupants (type Occupant) present on the board
      */
     public Set<Occupant> occupants() {
-        return Arrays.stream(placedTiles.clone())
-                .filter(Objects::nonNull)
-                .map(PlacedTile::occupant)
-                .filter(Objects::nonNull)
-                .collect(Collectors.toSet());
+        return Arrays.stream(placedTileIndices)
+            .mapToObj(i -> placedTiles[i])
+            .filter(Objects::nonNull)
+            .map(PlacedTile::occupant)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
     }
 
     /**
@@ -188,7 +190,7 @@ public final class Board {
         for (PlacedTile placedTile : getTileAdjacentPositions(pos)) {
             neighboringMeadowZones.addAll(placedTile.meadowZones());
         }
-        Set<Zone.Meadow> zones = new HashSet<>(Set.copyOf(meadowArea(meadowZone).zones()));
+        Set<Zone.Meadow> zones = new HashSet<>(meadowArea(meadowZone).zones());
         zones.retainAll(neighboringMeadowZones);
         zones.add(meadowZone);
 
@@ -215,31 +217,31 @@ public final class Board {
     /**
      * Method to count the occupants of a given kind placed by a given player
      *
-     * @param player       The color of the player we inquire about
+     * @param player       The color of the player we enquire about
      * @param occupantKind The kind of occupant that we count
      * @return The number of occupants of a given kind placed by a given player
      */
     public int occupantCount(PlayerColor player, Occupant.Kind occupantKind) {
-        int occupantCount = 0;
         switch (occupantKind) {
             case PAWN -> {
-                for (Area<Zone.Meadow> area : meadowAreas()) {
-                    occupantCount += countOccupantsInArea(area, player);
-                }
-                for (Area<Zone.Forest> area : zonePartitions.forests().areas()) {
-                    occupantCount += countOccupantsInArea(area, player);
-                }
-                for (Area<Zone.River> area : zonePartitions.rivers().areas()) {
-                    occupantCount += countOccupantsInArea(area, player);
-                }
+                return Stream.of(
+                        zonePartitions.meadows().areas(), zonePartitions.forests().areas(),
+                        zonePartitions.rivers().areas()
+                    )
+                    .flatMap(Collection::stream)
+                    .mapToInt(a -> countOccupantsInArea(a, player))
+                    .sum();
             }
             case HUT -> {
-                for (Area<Zone.Water> area : riverSystemAreas()) {
-                    occupantCount += countOccupantsInArea(area, player);
-                }
+                return Stream.of(zonePartitions.riverSystems().areas())
+                    .flatMap(Collection::stream)
+                    .mapToInt(a -> countOccupantsInArea(a, player))
+                    .sum();
+            }
+            default -> {
+                return 0;
             }
         }
-        return occupantCount;
     }
 
     /**
@@ -248,21 +250,24 @@ public final class Board {
      * @return The set of possible insertion positions
      */
     public Set<Pos> insertionPositions() {
-        if (this.equals(Board.EMPTY))
+        if (placedTileIndices.length == 0)
             return Set.of(Pos.ORIGIN);
 
-        Set<Pos> occupiedPositions = Arrays.stream(placedTiles.clone())
-                .filter(Objects::nonNull)
-                .map(PlacedTile::pos)
-                .collect(Collectors.toSet());
 
-        return Arrays.stream(placedTiles.clone())
-                .filter(Objects::nonNull)
-                .map((p) -> getNeighborPositions(p.pos()))
-                .flatMap(Collection::stream)
-                .filter(p -> !occupiedPositions.contains(p))
-                .filter(p -> Math.abs(p.x()) <= REACH && Math.abs(p.y()) <= REACH)
-                .collect(Collectors.toSet());
+        Set<Pos> occupiedPositions = Arrays.stream(placedTileIndices)
+            .filter(Objects::nonNull)
+            .mapToObj(i -> placedTiles[i])
+            .map(PlacedTile::pos)
+            .collect(Collectors.toSet());
+
+        return Arrays.stream(placedTileIndices)
+            .filter(Objects::nonNull)
+            .mapToObj(i -> placedTiles[i])
+            .map((p) -> getNeighborPositions(p.pos()))
+            .flatMap(Collection::stream)
+            .filter(p -> !occupiedPositions.contains(p))
+            .filter(p -> Math.abs(p.x()) <= REACH && Math.abs(p.y()) <= REACH)
+            .collect(Collectors.toSet());
     }
 
     /**
@@ -273,8 +278,8 @@ public final class Board {
      */
     private Set<Pos> getNeighborPositions(Pos pos) {
         return Set.of(
-                pos.neighbor(Direction.N), pos.neighbor(Direction.E),
-                pos.neighbor(Direction.S), pos.neighbor(Direction.W)
+            pos.neighbor(Direction.N), pos.neighbor(Direction.E),
+            pos.neighbor(Direction.S), pos.neighbor(Direction.W)
         );
     }
 
@@ -301,7 +306,7 @@ public final class Board {
      * @return The tile that was last placed, null if no tile was placed yet
      */
     public PlacedTile lastPlacedTile() {
-        if (this.equals(EMPTY))
+        if (placedTileIndices.length == 0)
             return null;
         return placedTiles[placedTileIndices[placedTileIndices.length - 1]];
     }
@@ -316,9 +321,9 @@ public final class Board {
             return Collections.emptySet();
 
         return lastPlacedTile().forestZones().stream()
-                .filter(fz -> forestArea(fz).isClosed())
-                .map(this::forestArea)
-                .collect(Collectors.toSet());
+            .map(this::forestArea)
+            .filter(Area::isClosed)
+            .collect(Collectors.toSet());
     }
 
     /**
@@ -331,9 +336,9 @@ public final class Board {
             return Collections.emptySet();
 
         return lastPlacedTile().riverZones().stream()
-                .filter(rz -> riverArea(rz).isClosed())
-                .map(this::riverArea)
-                .collect(Collectors.toSet());
+            .map(this::riverArea)
+            .filter(Area::isClosed)
+            .collect(Collectors.toSet());
     }
 
     /**
@@ -344,13 +349,13 @@ public final class Board {
      */
     public boolean canAddTile(PlacedTile tile) {
 
-        if (!insertionPositions().isEmpty() && !insertionPositions().contains(tile.pos()))
+        if (!insertionPositions().contains(tile.pos()))
             return false;
 
         for (Direction direction : Direction.ALL) {
             PlacedTile neighbor = tileAt(tile.pos().neighbor(direction));
             if (neighbor != null &&
-                    !tile.side(direction).isSameKindAs(neighbor.side(direction.opposite())))
+                !tile.side(direction).isSameKindAs(neighbor.side(direction.opposite())))
                 return false;
         }
         return true;
@@ -381,20 +386,19 @@ public final class Board {
      */
     public Board withNewTile(PlacedTile tile) {
 
-        if (!canAddTile(tile) || placedTileIndices.length == TOTAL_TILES_AVAILABLE)
+        if (!canAddTile(tile))
             throw new IllegalArgumentException(
-                    String.format("Cannot add tile with id %d.", tile.id()));
+                String.format("Cannot add tile with id %d.", tile.id()));
 
-        PlacedTile[] placedTilesWithNewTile = placedTiles.clone();
-        placedTilesWithNewTile[calculateTileIndex(tile.pos())] = tile;
+        PlacedTile[] newPlacedTiles = placedTiles.clone();
+        newPlacedTiles[calculateTileIndex(tile.pos())] = tile;
 
-        int[] placedTileIndicesWithNewTile = Arrays.copyOf(
-                placedTileIndices,
-                placedTileIndices.length + 1
+        int[] newPlacedTileIndices = Arrays.copyOf(
+            placedTileIndices,
+            placedTileIndices.length + 1
         );
 
-        placedTileIndicesWithNewTile[placedTileIndices.length]
-                = calculateTileIndex(tile.pos());
+        newPlacedTileIndices[placedTileIndices.length] = calculateTileIndex(tile.pos());
 
         ZonePartitions.Builder builder = new ZonePartitions.Builder(zonePartitions);
         builder.addTile(tile.tile());
@@ -403,14 +407,12 @@ public final class Board {
 
             if (neighbor != null)
                 builder.connectSides(
-                        tile.side(direction),
-                        neighbor.side(direction.opposite())
+                    tile.side(direction), neighbor.side(direction.opposite())
                 );
         }
 
         return new Board(
-                placedTilesWithNewTile, placedTileIndicesWithNewTile,
-                builder.build(), cancelledAnimals()
+            newPlacedTiles, newPlacedTileIndices, builder.build(), cancelledAnimals()
         );
     }
 
@@ -429,19 +431,14 @@ public final class Board {
         PlayerColor occupantColor = targetTile.placer();
 
         Objects.requireNonNull(occupantColor);
-        if (Objects.nonNull(targetTile.occupant()))
-            throw new IllegalArgumentException(
-                    String.format("Tile with id %d is already occupied", targetTile.id()));
-
         builder.addInitialOccupant(occupantColor, occupant.kind(), targetZone);
 
-        PlacedTile[] placedTilesWithNewOccupant = placedTiles.clone();
+        PlacedTile[] newPlacedTiles = placedTiles;
         int targetIndex = calculateTileIndex(targetTile.pos());
-        placedTilesWithNewOccupant[targetIndex] =
-                placedTilesWithNewOccupant[targetIndex].withOccupant(occupant);
+        newPlacedTiles[targetIndex] = newPlacedTiles[targetIndex].withOccupant(occupant);
 
-        return new Board(placedTilesWithNewOccupant, placedTileIndices.clone(),
-                builder.build(), cancelledAnimals());
+        return new Board(newPlacedTiles, placedTileIndices,
+            builder.build(), cancelledAnimals());
     }
 
     /**
@@ -459,13 +456,12 @@ public final class Board {
 
         builder.removePawn(occupantColor, targetZone);
 
-        PlacedTile[] placedTilesWithoutOccupant = placedTiles.clone();
+        PlacedTile[] newPlacedTiles = placedTiles;
         int targetIndex = calculateTileIndex(targetTile.pos());
-        placedTilesWithoutOccupant[targetIndex] =
-                placedTilesWithoutOccupant[targetIndex].withNoOccupant();
+        newPlacedTiles[targetIndex] = newPlacedTiles[targetIndex].withNoOccupant();
 
-        return new Board(placedTilesWithoutOccupant, placedTileIndices.clone(),
-                builder.build(), cancelledAnimals());
+        return new Board(newPlacedTiles, placedTileIndices,
+            builder.build(), cancelledAnimals());
     }
 
     /**
@@ -476,7 +472,7 @@ public final class Board {
      * @return A new board without pawns in the given areas.
      */
     public Board withoutGatherersOrFishersIn(
-            Set<Area<Zone.Forest>> forests, Set<Area<Zone.River>> rivers
+        Set<Area<Zone.Forest>> forests, Set<Area<Zone.River>> rivers
     ) {
 
         ZonePartitions.Builder builder = new ZonePartitions.Builder(zonePartitions);
@@ -497,15 +493,15 @@ public final class Board {
             for (Integer tileId : river.tileIds()) {
                 int targetIndex = calculateTileIndex(tileWithId(tileId).pos());
                 if (
-                        Objects.nonNull(newPlacedTiles[targetIndex].occupant())
-                                && newPlacedTiles[targetIndex].occupant().kind().equals(Occupant.Kind.PAWN)
+                    Objects.nonNull(newPlacedTiles[targetIndex].occupant())
+                        && newPlacedTiles[targetIndex].occupant().kind().equals(Occupant.Kind.PAWN)
                 ) {
                     newPlacedTiles[targetIndex] = newPlacedTiles[targetIndex].withNoOccupant();
                 }
             }
         }
-        return new Board(newPlacedTiles, placedTileIndices.clone(),
-                builder.build(), cancelledAnimals());
+        return new Board(newPlacedTiles, placedTileIndices,
+            builder.build(), cancelledAnimals());
     }
 
     /**
@@ -516,22 +512,21 @@ public final class Board {
      */
     public Board withMoreCancelledAnimals(Set<Animal> newlyCancelledAnimals) {
 
-        ZonePartitions.Builder builder = new ZonePartitions.Builder(zonePartitions);
         Set<Animal> newCancelledAnimals = new HashSet<>(cancelledAnimals());
         newCancelledAnimals.addAll(newlyCancelledAnimals);
 
-        return new Board(placedTiles.clone(), placedTileIndices.clone(),
-                builder.build(), newCancelledAnimals);
+        return new Board(placedTiles, placedTileIndices,
+            this.zonePartitions, newCancelledAnimals);
     }
 
     @Override
     public boolean equals(Object obj) {
 
-        if (obj instanceof Board) {
-            return (this.cancelledAnimals.equals(((Board) obj).cancelledAnimals) &&
-                    Arrays.equals(this.placedTiles, ((Board) obj).placedTiles) &&
-                    Arrays.equals(this.placedTileIndices, ((Board) obj).placedTileIndices) &&
-                    this.zonePartitions.equals(((Board) obj).zonePartitions));
+        if (obj instanceof Board that) {
+            return (this.cancelledAnimals.equals(that.cancelledAnimals) &&
+                Arrays.equals(this.placedTiles, that.placedTiles) &&
+                Arrays.equals(this.placedTileIndices, that.placedTileIndices) &&
+                this.zonePartitions.equals(that.zonePartitions));
         }
         return false;
     }
@@ -539,6 +534,6 @@ public final class Board {
     @Override
     public int hashCode() {
         return Objects.hash(Arrays.hashCode(placedTiles), Arrays.hashCode(placedTileIndices),
-                zonePartitions, cancelledAnimals);
+            zonePartitions, cancelledAnimals);
     }
 }

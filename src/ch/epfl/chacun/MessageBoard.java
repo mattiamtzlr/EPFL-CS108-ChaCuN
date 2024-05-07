@@ -150,8 +150,11 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages) {
      * @param adjacentMeadow The meadow area which contains the hunting trap
      * @return the new message board, may contain the new message
      */
-    public MessageBoard withScoredHuntingTrap(PlayerColor scorer,
-                                              Area<Zone.Meadow> adjacentMeadow) {
+    public MessageBoard withScoredHuntingTrap(
+        PlayerColor scorer,
+        Area<Zone.Meadow> adjacentMeadow,
+        Set<Animal> cancelledAnimals
+    ) {
         Message newMessage = null;
 
         Zone.Meadow specialPowerZone = (Zone.Meadow)
@@ -160,9 +163,7 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages) {
         if (specialPowerZone != null) {
             Set<Animal> animals = Area.animals(
                     adjacentMeadow,
-                    Collections.emptySet()
-                /* TODO: replace Collections.emptySet() with passed cancelled animals as soon as the
-                    new version is known */
+                    cancelledAnimals
             );
 
             Map<Animal.Kind, Integer> animalCounts = animalCounts(animals);
@@ -189,10 +190,12 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages) {
      * @return the new message board, may contain the new message
      */
     public MessageBoard withScoredLogboat(PlayerColor scorer, Area<Zone.Water> riverSystem) {
-        int pointsGained = Points.forLogboat(Area.lakeCount(riverSystem));
+        int lakeCount = Area.lakeCount(riverSystem);
+        int pointsGained = Points.forLogboat(lakeCount);
+
         Message newMessage = new Message(
                 this.textMaker.playerScoredLogboat(
-                        scorer, pointsGained, Area.lakeCount(riverSystem)),
+                        scorer, pointsGained, lakeCount),
                 pointsGained, Collections.singleton(scorer), riverSystem.tileIds()
         );
 
@@ -240,12 +243,13 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages) {
 
         int fishCount = Area.riverSystemFishCount(riverSystem);
         int pointsGained = Points.forRiverSystem(fishCount);
+        Set<PlayerColor> majorityOccupants = riverSystem.majorityOccupants();
 
         if (riverSystem.isOccupied() && pointsGained > 0) {
             newMessage = new Message(
                     this.textMaker.playersScoredRiverSystem(
-                            riverSystem.majorityOccupants(), pointsGained, fishCount),
-                    pointsGained, riverSystem.majorityOccupants(), riverSystem.tileIds()
+                            majorityOccupants, pointsGained, fishCount),
+                    pointsGained, majorityOccupants, riverSystem.tileIds()
             );
         }
 
@@ -332,6 +336,15 @@ public record MessageBoard(TextMaker textMaker, List<Message> messages) {
         return withNewMessage(newMessage);
     }
 
+    /**
+     * Message record, representing a message shown on the message board
+     *
+     * @param text    text of the message
+     * @param points  number of points associated to the message >= 0
+     * @param scorers set of players that got points, can be empty
+     * @param tileIds set of tile ids of the tiles which have a connection to this message,
+     *                can be empty
+     */
     public record Message(String text, int points, Set<PlayerColor> scorers, Set<Integer> tileIds) {
 
         /**

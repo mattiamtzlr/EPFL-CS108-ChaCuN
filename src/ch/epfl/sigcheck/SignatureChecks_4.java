@@ -5,6 +5,8 @@ package ch.epfl.sigcheck;
 // que les noms et les types des différentes entités à définir pour cette
 // étape du projet sont corrects.
 
+import java.util.Collections;
+
 final class SignatureChecks_4 {
     private SignatureChecks_4() {}
 
@@ -41,7 +43,7 @@ final class SignatureChecks_4 {
         v09 = v18.toString();
         v18 = v18.withClosedForestWithMenhir(v11, v16);
         v18 = v18.withScoredForest(v16);
-        v18 = v18.withScoredHuntingTrap(v11, v23);
+        v18 = v18.withScoredHuntingTrap(v11, v23, Collections.emptySet());
         v18 = v18.withScoredLogboat(v11, v24);
         v18 = v18.withScoredMeadow(v23, v25);
         v18 = v18.withScoredPitTrap(v23, v25);
