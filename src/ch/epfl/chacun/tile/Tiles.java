@@ -1,14 +1,12 @@
-package ch.epfl.chacun.tile;
+package ch.epfl.chacun;
 
-import ch.epfl.chacun.Animal;
-import ch.epfl.chacun.Direction;
-import ch.epfl.chacun.Tile;
-import ch.epfl.chacun.TileSide;
-import ch.epfl.chacun.Zone;
-
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public final class Tiles {
+    private Tiles() {}
+
     public static final List<Tile> TILES = createTiles();
 
     private static List<Tile> createTiles() {
