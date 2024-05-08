@@ -145,7 +145,7 @@ public final class ActionEncoder {
                     Preconditions.checkArgument(encodedAction.length() == 1);
 
                     if (decoded == NO_OCCUPANT)
-                        return withNewOccupant(state, null);
+                        return withOccupantRemoved(state, null);
                     
                     Occupant occupant = getOccupantsSorted(state).get(decoded);
                     Preconditions.checkArgument(
@@ -159,7 +159,11 @@ public final class ActionEncoder {
             }
 
         } catch (IllegalArgumentException | IndexOutOfBoundsException e) {
-            System.out.println(STR."Warning: Illegal Action: '\{encodedAction}'");
+            System.out.println(STR."""
+                    Warning: Illegal Action: '\{encodedAction}' for current state\
+                     \{state.nextAction()}\
+                    """
+            );
             return null;
         }
     }

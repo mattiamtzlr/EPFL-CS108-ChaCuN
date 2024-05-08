@@ -17,10 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 class MyActionEncoderTest {
     Map<PlayerColor, String> playerNames = Map.of(
         PURPLE, "Leo",
-        GREEN, "Mattia",
-        RED, "Anthony",
-        BLUE, "Ali",
-        YELLOW, "Schinz"
+        GREEN, "Mattia"
     );
 
     List<PlayerColor> playerColors = playerNames.keySet().stream()
@@ -39,22 +36,26 @@ class MyActionEncoderTest {
     TextMaker textMaker = new TextMakerFr(playerNames);
 
     PlacedTile t60EastOf56 = new PlacedTile(
-        Tiles.TILES.get(60), BLUE, Rotation.NONE, ORIGIN.neighbor(E)
+        Tiles.TILES.get(60), GREEN, Rotation.NONE, ORIGIN.neighbor(E)
     );
     Occupant pawnF601 = new Occupant(Occupant.Kind.PAWN, 601);
 
     PlacedTile t61NorthOf56 = new PlacedTile(
-        Tiles.TILES.get(61), YELLOW, Rotation.HALF_TURN, ORIGIN.neighbor(N)
+        Tiles.TILES.get(61), GREEN, Rotation.HALF_TURN, ORIGIN.neighbor(N)
     );
+    Occupant pawnM610 = new Occupant(Occupant.Kind.PAWN, 610);
 
     PlacedTile t19WestOf56 = new PlacedTile(
-        Tiles.TILES.get(19), GREEN, Rotation.LEFT, ORIGIN.neighbor(W)
+        Tiles.TILES.get(19), PURPLE, Rotation.LEFT, ORIGIN.neighbor(W)
     );
     Occupant hutR191 = new Occupant(Occupant.Kind.HUT, 191);
     Occupant pawnM192 = new Occupant(Occupant.Kind.PAWN, 192);
 
-    PlacedTile t88NorthEastOf56SHAMAN = new PlacedTile(
-        Tiles.TILES.get(88), BLUE, Rotation.LEFT, ORIGIN.translated(1, -1)
+    PlacedTile t88LEFTNorthEastOf56SHAMAN = new PlacedTile(
+        Tiles.TILES.get(88), GREEN, Rotation.LEFT, ORIGIN.translated(1, -1)
+    );
+    PlacedTile t88NONENorthEastOf56SHAMAN = new PlacedTile(
+            Tiles.TILES.get(88), GREEN, Rotation.NONE, ORIGIN.translated(1, -1)
     );
 
     GameState initial = GameState.initial(playerColors, tileDecks, textMaker);
@@ -105,7 +106,7 @@ class MyActionEncoderTest {
             .withNewOccupant(pawnF601)
             .withPlacedTile(t19WestOf56)
             .withNewOccupant(pawnM192)
-            .withPlacedTile(t88NorthEastOf56SHAMAN);
+            .withPlacedTile(t88LEFTNorthEastOf56SHAMAN);
 
         // remove the occupant on tile 19
         // 00000 (as they are sorted by their zone id)
@@ -124,6 +125,34 @@ class MyActionEncoderTest {
 
     @Test
     void applyActionWorksForValidActions() {
+        GameState gameState = initial.withStartingTilePlaced();
+
+        // State: PLACE_TILE -----------------------------------------------------------------------
+        // TODO
+
+
+        gameState = gameState.withPlacedTile(t61NorthOf56);
+
+        // State: OCCUPY_TILE ----------------------------------------------------------------------
+        assertEquals(
+                // not placing an occupant: 11111 = "7"
+                gameState.withNewOccupant(null),
+                ActionEncoder.applyAction(gameState, "7").state()
+        );
+
+        // TODO
+
+        gameState = gameState.withNewOccupant(pawnM610)
+                .withPlacedTile(t19WestOf56).withNewOccupant(null)
+                .withPlacedTile(t88NONENorthEastOf56SHAMAN);
+
+        // State: RETAKE_PAWN ----------------------------------------------------------------------
+        assertEquals(
+                // not retaking a pawn: 11111 = "7"
+                gameState.withOccupantRemoved(null),
+                ActionEncoder.applyAction(gameState, "7").state()
+        );
+
         // TODO
     }
 
@@ -143,7 +172,28 @@ class MyActionEncoderTest {
         );
 
 
+        gameState = gameState.withPlacedTile(t61NorthOf56);
+
         // State: OCCUPY_TILE ----------------------------------------------------------------------
-        // TODO
+        assertNull(
+                // wrong type: hut in meadow zone 0 => 10000 = "Q"
+                ActionEncoder.applyAction(gameState, "Q")
+        );
+
+        assertNull(
+                // invalid zoneId: 12 => 01100 = "M"
+                ActionEncoder.applyAction(gameState, "M")
+        );
+
+
+        gameState = gameState.withNewOccupant(pawnM610)
+                .withPlacedTile(t19WestOf56).withNewOccupant(null)
+                .withPlacedTile(t88NONENorthEastOf56SHAMAN);
+
+        // State: RETAKE_PAWN ----------------------------------------------------------------------
+        assertNull(
+                // invalid pawn index: 29 => 11101 = "5"
+                ActionEncoder.applyAction(gameState, "5")
+        );
     }
 }
