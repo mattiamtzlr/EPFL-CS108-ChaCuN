@@ -260,7 +260,6 @@ public final class BoardUI {
                 tileFace.getValue().setFitWidth(ImageLoader.NORMAL_TILE_FIT_SIZE);
 
                 tileFace.getValue().imageProperty().bind(cellData.map(CellData::background));
-                tileFace.getValue().rotateProperty().bind(cellData.map(CellData::rotation));
 
                 ColorInput overlayColor = new ColorInput();
                 overlayColor.paintProperty().bind(cellData.map(CellData::overlay));
@@ -272,6 +271,7 @@ public final class BoardUI {
                 overlay.setOpacity(0.5);
 
                 boardSquare.setEffect(overlay);
+                boardSquare.rotateProperty().bind(cellData.map(CellData::rotation));
 
                 //      Group
                 boardPane.add(boardSquare, x + boardSize, y + boardSize);
