@@ -1,20 +1,16 @@
 package ch.epfl.chacun.gui;
 
-import ch.epfl.chacun.TextMaker;
-import ch.epfl.chacun.TextMakerFr;
-import ch.epfl.chacun.Tile;
-import ch.epfl.chacun.TileDecks;
+import ch.epfl.chacun.*;
 import ch.epfl.chacun.tile.Tiles;
 import javafx.application.Application;
 import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.function.Function;
 import java.util.random.RandomGeneratorFactory;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * TODO Description
@@ -34,6 +30,9 @@ public class Main extends Application {
         primaryStage.setMinHeight(1080);
 
         List<String> playerNames = getParameters().getUnnamed();
+        Preconditions.checkArgument(!playerNames.isEmpty());
+        List<PlayerColor> colors = PlayerColor.ALL.subList(0, playerNames.size());
+
         long userSeed = Long.parseUnsignedLong(getParameters().getNamed().get("seed"));
 
         List<Tile> tiles = new ArrayList<>(Tiles.TILES);
@@ -48,7 +47,8 @@ public class Main extends Application {
                 tilesByKind.get(Tile.Kind.MENHIR)
         );
 
+        Map<PlayerColor, String> players = IntStream.range(0, colors.size()).boxed()
+                .collect(Collectors.toMap(colors::get, playerNames::get));
 
-        BorderPane
     }
 }
