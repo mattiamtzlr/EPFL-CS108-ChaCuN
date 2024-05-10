@@ -17,7 +17,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * TODO Description
+ * Behold: The main game!
  *
  * @author Mattia Metzler (372025)
  * @author Leoluca Bernardi (374107)
