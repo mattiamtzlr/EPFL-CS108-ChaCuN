@@ -23,20 +23,20 @@ import java.util.stream.IntStream;
  * @author Leoluca Bernardi (374107)
  */
 public class Main extends Application {
+    private static final int BOARD_SIZE = 12;
+
     public static void main(String[] args) {
         launch(args);
     }
 
-    private static final int BOARD_SIZE = 12;
-
     @Override
     public void start(Stage primaryStage) throws Exception {
+
+        //-----------------------------------------------------------------------Setting up the game
         primaryStage.setTitle("ChaCuN");
         primaryStage.setMinWidth(1440);
         primaryStage.setMinHeight(1080);
 
-
-        // Creating an observable GameState
         List<String> playerNames = getParameters().getUnnamed();
         System.out.println(STR."playing with \{playerNames}");
         Preconditions.checkArgument(2 <= playerNames.size() && playerNames.size() <= 5);
@@ -46,52 +46,62 @@ public class Main extends Application {
 
         List<Tile> tiles = new ArrayList<>(Tiles.TILES);
         // TODO remove before final
+        /* Trigger shaman
         tiles = tiles.stream().filter(t -> !(t.kind() == Tile.Kind.MENHIR && t.id() != 88))
                 .collect(Collectors.toList());
+                */
 
         if (userSeed == null)
             Collections.shuffle(tiles, RandomGeneratorFactory.getDefault().create());
         else {
             long seed = Long.parseUnsignedLong(userSeed);
             Collections.shuffle(tiles, RandomGeneratorFactory.getDefault()
-                .create(seed));
+                    .create(seed));
             System.out.println(STR."seed by user is: \{seed}");
         }
 
         Map<Tile.Kind, List<Tile>> tilesByKind = tiles.stream()
-            .collect(Collectors.groupingBy(Tile::kind));
-
+                .collect(Collectors.groupingBy(Tile::kind));
 
         TileDecks tileDecks = new TileDecks(
-            tilesByKind.get(Tile.Kind.START),
-            tilesByKind.get(Tile.Kind.NORMAL),
-            tilesByKind.get(Tile.Kind.MENHIR)
+                tilesByKind.get(Tile.Kind.START),
+                tilesByKind.get(Tile.Kind.NORMAL),
+                tilesByKind.get(Tile.Kind.MENHIR)
         );
 
-
         Map<PlayerColor, String> players = IntStream.range(0, colors.size())
-            .boxed()
-            .collect(Collectors.toMap(colors::get, playerNames::get));
+                .boxed()
+                .collect(Collectors.toMap(colors::get, playerNames::get));
 
         TextMaker textMaker = new TextMakerFr(players);
 
+
+        //--------------------------------------------Instantiating Observable Values and Properties
         SimpleObjectProperty<GameState> oGameState = new SimpleObjectProperty<>(
-            GameState.initial(colors, tileDecks, textMaker));
+                GameState.initial(colors, tileDecks, textMaker));
+
         SimpleObjectProperty<List<String>> observableActions =
                 new SimpleObjectProperty<>(new ArrayList<>(List.of()));
+
         SimpleObjectProperty<Set<Integer>> tileIds = new SimpleObjectProperty<>();
+
         SimpleObjectProperty<Rotation> tileToPlaceRotationP =
                 new SimpleObjectProperty<>(Rotation.NONE);
+
         SimpleObjectProperty<Set<Occupant>> visibleOccupantsP =
                 new SimpleObjectProperty<>(new HashSet<>());
+
         SimpleObjectProperty<Set<Integer>> highlightedTilesP = new SimpleObjectProperty<>(Set.of());
+
         SimpleObjectProperty<String> altText = new SimpleObjectProperty<>("");
 
+        //------------------------------------------------------------------------Building Consumers
         Consumer<Occupant> cancelOccupyHandler = (o -> {
             Set<Occupant> currentlyDisplayedOccupants = new HashSet<>(visibleOccupantsP.getValue());
             switch (oGameState.get().nextAction()) {
                 case OCCUPY_TILE -> {
-                    currentlyDisplayedOccupants.removeAll(oGameState.get().lastTilePotentialOccupants());
+                    currentlyDisplayedOccupants.removeAll(oGameState.get()
+                            .lastTilePotentialOccupants());
                     oGameState.set(oGameState.get().withNewOccupant(null));
                 }
                 case RETAKE_PAWN -> {
@@ -103,14 +113,14 @@ public class Main extends Application {
         });
 
         Consumer<Rotation> rotationHandler =
-            r -> tileToPlaceRotationP.set(tileToPlaceRotationP.get().add(r));
+                r -> tileToPlaceRotationP.set(tileToPlaceRotationP.get().add(r));
 
         Consumer<Pos> placeTileHandler = t -> {
             PlacedTile tileToPlace = new PlacedTile(
-                oGameState.get().tileToPlace(),
-                oGameState.get().currentPlayer(),
-                tileToPlaceRotationP.getValue(),
-                t);
+                    oGameState.get().tileToPlace(),
+                    oGameState.get().currentPlayer(),
+                    tileToPlaceRotationP.getValue(),
+                    t);
             oGameState.set(oGameState.get().withPlacedTile(tileToPlace));
             Set<Occupant> currentlyDisplayedOccupants = new HashSet<>(visibleOccupantsP.getValue());
             if (oGameState.get().nextAction() == GameState.Action.OCCUPY_TILE)
@@ -143,7 +153,7 @@ public class Main extends Application {
             visibleOccupantsP.set(currentlyDisplayedOccupants);
         };
 
-        //==========================================================================================
+        //================================================================Putting the scene together
 
         Node actionsUI = ActionsUI.create(
                 observableActions, System.out::println);
@@ -168,14 +178,14 @@ public class Main extends Application {
         );
 
         Node boardUI = BoardUI.create(
-            BOARD_SIZE,
-            oGameState,
-            tileToPlaceRotationP,
-            visibleOccupantsP,
-            highlightedTilesP,
-            rotationHandler,
-            placeTileHandler,
-            occupantPlacementHandler
+                BOARD_SIZE,
+                oGameState,
+                tileToPlaceRotationP,
+                visibleOccupantsP,
+                highlightedTilesP,
+                rotationHandler,
+                placeTileHandler,
+                occupantPlacementHandler
         );
 
         BorderPane root = new BorderPane(boardUI, null, rightPane, null, null);
