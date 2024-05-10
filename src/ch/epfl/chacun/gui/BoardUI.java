@@ -280,6 +280,8 @@ public final class BoardUI {
         }
         // Scroll Pane
         ScrollPane boardView = new ScrollPane(boardPane);
+        boardView.setHvalue(0.5);
+        boardView.setVvalue(0.5);
         boardView.setId("board-scroll-pane");
         boardView.getStylesheets().add("board.css");
 
