@@ -64,7 +64,10 @@ public final class MessageBoardUI {
                 });
 
 
-        runLater(() -> messageBoardScrollPane.setVvalue(1));
+        runLater(() -> {
+            messageBoardScrollPane.layout();
+            messageBoardScrollPane.setVvalue(1);
+        });
 
         return messageBoardScrollPane;
     }
