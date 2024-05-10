@@ -114,7 +114,7 @@ public final class ActionEncoder {
                     int rotationIndex = decoded & ((1 << 2) - 1);
                     Rotation rotation = Rotation.values()[rotationIndex];
 
-                    int fringeIndex = decoded & ((1 << 8) - 1) << POS_SHIFT;
+                    int fringeIndex = (decoded >> POS_SHIFT) & ((1 << 8) - 1);
                     Pos pos = getFringeSorted(state).get(fringeIndex);
 
                     PlacedTile tileToPlace = new PlacedTile(
@@ -130,12 +130,11 @@ public final class ActionEncoder {
                         return withNewOccupant(state, null);
 
                     int localZoneId = decoded & ((1 << 4) - 1);
-                    int kindIndex = decoded & (1 << OCC_KIND_SHIFT);
+                    int kindIndex = decoded >> OCC_KIND_SHIFT;
                     Occupant.Kind kind = Occupant.Kind.values()[kindIndex];
 
                     Occupant occupant = state.lastTilePotentialOccupants().stream()
-                        .filter(o -> Zone.localId(o.zoneId()) == localZoneId
-                            && o.kind().equals(kind))
+                        .filter(o -> Zone.localId(o.zoneId()) == localZoneId && o.kind() == kind)
                         .findFirst()
                         .orElseThrow(IllegalArgumentException::new);
 

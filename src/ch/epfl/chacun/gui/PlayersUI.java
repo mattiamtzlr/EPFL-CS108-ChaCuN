@@ -86,7 +86,7 @@ public final class PlayersUI {
                 // to use in lambda
                 int index = i;
                 ObservableValue<Double> opacity = observableGameState.map(
-                        gs -> index <= gs.freeOccupantsCount(color, Occupant.Kind.HUT)
+                        gs -> index < gs.freeOccupantsCount(color, Occupant.Kind.HUT)
                                 ? 1 : 0.1
                 );
 
@@ -104,7 +104,7 @@ public final class PlayersUI {
                 // to use in lambda
                 int index = i;
                 ObservableValue<Double> opacity = observableGameState.map(
-                        gs -> index <= gs.freeOccupantsCount(color, Occupant.Kind.PAWN)
+                        gs -> index < gs.freeOccupantsCount(color, Occupant.Kind.PAWN)
                                 ? 1 : 0.1
                 );
 

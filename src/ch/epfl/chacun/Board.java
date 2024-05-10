@@ -433,7 +433,7 @@ public final class Board {
         Objects.requireNonNull(occupantColor);
         builder.addInitialOccupant(occupantColor, occupant.kind(), targetZone);
 
-        PlacedTile[] newPlacedTiles = placedTiles;
+        PlacedTile[] newPlacedTiles = placedTiles.clone();
         int targetIndex = calculateTileIndex(targetTile.pos());
         newPlacedTiles[targetIndex] = newPlacedTiles[targetIndex].withOccupant(occupant);
 
@@ -456,7 +456,7 @@ public final class Board {
 
         builder.removePawn(occupantColor, targetZone);
 
-        PlacedTile[] newPlacedTiles = placedTiles;
+        PlacedTile[] newPlacedTiles = placedTiles.clone();
         int targetIndex = calculateTileIndex(targetTile.pos());
         newPlacedTiles[targetIndex] = newPlacedTiles[targetIndex].withNoOccupant();
 
