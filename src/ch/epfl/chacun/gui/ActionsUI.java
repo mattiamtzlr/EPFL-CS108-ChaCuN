@@ -2,11 +2,13 @@ package ch.epfl.chacun.gui;
 
 import ch.epfl.chacun.Base32;
 import javafx.beans.value.ObservableValue;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.HBox;
 import javafx.scene.text.Text;
+import javafx.scene.text.TextAlignment;
 
 import java.util.List;
 import java.util.StringJoiner;
@@ -28,26 +30,26 @@ public final class ActionsUI {
     /**
      * Create method for the actions user interface. This is where a user will enter the
      * encoded actions for players who are not currently present at the same computer.
+     *
      * @param observableActions all actions that were taken during the game, in order.
-     * @param actionHandler the consumer that will be called if a action should be executed.
+     * @param actionHandler     the consumer that will be called if an action should be executed.
      * @return a node for the javafx scene.
      */
     public static Node create(
             ObservableValue<List<String>> observableActions,
             Consumer<String> actionHandler) {
 
-
         // Text representing the last four actions.
         Text actionHistory = new Text();
         actionHistory.textProperty().bind(
                 observableActions.map(oA -> {
-                    StringJoiner text = new StringJoiner(", ");
+                    StringJoiner text = new StringJoiner(", ", "", "  ");
                     int size = oA.size();
                     List<String> recentActions = oA.subList(
                             size - ((size > 3) ? 4 : size), size);
-                    
-                    for (int i = 0; i < recentActions.size(); i++) {
-                        text.add(FMT."%2d\{i}:\{recentActions.get(i)}");
+
+                    for (String recentAction : recentActions) {
+                        text.add(FMT."%2d\{oA.lastIndexOf(recentAction) + 1}:\{recentAction}");
                     }
                     return text.toString();
                 }));
@@ -61,19 +63,25 @@ public final class ActionsUI {
                             .mapToObj(Character::toString)
                             .map(String::toUpperCase)
                             .filter(Base32::isValid)
-                            .filter(s -> actionInput.getText().length() <= 1)
+                            .filter(_ -> actionInput.getText().length() <= 1)
                             .collect(Collectors.joining()));
                     return change;
 
                 }));
-        actionInput.setOnAction(a -> {
+        actionInput.setOnAction(_ -> {
             if (!actionInput.getText().isEmpty()) {
                 actionHandler.accept(String.valueOf(actionInput.getText()));
                 actionInput.setText("");
             }
         });
 
+        actionHistory.setTextAlignment(TextAlignment.CENTER);
+        actionInput.setPrefWidth(60);
+
         HBox actionInputBox = new HBox(actionHistory, actionInput);
+
+        actionInputBox.setAlignment(Pos.CENTER);
+
         actionInputBox.setStyle("actions.css");
         actionInputBox.setId("actions");
 

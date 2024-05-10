@@ -153,10 +153,26 @@ public class Main extends Application {
             visibleOccupantsP.set(currentlyDisplayedOccupants);
         };
 
+        Consumer<String> actionHandler = action -> {
+            ActionEncoder.StateAction next = ActionEncoder.applyAction(oGameState.get(), action);
+            if (next != null) {
+                oGameState.set(
+                        next.state()
+                );
+
+                List<String> newActions = new ArrayList<>(observableActions.get());
+                newActions.add(action);
+
+                observableActions.set(newActions);
+            }
+        };
+
         //================================================================Putting the scene together
 
         Node actionsUI = ActionsUI.create(
-                observableActions, System.out::println);
+                observableActions, actionHandler
+        );
+
         Node messageBoardUI = MessageBoardUI.create(
                 oGameState.map(o -> o.messageBoard().messages()),
                 tileIds
