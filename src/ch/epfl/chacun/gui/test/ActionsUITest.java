@@ -12,6 +12,7 @@ import javafx.stage.Stage;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * TODO Description
@@ -30,11 +31,17 @@ public class ActionsUITest extends Application {
 
         List<String> actions = new ArrayList<>(List.of("HE", "OO", "23", "F3", "H4"));
 
-        ObservableValue<List<String>> observableActions = new SimpleObjectProperty<>(actions);
+        SimpleObjectProperty<List<String>> observableActions = new SimpleObjectProperty<>(actions);
 
+        Consumer<String> actionInput = s -> {
+            List<String> currentActions = new ArrayList<>(observableActions.get());
+            currentActions.add(s);
+            observableActions.set(currentActions);
+            System.out.println(observableActions.get());
+        };
         Node actionsUI = ActionsUI.create(
                 observableActions,
-                s -> System.out.println(STR."Accept: \{s}")
+                actionInput
         );
         BorderPane root = new BorderPane(actionsUI);
 
