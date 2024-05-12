@@ -3,7 +3,12 @@ package ch.epfl.chacun.gui;
 import ch.epfl.chacun.*;
 import ch.epfl.chacun.tile.Tiles;
 import javafx.application.Application;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.value.ObservableBooleanValue;
+import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
@@ -37,6 +42,11 @@ public class Main extends Application {
         primaryStage.setMinWidth(1440);
         primaryStage.setMinHeight(1080);
 
+        String cancelOccupyText = "Cliquez sur le pion ou la hutte que vous" +
+                " désirez placer, ou ici pour ne pas en placer.";
+        String cancelRetakeText = "Cliquez sur le pion que vous" +
+                " désirez reprendre, ou ici pour ne pas en reprendre.";
+
         List<String> playerNames = getParameters().getUnnamed();
         System.out.println(STR."playing with \{playerNames}");
         Preconditions.checkArgument(2 <= playerNames.size() && playerNames.size() <= 5);
@@ -46,10 +56,9 @@ public class Main extends Application {
 
         List<Tile> tiles = new ArrayList<>(Tiles.TILES);
         // TODO remove before final
-        /* Trigger shaman
+        // Trigger shaman
         tiles = tiles.stream().filter(t -> !(t.kind() == Tile.Kind.MENHIR && t.id() != 88))
                 .collect(Collectors.toList());
-                */
 
         if (userSeed == null)
             Collections.shuffle(tiles, RandomGeneratorFactory.getDefault().create());
@@ -83,7 +92,7 @@ public class Main extends Application {
         SimpleObjectProperty<List<String>> observableActions =
                 new SimpleObjectProperty<>(new ArrayList<>(List.of()));
 
-        SimpleObjectProperty<Set<Integer>> tileIds = new SimpleObjectProperty<>();
+        SimpleObjectProperty<Set<Integer>> tileIds = new SimpleObjectProperty<>(Set.of());
 
         SimpleObjectProperty<Rotation> tileToPlaceRotationP =
                 new SimpleObjectProperty<>(Rotation.NONE);
@@ -91,25 +100,41 @@ public class Main extends Application {
         SimpleObjectProperty<Set<Occupant>> visibleOccupantsP =
                 new SimpleObjectProperty<>(new HashSet<>());
 
+        SimpleObjectProperty<Set<Occupant>> placedOccupants =
+                new SimpleObjectProperty<>(new HashSet<>());
+
         SimpleObjectProperty<Set<Integer>> highlightedTilesP = new SimpleObjectProperty<>(Set.of());
 
         SimpleObjectProperty<String> altText = new SimpleObjectProperty<>("");
+        SimpleBooleanProperty isCancelableAction = new SimpleBooleanProperty(false);
+        SimpleBooleanProperty isRetakeAction = new SimpleBooleanProperty(false);
+        SimpleStringProperty cancelText = new SimpleStringProperty();
+
+        //---------------------------------------------------------------------Connecting Properties
+        highlightedTilesP.bind(tileIds);
+        placedOccupants.bind(oGameState.map(g -> g.board().occupants()));
+
+        isRetakeAction.bind(oGameState.map(g -> g.nextAction() == GameState.Action.RETAKE_PAWN));
+        isCancelableAction.bind(oGameState.map(g ->
+                g.nextAction() == GameState.Action.OCCUPY_TILE ||
+                g.nextAction() == GameState.Action.RETAKE_PAWN));
+
+        cancelText.bind(Bindings.when(isRetakeAction)
+                .then(cancelRetakeText)
+                .otherwise(cancelOccupyText));
+
+        altText.bind(Bindings.when(isCancelableAction)
+                .then(cancelText)
+                .otherwise(""));
+
 
         //------------------------------------------------------------------------Building Consumers
-        Consumer<Occupant> cancelOccupyHandler = (o -> {
-            Set<Occupant> currentlyDisplayedOccupants = new HashSet<>(visibleOccupantsP.getValue());
+        Consumer<Occupant> cancelOccupyHandler = (_ -> {
             switch (oGameState.get().nextAction()) {
-                case OCCUPY_TILE -> {
-                    currentlyDisplayedOccupants.removeAll(oGameState.get()
-                            .lastTilePotentialOccupants());
-                    oGameState.set(oGameState.get().withNewOccupant(null));
-                }
-                case RETAKE_PAWN -> {
-                    oGameState.set(oGameState.get().withOccupantRemoved(null));
-                }
+                case OCCUPY_TILE -> oGameState.set(oGameState.get().withNewOccupant(null));
+                case RETAKE_PAWN -> oGameState.set(oGameState.get().withOccupantRemoved(null));
             }
-            visibleOccupantsP.set(currentlyDisplayedOccupants);
-            altText.set("");
+            visibleOccupantsP.set(placedOccupants.getValue());
         });
 
         Consumer<Rotation> rotationHandler =
@@ -123,34 +148,27 @@ public class Main extends Application {
                     t);
             oGameState.set(oGameState.get().withPlacedTile(tileToPlace));
             Set<Occupant> currentlyDisplayedOccupants = new HashSet<>(visibleOccupantsP.getValue());
-            if (oGameState.get().nextAction() == GameState.Action.OCCUPY_TILE)
+            if (oGameState.get().nextAction() == GameState.Action.OCCUPY_TILE) {
                 currentlyDisplayedOccupants.addAll(oGameState.get().lastTilePotentialOccupants());
+            }
 
             visibleOccupantsP.set(currentlyDisplayedOccupants);
 
             tileToPlaceRotationP.set(Rotation.NONE);
-            altText.set("Click to cancel occupation");
-
         };
 
         Consumer<Occupant> occupantPlacementHandler = o -> {
-            Set<Occupant> currentlyDisplayedOccupants = new HashSet<>(visibleOccupantsP.getValue());
             switch (oGameState.get().nextAction()) {
                 case OCCUPY_TILE -> {
-                    currentlyDisplayedOccupants.removeAll(oGameState.get()
-                            .lastTilePotentialOccupants());
                     oGameState.set(oGameState.get().withNewOccupant(o));
-                    currentlyDisplayedOccupants.add(o);
                 }
                 case RETAKE_PAWN -> {
-                    currentlyDisplayedOccupants.remove(o);
                     oGameState.set(oGameState.get().withOccupantRemoved(o));
                 }
                 //TODO remove this
                 default -> System.out.println("what do you want do do?");
             }
-            altText.set("");
-            visibleOccupantsP.set(currentlyDisplayedOccupants);
+            visibleOccupantsP.set(placedOccupants.getValue());
         };
 
         Consumer<String> actionHandler = action -> {
@@ -162,7 +180,6 @@ public class Main extends Application {
 
                 List<String> newActions = new ArrayList<>(observableActions.get());
                 newActions.add(action);
-
                 observableActions.set(newActions);
             }
         };
