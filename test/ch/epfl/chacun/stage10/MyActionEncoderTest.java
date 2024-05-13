@@ -1,7 +1,7 @@
 package ch.epfl.chacun.stage10;
 
 import ch.epfl.chacun.*;
-import ch.epfl.chacun.tile.Tiles;
+import ch.epfl.chacun.Tiles;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;

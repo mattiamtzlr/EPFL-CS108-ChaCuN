@@ -1,6 +1,4 @@
-package ch.epfl.chacun.tile;
-
-import ch.epfl.chacun.*;
+package ch.epfl.chacun;
 
 import java.util.ArrayList;
 import java.util.Collections;

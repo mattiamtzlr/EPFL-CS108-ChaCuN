@@ -62,8 +62,9 @@ public final class DecksUI {
         // handle the user clicking on the text to skip the pawn action
         altText.setOnMouseClicked(_ -> skipPawnAction.accept(null));
 
-        ImageView tileFace =
-                new ImageView(ImageLoader.largeForTileId(observableTileToPlace.getValue().id()));
+        ImageView tileFace = new ImageView();
+        tileFace.imageProperty()
+            .bind(observableTileToPlace.map(ttp -> ImageLoader.largeForTileId(ttp.id())));
         tileFace.setFitWidth(ImageLoader.LARGE_TILE_FIT_SIZE);
         tileFace.setFitHeight(ImageLoader.LARGE_TILE_FIT_SIZE);
 

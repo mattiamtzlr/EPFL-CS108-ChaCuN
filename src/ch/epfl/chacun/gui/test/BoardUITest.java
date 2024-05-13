@@ -2,7 +2,7 @@ package ch.epfl.chacun.gui.test;
 
 import ch.epfl.chacun.*;
 import ch.epfl.chacun.gui.BoardUI;
-import ch.epfl.chacun.tile.Tiles;
+import ch.epfl.chacun.Tiles;
 import javafx.application.Application;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Scene;
@@ -19,7 +19,7 @@ import static ch.epfl.chacun.Occupant.Kind.HUT;
 import static ch.epfl.chacun.Occupant.Kind.PAWN;
 import static ch.epfl.chacun.PlayerColor.*;
 import static ch.epfl.chacun.Pos.ORIGIN;
-import static ch.epfl.chacun.tile.Tiles.TILES;
+import static ch.epfl.chacun.Tiles.TILES;
 
 public final class BoardUITest extends Application {
     public static void main(String[] args) {

@@ -4,7 +4,7 @@ import ch.epfl.chacun.Occupant;
 import ch.epfl.chacun.Tile;
 import ch.epfl.chacun.TileDecks;
 import ch.epfl.chacun.gui.DecksUI;
-import ch.epfl.chacun.tile.Tiles;
+import ch.epfl.chacun.Tiles;
 import javafx.application.Application;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.value.ObservableValue;

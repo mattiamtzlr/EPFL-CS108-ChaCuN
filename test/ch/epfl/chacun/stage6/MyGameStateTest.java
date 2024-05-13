@@ -5,7 +5,7 @@ import ch.epfl.chacun.*;
 import static ch.epfl.chacun.PlayerColor.*;
 import static ch.epfl.chacun.GameState.Action.*;
 import static ch.epfl.chacun.Occupant.Kind.*;
-import static ch.epfl.chacun.tile.Tiles.TILES;
+import static ch.epfl.chacun.Tiles.TILES;
 
 import org.junit.jupiter.api.Test;
 

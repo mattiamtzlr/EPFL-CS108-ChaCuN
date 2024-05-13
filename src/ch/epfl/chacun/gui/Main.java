@@ -1,14 +1,12 @@
 package ch.epfl.chacun.gui;
 
 import ch.epfl.chacun.*;
-import ch.epfl.chacun.tile.Tiles;
+import ch.epfl.chacun.Tiles;
 import javafx.application.Application;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.value.ObservableBooleanValue;
-import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
@@ -39,13 +37,8 @@ public class Main extends Application {
 
         //-----------------------------------------------------------------------Setting up the game
         primaryStage.setTitle("ChaCuN");
-        primaryStage.setMinWidth(1440);
-        primaryStage.setMinHeight(1080);
-
-        String cancelOccupyText = "Cliquez sur le pion ou la hutte que vous" +
-                " désirez placer, ou ici pour ne pas en placer.";
-        String cancelRetakeText = "Cliquez sur le pion que vous" +
-                " désirez reprendre, ou ici pour ne pas en reprendre.";
+        primaryStage.setWidth(1440);
+        primaryStage.setHeight(1080);
 
         List<String> playerNames = getParameters().getUnnamed();
         System.out.println(STR."playing with \{playerNames}");
@@ -83,6 +76,9 @@ public class Main extends Application {
                 .collect(Collectors.toMap(colors::get, playerNames::get));
 
         TextMaker textMaker = new TextMakerFr(players);
+
+        String cancelOccupyText = textMaker.clickToOccupy();
+        String cancelRetakeText = textMaker.clickToUnoccupy();
 
 
         //--------------------------------------------Instantiating Observable Values and Properties
@@ -198,7 +194,7 @@ public class Main extends Application {
         Node playersUI = PlayersUI.create(oGameState, textMaker);
 
         Node decksUI = DecksUI.create(
-                oGameState.map(o -> o.tileDecks().topTile(Tile.Kind.NORMAL)),
+                oGameState.map(GameState::tileToPlace),
                 oGameState.map(o -> o.tileDecks().deckSize(Tile.Kind.NORMAL)),
                 oGameState.map(o -> o.tileDecks().deckSize(Tile.Kind.MENHIR)),
                 altText,
