@@ -11,10 +11,7 @@ import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextFlow;
 
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -37,9 +34,9 @@ public final class PlayersUI {
      * @return the root node of the players ui (VBox)
      */
     public static Node create(ObservableValue<GameState> observableGameState, TextMaker textMaker) {
-        Set<PlayerColor> players = PlayerColor.ALL.stream()
-                .filter(pc -> textMaker.playerName(pc) != null)
-                .collect(Collectors.toSet());
+        List<PlayerColor> players = observableGameState.getValue().players().stream()
+                .sorted()
+                .toList();
 
         // Observable current player
         ObservableValue<PlayerColor> observableCurrentPlayer =
