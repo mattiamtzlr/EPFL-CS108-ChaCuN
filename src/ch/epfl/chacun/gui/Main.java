@@ -146,23 +146,19 @@ public class Main extends Application {
                 case OCCUPY_TILE -> {
                     ActionEncoder.StateAction next =
                         ActionEncoder.withNewOccupant(oGameState.get(), null);
-                    if (next != null) {
-                        oGameState.set(next.state());
-                        List<String> nextActionsList = new ArrayList<>(observableActions.get());
-                        nextActionsList.add(next.encodedAction());
-                        observableActions.set(nextActionsList);
-                    }
+                    oGameState.set(next.state());
+                    List<String> nextActionsList = new ArrayList<>(observableActions.get());
+                    nextActionsList.add(next.encodedAction());
+                    observableActions.set(nextActionsList);
                 }
 
                 case RETAKE_PAWN -> {
                     ActionEncoder.StateAction next =
                         ActionEncoder.withOccupantRemoved(oGameState.get(), null);
-                    if (next != null) {
-                        oGameState.set(next.state());
-                        List<String> nextActionsList = new ArrayList<>(observableActions.get());
-                        nextActionsList.add(next.encodedAction());
-                        observableActions.set(nextActionsList);
-                    }
+                    oGameState.set(next.state());
+                    List<String> nextActionsList = new ArrayList<>(observableActions.get());
+                    nextActionsList.add(next.encodedAction());
+                    observableActions.set(nextActionsList);
                 }
             }
         });
@@ -179,41 +175,38 @@ public class Main extends Application {
                     t);
             ActionEncoder.StateAction next =
                     ActionEncoder.withPlacedTile(oGameState.get(), tileToPlace);
-            if (next != null) {
-                oGameState.set(next.state());
-                List<String> nextActionsList = new ArrayList<>(observableActions.get());
-                nextActionsList.add(next.encodedAction());
-                observableActions.set(nextActionsList);
-            }
+            oGameState.set(next.state());
+            List<String> nextActionsList = new ArrayList<>(observableActions.get());
+            nextActionsList.add(next.encodedAction());
+            observableActions.set(nextActionsList);
             tileToPlaceRotationP.set(Rotation.NONE);
         };
         Consumer<Occupant> occupantPlacementHandler = o -> {
             switch (oGameState.get().nextAction()) {
                 case OCCUPY_TILE -> {
+                    Preconditions.checkArgument(
+                            !oGameState.get().lastTilePotentialOccupants().contains(o));
                     ActionEncoder.StateAction next =
                         ActionEncoder.withNewOccupant(oGameState.get(), o);
-                    if (next != null) {
-                        oGameState.set(next.state());
-                        List<String> nextActionsList = new ArrayList<>(observableActions.get());
-                        nextActionsList.add(next.encodedAction());
-                        observableActions.set(nextActionsList);
-                    }
+                    oGameState.set(next.state());
+                    List<String> nextActionsList = new ArrayList<>(observableActions.get());
+                    nextActionsList.add(next.encodedAction());
+                    observableActions.set(nextActionsList);
 
                 }
                 case RETAKE_PAWN -> {
-
+                    Preconditions.checkArgument(o.kind() != Occupant.Kind.PAWN);
+                    Preconditions.checkArgument(oGameState.get().board()
+                                    .tileWithId(Zone.tileId(o.zoneId())).placer() ==
+                            oGameState.get().currentPlayer());
                     ActionEncoder.StateAction next =
                             ActionEncoder.withOccupantRemoved(oGameState.get(), o);
-                    if (next != null) {
-                        oGameState.set(next.state());
-                        List<String> nextActionsList = new ArrayList<>(observableActions.get());
-                        nextActionsList.add(next.encodedAction());
-                        observableActions.set(nextActionsList);
-                    }
+                    oGameState.set(next.state());
+                    List<String> nextActionsList = new ArrayList<>(observableActions.get());
+                    nextActionsList.add(next.encodedAction());
+                    observableActions.set(nextActionsList);
 
                 }
-                //TODO remove this
-                default -> System.out.println("what do you want do do?");
             }
         };
 
