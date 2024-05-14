@@ -88,18 +88,18 @@ public class Main extends Application {
         SimpleObjectProperty<List<String>> observableActions =
                 new SimpleObjectProperty<>(new ArrayList<>());
 
-        SimpleObjectProperty<Set<Integer>> tileIds = new SimpleObjectProperty<>(new HashSet<>());
+        SimpleObjectProperty<Set<Integer>> tileIds =
+                new SimpleObjectProperty<>(Collections.emptySet());
 
         SimpleObjectProperty<Rotation> tileToPlaceRotationP =
                 new SimpleObjectProperty<>(Rotation.NONE);
 
         SimpleObjectProperty<Set<Occupant>> visibleOccupantsP =
-                new SimpleObjectProperty<>(new HashSet<>());
+                new SimpleObjectProperty<>(Collections.emptySet());
 
-        SimpleObjectProperty<Set<Occupant>> placedOccupants =
-                new SimpleObjectProperty<>(new HashSet<>());
 
-        SimpleObjectProperty<Set<Integer>> highlightedTilesP = new SimpleObjectProperty<>(Set.of());
+        SimpleObjectProperty<Set<Integer>> highlightedTilesP =
+                new SimpleObjectProperty<>(Collections.emptySet());
 
         SimpleObjectProperty<String> altText = new SimpleObjectProperty<>("");
         SimpleBooleanProperty isCancelableAction = new SimpleBooleanProperty(false);
@@ -110,16 +110,20 @@ public class Main extends Application {
         highlightedTilesP.bind(tileIds);
 
 
-        placedOccupants.bind(oGameState.map(g -> g.board().occupants()));
 
         visibleOccupantsP.bind(oGameState.map(g -> {
-            if (Objects.requireNonNull(g.nextAction()) == GameState.Action.OCCUPY_TILE) {
-                Set<Occupant> occupyOccupants = new HashSet<>(placedOccupants.get());
+            switch(g.nextAction()) {
+                case OCCUPY_TILE -> {
+                Set<Occupant> occupyOccupants = new HashSet<>(g.board().occupants());
                 occupyOccupants.addAll(g.lastTilePotentialOccupants());
                 return occupyOccupants;
-            } else {
-                return placedOccupants.get();
-            }
+                }
+                case START_GAME -> {
+                    return Collections.emptySet();
+                }
+                default -> {
+                    return g.board().occupants();
+                }}
         }));
 
         isRetakeAction.bind(oGameState.map(g -> g.nextAction() == GameState.Action.RETAKE_PAWN));
@@ -167,6 +171,7 @@ public class Main extends Application {
                 r -> tileToPlaceRotationP.set(tileToPlaceRotationP.get().add(r));
 
         Consumer<Pos> placeTileHandler = t -> {
+
             PlacedTile tileToPlace = new PlacedTile(
                     oGameState.get().tileToPlace(),
                     oGameState.get().currentPlayer(),
