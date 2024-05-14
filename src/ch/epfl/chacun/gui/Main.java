@@ -184,8 +184,6 @@ public class Main extends Application {
         Consumer<Occupant> occupantPlacementHandler = o -> {
             switch (oGameState.get().nextAction()) {
                 case OCCUPY_TILE -> {
-                    Preconditions.checkArgument(
-                            !oGameState.get().lastTilePotentialOccupants().contains(o));
                     ActionEncoder.StateAction next =
                         ActionEncoder.withNewOccupant(oGameState.get(), o);
                     oGameState.set(next.state());
@@ -195,16 +193,18 @@ public class Main extends Application {
 
                 }
                 case RETAKE_PAWN -> {
-                    Preconditions.checkArgument(o.kind() != Occupant.Kind.PAWN);
-                    Preconditions.checkArgument(oGameState.get().board()
-                                    .tileWithId(Zone.tileId(o.zoneId())).placer() ==
-                            oGameState.get().currentPlayer());
-                    ActionEncoder.StateAction next =
-                            ActionEncoder.withOccupantRemoved(oGameState.get(), o);
-                    oGameState.set(next.state());
-                    List<String> nextActionsList = new ArrayList<>(observableActions.get());
-                    nextActionsList.add(next.encodedAction());
-                    observableActions.set(nextActionsList);
+                    boolean colorCheck = oGameState.get().currentPlayer() ==
+                            oGameState.get().board().tileWithId(Zone.tileId(o.zoneId())).placer();
+
+                    if (o.kind() == Occupant.Kind.PAWN && colorCheck) {
+
+                        ActionEncoder.StateAction next =
+                                ActionEncoder.withOccupantRemoved(oGameState.get(), o);
+                        oGameState.set(next.state());
+                        List<String> nextActionsList = new ArrayList<>(observableActions.get());
+                        nextActionsList.add(next.encodedAction());
+                        observableActions.set(nextActionsList);
+                    }
 
                 }
             }
