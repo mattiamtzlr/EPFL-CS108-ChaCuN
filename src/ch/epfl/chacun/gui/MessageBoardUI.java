@@ -34,13 +34,13 @@ public final class MessageBoardUI {
      */
     public static Node create(ObservableValue<List<MessageBoard.Message>> observableMessages,
                               ObjectProperty<Set<Integer>> relevantTileIds) {
-        ScrollPane messageBoardScrollPane = new ScrollPane();
+
         VBox scrollableMessages = new VBox();
+        ScrollPane messageBoardScrollPane = new ScrollPane(scrollableMessages);
 
         messageBoardScrollPane.setId("message-board");
-        messageBoardScrollPane.setStyle("message-board.css");
+        messageBoardScrollPane.getStylesheets().add("message-board.css");
         messageBoardScrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        messageBoardScrollPane.setContent(scrollableMessages);
         scrollableMessages.setAlignment(Pos.TOP_LEFT);
 
         observableMessages.addListener(

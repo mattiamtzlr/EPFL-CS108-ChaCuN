@@ -43,7 +43,7 @@ public final class ActionsUI {
         Text actionHistory = new Text();
         actionHistory.textProperty().bind(
                 observableActions.map(oA -> {
-                    StringJoiner text = new StringJoiner(", ", "", "  ");
+                    StringJoiner text = new StringJoiner(", ");
                     int size = oA.size();
                     List<String> recentActions = oA.subList(
                             size - ((size > 3) ? 4 : size), size);
@@ -82,7 +82,7 @@ public final class ActionsUI {
 
         actionInputBox.setAlignment(Pos.CENTER);
 
-        actionInputBox.setStyle("actions.css");
+        actionInputBox.getStylesheets().add("actions.css");
         actionInputBox.setId("actions");
 
         return actionInputBox;

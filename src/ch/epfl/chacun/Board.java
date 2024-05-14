@@ -478,27 +478,33 @@ public final class Board {
         ZonePartitions.Builder builder = new ZonePartitions.Builder(zonePartitions);
 
         PlacedTile[] newPlacedTiles = placedTiles.clone();
-        for (Area<Zone.Forest> forest : forests) {
-            builder.clearGatherers(forest);
+        for (Area<Zone.Forest> forestArea : forests) {
+            builder.clearGatherers(forestArea);
 
-            for (Integer tileId : forest.tileIds()) {
-                int targetIndex = calculateTileIndex(tileWithId(tileId).pos());
-                newPlacedTiles[targetIndex] = newPlacedTiles[targetIndex].withNoOccupant();
+            for (Zone.Forest forest : forestArea.zones()) {
+                int index = calculateTileIndex(tileWithId(forest.tileId()).pos());
+                Occupant occupant = placedTiles[index].occupant();
+
+                if (occupant != null && occupant.zoneId() == forest.id())
+                    newPlacedTiles[index] = newPlacedTiles[index].withNoOccupant();
             }
 
         }
-        for (Area<Zone.River> river : rivers) {
-            builder.clearFishers(river);
+        for (Area<Zone.River> riverArea : rivers) {
+            builder.clearFishers(riverArea);
 
-            for (Integer tileId : river.tileIds()) {
-                int targetIndex = calculateTileIndex(tileWithId(tileId).pos());
+            for (Zone.River river : riverArea.zones()) {
+                int index = calculateTileIndex(tileWithId(river.tileId()).pos());
+                Occupant occupant = placedTiles[index].occupant();
+
                 if (
-                    Objects.nonNull(newPlacedTiles[targetIndex].occupant())
-                        && newPlacedTiles[targetIndex].occupant().kind().equals(Occupant.Kind.PAWN)
-                ) {
-                    newPlacedTiles[targetIndex] = newPlacedTiles[targetIndex].withNoOccupant();
-                }
+                        occupant != null
+                        && occupant.kind() == Occupant.Kind.PAWN
+                        && occupant.zoneId() == river.id()
+                )
+                    newPlacedTiles[index] = newPlacedTiles[index].withNoOccupant();
             }
+
         }
         return new Board(newPlacedTiles, placedTileIndices,
             builder.build(), cancelledAnimals());
