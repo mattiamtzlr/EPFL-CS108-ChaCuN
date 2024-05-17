@@ -51,7 +51,7 @@ public final class BoardUI {
          */
         private Image get(int tileId) {
             Image temp = cache.get(tileId);
-            if (Objects.isNull(temp)) {
+            if (temp == null) {
                 Image toReturn = ImageLoader.normalForTileId(tileId);
                 cache.put(tileId, toReturn);
                 return toReturn;
@@ -195,7 +195,7 @@ public final class BoardUI {
                  );
 
                 boardSquare.setOnMouseClicked(e -> {
-                    if (fringe.getValue().contains(currentPos))
+                    if (e.isStillSincePress() && fringe.getValue().contains(currentPos))
                         switch (e.getButton()) {
                             case PRIMARY -> positionHandler.accept(currentPos);
                             case SECONDARY -> {
@@ -248,7 +248,10 @@ public final class BoardUI {
                                         );
                                         svgPath.rotateProperty()
                                                 .set(newTile.rotation().negated().degreesCW());
-                                        svgPath.setOnMouseClicked(_ -> occupantHandler.accept(o));
+                                        svgPath.setOnMouseClicked(e -> {
+                                            if (e.isStillSincePress())
+                                                occupantHandler.accept(o);
+                                        });
 
                                         boardSquare.getChildren().add(svgPath);
                                     }

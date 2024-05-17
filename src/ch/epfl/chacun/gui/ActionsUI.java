@@ -48,8 +48,9 @@ public final class ActionsUI {
                     List<String> recentActions = oA.subList(
                             size - ((size > 3) ? 4 : size), size);
 
-                    for (String recentAction : recentActions) {
-                        text.add(FMT."%2d\{oA.lastIndexOf(recentAction) + 1}:\{recentAction}");
+                    for (int i = 0; i < recentActions.size(); i++) {
+                        int index = oA.size() - recentActions.size() + i;
+                        text.add(FMT."%2d\{index}:\{recentActions.get(i)}");
                     }
                     return text.toString();
                 }));
