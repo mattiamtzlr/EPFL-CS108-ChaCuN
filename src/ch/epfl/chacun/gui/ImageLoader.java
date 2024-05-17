@@ -13,11 +13,29 @@ public final class ImageLoader {
     private ImageLoader() {
     }
 
+    /**
+     * Pixel size for large tile faces
+     */
     public static final int LARGE_TILE_PIXEL_SIZE = 512;
+    /**
+     * Fit size for large tile faces (display size)
+     */
     public static final int LARGE_TILE_FIT_SIZE = LARGE_TILE_PIXEL_SIZE / 2;
+    /**
+     * Pixel size for normal tile faces
+     */
     public static final int NORMAL_TILE_PIXEL_SIZE = 256;
+    /**
+     * Fit size for normal tile faces (display size)
+     */
     public static final int NORMAL_TILE_FIT_SIZE = NORMAL_TILE_PIXEL_SIZE / 2;
+    /**
+     * Pixel size for cancelled animal markers
+     */
     public static final int MARKER_PIXEL_SIZE = 96;
+    /**
+     * Fit size for cancelled animal markers
+     */
     public static final int MARKER_FIT_SIZE = MARKER_PIXEL_SIZE / 2;
 
     /**
