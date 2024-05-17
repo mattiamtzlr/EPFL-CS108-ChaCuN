@@ -11,7 +11,6 @@ class IconTest {
 
     @Test
     void newForDoesNotCauseErrors() {
-        // TODO look at this once gui
         for (PlayerColor playerColor : PlayerColor.ALL) {
             for (Occupant.Kind kind : Occupant.Kind.values()) {
                 assertDoesNotThrow(() -> Icon.newFor(playerColor, kind));

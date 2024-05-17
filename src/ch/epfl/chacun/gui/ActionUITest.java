@@ -12,12 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
-/**
- * TODO Description
- *
- * @author Mattia Metzler (372025)
- * @author Leoluca Bernardi (374107)
- */
 public class ActionUITest extends Application {
     public static void main(String[] args) {
         launch(args);
