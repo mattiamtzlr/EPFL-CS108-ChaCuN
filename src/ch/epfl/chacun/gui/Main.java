@@ -19,7 +19,8 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * Behold: The main game!
+ * The main class that creates the entire UI as well as the event handlers.
+ * These include some of the game logic concerning occupants.
  *
  * @author Mattia Metzler (372025)
  * @author Leoluca Bernardi (374107)
@@ -33,6 +34,11 @@ public class Main extends Application {
             "BI", "A", "AO", "B", "AW", "A", "AE", "7"
     );
 
+    /**
+     * The main method. Pass the players as well as the seed (optional)
+     * @param args Consecutively list player names and give seed x with --seed=x. Passing a seed is
+     *             optional and said seed will be chosen at random if none is provided.
+     */
     public static void main(String[] args) {
         launch(args);
     }
@@ -49,6 +55,14 @@ public class Main extends Application {
         observableActions.set(newActions);
     }
 
+    /**
+     * The method that sets up a new game.
+     * @param primaryStage the primary stage for this application, onto which
+     * the application scene can be set.
+     * Applications may create other stages, if needed, but they will not be
+     * primary stages.
+     * @throws Exception if the game were to crash
+     */
     @Override
     public void start(Stage primaryStage) throws Exception {
 
@@ -71,7 +85,12 @@ public class Main extends Application {
         tiles = tiles.stream().filter(t -> !(t.kind() == Tile.Kind.MENHIR && t.id() != 88))
                 .collect(Collectors.toList());
 */
-
+/*
+        tiles = tiles.stream()
+                .filter(t -> !(t.kind() == Tile.Kind.MENHIR && t.id() != 87))
+                .filter(t -> t.id() >= 56)
+                .collect(Collectors.toList());
+*/
         if (userSeed == null)
             Collections.shuffle(tiles, RandomGeneratorFactory.getDefault().create());
         else {
@@ -303,6 +322,7 @@ public class Main extends Application {
         primaryStage.show();
         oGameState.set(oGameState.get().withStartingTilePlaced());
 
+        // TODO remove before final
         if (userSeed != null && userSeed.equals("2024"))
             for (String action : ACTIONS_2024) {
                 oGameState.set(ActionEncoder.applyAction(oGameState.get(), action).state());

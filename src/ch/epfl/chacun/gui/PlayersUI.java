@@ -117,7 +117,8 @@ public final class PlayersUI {
         observableCurrentPlayer.addListener((_, oldColor, newColor) -> {
             if (oldColor != null)
                 textFlows[oldColor.ordinal()].getStyleClass().remove("current");
-            textFlows[newColor.ordinal()].getStyleClass().add("current");
+            if (newColor != null)
+                textFlows[newColor.ordinal()].getStyleClass().add("current");
         });
 
         // remove null values, as not all players might be present.
