@@ -195,9 +195,12 @@ public final class BoardUI {
                  );
 
                 boardSquare.setOnMouseClicked(e -> {
-                    if (e.isStillSincePress() && fringe.getValue().contains(currentPos))
+                    if (fringe.getValue().contains(currentPos))
                         switch (e.getButton()) {
-                            case PRIMARY -> positionHandler.accept(currentPos);
+                            case PRIMARY -> {
+                                if (e.isStillSincePress())
+                                    positionHandler.accept(currentPos);
+                            }
                             case SECONDARY -> {
                                 if (e.isAltDown())
                                     rotationHandler.accept(Rotation.RIGHT);

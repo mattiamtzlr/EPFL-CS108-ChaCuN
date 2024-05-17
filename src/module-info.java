@@ -4,5 +4,4 @@ module ChaCuN {
 
     exports ch.epfl.chacun;
     exports ch.epfl.chacun.gui;
-    exports ch.epfl.chacun.gui.test;
 }

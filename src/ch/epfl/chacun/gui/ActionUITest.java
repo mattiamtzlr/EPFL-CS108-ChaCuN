@@ -1,10 +1,8 @@
-package ch.epfl.chacun.gui.test;
+package ch.epfl.chacun.gui;
 
-import ch.epfl.chacun.gui.ActionsUI;
-import ch.epfl.chacun.gui.ImageLoader;
+import ch.epfl.chacun.gui.ActionUI;
 import javafx.application.Application;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.value.ObservableValue;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
@@ -20,7 +18,7 @@ import java.util.function.Consumer;
  * @author Mattia Metzler (372025)
  * @author Leoluca Bernardi (374107)
  */
-public class ActionsUITest extends Application {
+public class ActionUITest extends Application {
     public static void main(String[] args) {
         launch(args);
     }
@@ -39,7 +37,7 @@ public class ActionsUITest extends Application {
             observableActions.set(currentActions);
             System.out.println(observableActions.get());
         };
-        Node actionsUI = ActionsUI.create(
+        Node actionsUI = ActionUI.create(
                 observableActions,
                 actionInput
         );

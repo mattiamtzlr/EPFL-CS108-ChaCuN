@@ -26,42 +26,33 @@ import java.util.stream.IntStream;
  */
 public class Main extends Application {
     private static final int BOARD_SIZE = 12;
+
     // actions to autoplay on seed 2024 TODO remove this
     private static final List<String> ACTIONS_2024 = List.of(
-            "AA",
-            "C",
-            "AL",
-            "D",
-            "A2",
-            "B",
-            "AV",
-            "7",
-            "AE",
-            "Y",
-            "AA",
-            "D",
-            "AZ",
-            "7",
-            "BD",
-            "A",
-            "BI",
-            "A",
-            "AO",
-            "B",
-            "AW",
-            "A",
-            "AE",
-            "7"
+            "AA", "C", "AL", "D", "A2", "B", "AV", "7", "AE", "Y", "AA", "D", "AZ", "7", "BD", "A",
+            "BI", "A", "AO", "B", "AW", "A", "AE", "7"
     );
 
     public static void main(String[] args) {
         launch(args);
     }
 
+    /**
+     * Helper method to add a new action to the observable actions list
+     *
+     * @param observableActions the list to add the action to
+     * @param action            the action to be added
+     */
+    private void addAction(SimpleObjectProperty<List<String>> observableActions, String action) {
+        List<String> newActions = new ArrayList<>(observableActions.get());
+        newActions.add(action);
+        observableActions.set(newActions);
+    }
+
     @Override
     public void start(Stage primaryStage) throws Exception {
 
-        //-----------------------------------------------------------------------Setting up the game
+        //--------------------------------------------------------------------- Setting up the game
         primaryStage.setTitle("ChaCuN");
         primaryStage.setWidth(1440);
         primaryStage.setHeight(1080);
@@ -109,12 +100,12 @@ public class Main extends Application {
         String cancelRetakeText = textMaker.clickToUnoccupy();
 
 
-        //--------------------------------------------Instantiating Observable Values and Properties
+        //------------------------------------------ Instantiating Observable Values and Properties
         SimpleObjectProperty<GameState> oGameState = new SimpleObjectProperty<>(
                 GameState.initial(colors, tileDecks, textMaker));
 
         SimpleObjectProperty<List<String>> observableActions =
-                new SimpleObjectProperty<>(new ArrayList<>());
+                new SimpleObjectProperty<>(Collections.emptyList());
 
         SimpleObjectProperty<Set<Integer>> tileIds =
                 new SimpleObjectProperty<>(Collections.emptySet());
@@ -134,7 +125,7 @@ public class Main extends Application {
         SimpleBooleanProperty isRetakeAction = new SimpleBooleanProperty(false);
         SimpleStringProperty cancelText = new SimpleStringProperty();
 
-        //---------------------------------------------------------------------Connecting Properties
+        //------------------------------------------------------------------- Connecting Properties
         highlightedTilesP.bind(tileIds);
 
 
@@ -145,9 +136,11 @@ public class Main extends Application {
                     occupyOccupants.addAll(g.lastTilePotentialOccupants());
                     return occupyOccupants;
                 }
+
                 case START_GAME -> {
                     return Collections.emptySet();
                 }
+
                 default -> {
                     return g.board().occupants();
                 }
@@ -168,95 +161,104 @@ public class Main extends Application {
                 .otherwise(""));
 
 
-        //------------------------------------------------------------------------Building Consumers
+        //-------------------------------------------------------------------------- Event Handlers
+        // ··········································· Event handler for canceling occupant actions
         Consumer<Occupant> cancelOccupyHandler = (_ -> {
             switch (oGameState.get().nextAction()) {
                 case OCCUPY_TILE -> {
-                    ActionEncoder.StateAction next =
-                            ActionEncoder.withNewOccupant(oGameState.get(), null);
+                    ActionEncoder.StateAction next = ActionEncoder.withNewOccupant(
+                            oGameState.get(), null
+                    );
                     oGameState.set(next.state());
 
-                    List<String> nextActionsList = new ArrayList<>(observableActions.get());
-                    nextActionsList.add(next.encodedAction());
-                    observableActions.set(nextActionsList);
+                    addAction(observableActions, next.encodedAction());
                 }
 
                 case RETAKE_PAWN -> {
-                    ActionEncoder.StateAction next =
-                            ActionEncoder.withOccupantRemoved(oGameState.get(), null);
+                    ActionEncoder.StateAction next = ActionEncoder.withOccupantRemoved(
+                            oGameState.get(), null
+                    );
                     oGameState.set(next.state());
 
-                    List<String> nextActionsList = new ArrayList<>(observableActions.get());
-                    nextActionsList.add(next.encodedAction());
-                    observableActions.set(nextActionsList);
+                    addAction(observableActions, next.encodedAction());
                 }
             }
         });
 
+        // ······················································· Event handler for rotating tiles
         Consumer<Rotation> rotationHandler =
                 r -> tileToPlaceRotationP.set(tileToPlaceRotationP.get().add(r));
 
-        Consumer<Pos> placeTileHandler = t -> {
 
+        // ························································ Event handler for placing tiles
+        Consumer<Pos> placeTileHandler = t -> {
             PlacedTile tileToPlace = new PlacedTile(
                     oGameState.get().tileToPlace(),
                     oGameState.get().currentPlayer(),
                     tileToPlaceRotationP.getValue(),
                     t);
-            ActionEncoder.StateAction next =
-                    ActionEncoder.withPlacedTile(oGameState.get(), tileToPlace);
-            oGameState.set(next.state());
 
-            List<String> nextActionsList = new ArrayList<>(observableActions.get());
-            nextActionsList.add(next.encodedAction());
-            observableActions.set(nextActionsList);
-            tileToPlaceRotationP.set(Rotation.NONE);
+            if (oGameState.get().board().canAddTile(tileToPlace)) {
+
+                ActionEncoder.StateAction next = ActionEncoder.withPlacedTile(
+                        oGameState.get(), tileToPlace
+                );
+
+                oGameState.set(next.state());
+
+                addAction(observableActions, next.encodedAction());
+
+                // reset rotation of tile to place
+                tileToPlaceRotationP.set(Rotation.NONE);
+            }
         };
-        Consumer<Occupant> occupantPlacementHandler = o -> {
+
+
+        // ········································· Event handler for placing / retaking occupants
+        Consumer<Occupant> occupantHandler = o -> {
             switch (oGameState.get().nextAction()) {
                 case OCCUPY_TILE -> {
-                    ActionEncoder.StateAction next =
-                            ActionEncoder.withNewOccupant(oGameState.get(), o);
-                    oGameState.set(next.state());
+                    if (oGameState.get().lastTilePotentialOccupants().contains(o)) {
 
-                    List<String> nextActionsList = new ArrayList<>(observableActions.get());
-                    nextActionsList.add(next.encodedAction());
-                    observableActions.set(nextActionsList);
+                        ActionEncoder.StateAction next = ActionEncoder.withNewOccupant(
+                                oGameState.get(), o
+                        );
+                        oGameState.set(next.state());
 
+                        addAction(observableActions, next.encodedAction());
+                    }
                 }
+
                 case RETAKE_PAWN -> {
                     boolean colorCheck = oGameState.get().currentPlayer() ==
                             oGameState.get().board().tileWithId(Zone.tileId(o.zoneId())).placer();
 
                     if (o.kind() == Occupant.Kind.PAWN && colorCheck) {
-
-                        ActionEncoder.StateAction next =
-                                ActionEncoder.withOccupantRemoved(oGameState.get(), o);
+                        ActionEncoder.StateAction next = ActionEncoder.withOccupantRemoved(
+                                oGameState.get(), o
+                        );
                         oGameState.set(next.state());
 
-                        List<String> nextActionsList = new ArrayList<>(observableActions.get());
-                        nextActionsList.add(next.encodedAction());
-                        observableActions.set(nextActionsList);
+                        addAction(observableActions, next.encodedAction());
                     }
 
                 }
             }
         };
 
+        // ··········································· Event handler for adding actions to the list
         Consumer<String> actionHandler = action -> {
             ActionEncoder.StateAction next = ActionEncoder.applyAction(oGameState.get(), action);
             if (next != null) {
                 oGameState.set(next.state());
 
-                List<String> newActions = new ArrayList<>(observableActions.get());
-                newActions.add(action);
-                observableActions.set(newActions);
+                addAction(observableActions, action);
             }
         };
 
-        //================================================================Putting the scene together
+        //============================================================== Putting the scene together
 
-        Node actionsUI = ActionsUI.create(
+        Node actionsUI = ActionUI.create(
                 observableActions, actionHandler
         );
 
@@ -274,6 +276,7 @@ public class Main extends Application {
                 altText,
                 cancelOccupyHandler
         );
+
         VBox bottomBox = new VBox(actionsUI, decksUI);
         bottomBox.setPrefWidth(ImageLoader.LARGE_TILE_FIT_SIZE);
         BorderPane rightPane = new BorderPane(
@@ -288,24 +291,23 @@ public class Main extends Application {
                 highlightedTilesP,
                 rotationHandler,
                 placeTileHandler,
-                occupantPlacementHandler
+                occupantHandler
         );
 
-        BorderPane root = new BorderPane(boardUI, null, rightPane, null, null);
-
+        BorderPane root = new BorderPane(
+                boardUI, null, rightPane, null, null
+        );
 
         primaryStage.setScene(new Scene(root));
-
 
         primaryStage.show();
         oGameState.set(oGameState.get().withStartingTilePlaced());
 
-        for (String action : ACTIONS_2024) {
-            oGameState.set(ActionEncoder.applyAction(oGameState.get(), action).state());
+        if (userSeed != null && userSeed.equals("2024"))
+            for (String action : ACTIONS_2024) {
+                oGameState.set(ActionEncoder.applyAction(oGameState.get(), action).state());
 
-            List<String> newActions = new ArrayList<>(observableActions.get());
-            newActions.add(action);
-            observableActions.set(newActions);
-        }
+                addAction(observableActions, action);
+            }
     }
 }

@@ -1,4 +1,4 @@
-package ch.epfl.chacun.gui.test;
+package ch.epfl.chacun.gui;
 
 import ch.epfl.chacun.*;
 import ch.epfl.chacun.gui.BoardUI;
