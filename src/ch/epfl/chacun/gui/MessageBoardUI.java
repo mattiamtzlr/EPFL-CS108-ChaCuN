@@ -60,14 +60,12 @@ public final class MessageBoardUI {
 
                         scrollableMessages.getChildren().add(newText);
 
+
+                        messageBoardScrollPane.layout();
+                        messageBoardScrollPane.setVvalue(1);
                     }
                 });
 
-
-        runLater(() -> {
-            messageBoardScrollPane.layout();
-            messageBoardScrollPane.setVvalue(1);
-        });
 
         return messageBoardScrollPane;
     }

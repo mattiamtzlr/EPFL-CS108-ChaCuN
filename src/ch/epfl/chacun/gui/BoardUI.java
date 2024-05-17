@@ -208,8 +208,8 @@ public final class BoardUI {
                 });
 
                 // Listener pointing to the correct tile on the board
-                currentTile.addListener((_, _, newTile) -> {
-                        if (Objects.nonNull(newTile)) {
+                currentTile.addListener((_, oldTile, newTile) -> {
+                        if (oldTile == null && newTile != null) {
 
                             // construct markers for all cancelled animals
                             newTile.meadowZones().stream()

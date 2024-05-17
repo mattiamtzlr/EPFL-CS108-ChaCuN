@@ -1,7 +1,6 @@
 package ch.epfl.chacun.gui;
 
 import ch.epfl.chacun.*;
-import ch.epfl.chacun.Tiles;
 import javafx.application.Application;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -27,6 +26,33 @@ import java.util.stream.IntStream;
  */
 public class Main extends Application {
     private static final int BOARD_SIZE = 12;
+    // actions to autoplay on seed 2024 TODO remove this
+    private static final List<String> ACTIONS_2024 = List.of(
+            "AA",
+            "C",
+            "AL",
+            "D",
+            "A2",
+            "B",
+            "AV",
+            "7",
+            "AE",
+            "Y",
+            "AA",
+            "D",
+            "AZ",
+            "7",
+            "BD",
+            "A",
+            "BI",
+            "A",
+            "AO",
+            "B",
+            "AW",
+            "A",
+            "AE",
+            "7"
+    );
 
     public static void main(String[] args) {
         launch(args);
@@ -50,8 +76,10 @@ public class Main extends Application {
         List<Tile> tiles = new ArrayList<>(Tiles.TILES);
         // TODO remove before final
         // Trigger shaman
+/*
         tiles = tiles.stream().filter(t -> !(t.kind() == Tile.Kind.MENHIR && t.id() != 88))
                 .collect(Collectors.toList());
+*/
 
         if (userSeed == null)
             Collections.shuffle(tiles, RandomGeneratorFactory.getDefault().create());
@@ -110,26 +138,26 @@ public class Main extends Application {
         highlightedTilesP.bind(tileIds);
 
 
-
         visibleOccupantsP.bind(oGameState.map(g -> {
-            switch(g.nextAction()) {
+            switch (g.nextAction()) {
                 case OCCUPY_TILE -> {
-                Set<Occupant> occupyOccupants = new HashSet<>(g.board().occupants());
-                occupyOccupants.addAll(g.lastTilePotentialOccupants());
-                return occupyOccupants;
+                    Set<Occupant> occupyOccupants = new HashSet<>(g.board().occupants());
+                    occupyOccupants.addAll(g.lastTilePotentialOccupants());
+                    return occupyOccupants;
                 }
                 case START_GAME -> {
                     return Collections.emptySet();
                 }
                 default -> {
                     return g.board().occupants();
-                }}
+                }
+            }
         }));
 
         isRetakeAction.bind(oGameState.map(g -> g.nextAction() == GameState.Action.RETAKE_PAWN));
         isCancelableAction.bind(oGameState.map(g ->
                 g.nextAction() == GameState.Action.OCCUPY_TILE ||
-                g.nextAction() == GameState.Action.RETAKE_PAWN));
+                        g.nextAction() == GameState.Action.RETAKE_PAWN));
 
         cancelText.bind(Bindings.when(isRetakeAction)
                 .then(cancelRetakeText)
@@ -145,8 +173,9 @@ public class Main extends Application {
             switch (oGameState.get().nextAction()) {
                 case OCCUPY_TILE -> {
                     ActionEncoder.StateAction next =
-                        ActionEncoder.withNewOccupant(oGameState.get(), null);
+                            ActionEncoder.withNewOccupant(oGameState.get(), null);
                     oGameState.set(next.state());
+
                     List<String> nextActionsList = new ArrayList<>(observableActions.get());
                     nextActionsList.add(next.encodedAction());
                     observableActions.set(nextActionsList);
@@ -154,8 +183,9 @@ public class Main extends Application {
 
                 case RETAKE_PAWN -> {
                     ActionEncoder.StateAction next =
-                        ActionEncoder.withOccupantRemoved(oGameState.get(), null);
+                            ActionEncoder.withOccupantRemoved(oGameState.get(), null);
                     oGameState.set(next.state());
+
                     List<String> nextActionsList = new ArrayList<>(observableActions.get());
                     nextActionsList.add(next.encodedAction());
                     observableActions.set(nextActionsList);
@@ -176,6 +206,7 @@ public class Main extends Application {
             ActionEncoder.StateAction next =
                     ActionEncoder.withPlacedTile(oGameState.get(), tileToPlace);
             oGameState.set(next.state());
+
             List<String> nextActionsList = new ArrayList<>(observableActions.get());
             nextActionsList.add(next.encodedAction());
             observableActions.set(nextActionsList);
@@ -185,8 +216,9 @@ public class Main extends Application {
             switch (oGameState.get().nextAction()) {
                 case OCCUPY_TILE -> {
                     ActionEncoder.StateAction next =
-                        ActionEncoder.withNewOccupant(oGameState.get(), o);
+                            ActionEncoder.withNewOccupant(oGameState.get(), o);
                     oGameState.set(next.state());
+
                     List<String> nextActionsList = new ArrayList<>(observableActions.get());
                     nextActionsList.add(next.encodedAction());
                     observableActions.set(nextActionsList);
@@ -201,6 +233,7 @@ public class Main extends Application {
                         ActionEncoder.StateAction next =
                                 ActionEncoder.withOccupantRemoved(oGameState.get(), o);
                         oGameState.set(next.state());
+
                         List<String> nextActionsList = new ArrayList<>(observableActions.get());
                         nextActionsList.add(next.encodedAction());
                         observableActions.set(nextActionsList);
@@ -214,6 +247,7 @@ public class Main extends Application {
             ActionEncoder.StateAction next = ActionEncoder.applyAction(oGameState.get(), action);
             if (next != null) {
                 oGameState.set(next.state());
+
                 List<String> newActions = new ArrayList<>(observableActions.get());
                 newActions.add(action);
                 observableActions.set(newActions);
@@ -266,6 +300,12 @@ public class Main extends Application {
         primaryStage.show();
         oGameState.set(oGameState.get().withStartingTilePlaced());
 
+        for (String action : ACTIONS_2024) {
+            oGameState.set(ActionEncoder.applyAction(oGameState.get(), action).state());
 
+            List<String> newActions = new ArrayList<>(observableActions.get());
+            newActions.add(action);
+            observableActions.set(newActions);
+        }
     }
 }
