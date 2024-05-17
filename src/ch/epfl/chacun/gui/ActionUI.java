@@ -25,7 +25,8 @@ import static java.util.FormatProcessor.FMT;
  * @author Leoluca Bernardi (374107)
  */
 public final class ActionUI {
-    private ActionUI() {}
+    private ActionUI() {
+    }
 
     /**
      * Create method for the actions user interface. This is where a user will enter the

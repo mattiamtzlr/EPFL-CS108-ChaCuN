@@ -14,6 +14,7 @@ import javafx.stage.Stage;
 
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.random.RandomGenerator;
 import java.util.random.RandomGeneratorFactory;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -28,14 +29,10 @@ import java.util.stream.IntStream;
 public class Main extends Application {
     private static final int BOARD_SIZE = 12;
 
-    // actions to autoplay on seed 2024 TODO remove this
-    private static final List<String> ACTIONS_2024 = List.of(
-            "AA", "C", "AL", "D", "A2", "B", "AV", "7", "AE", "Y", "AA", "D", "AZ", "7", "BD", "A",
-            "BI", "A", "AO", "B", "AW", "A", "AE", "7"
-    );
 
     /**
      * The main method. Pass the players as well as the seed (optional)
+     *
      * @param args Consecutively list player names and give seed x with --seed=x. Passing a seed is
      *             optional and said seed will be chosen at random if none is provided.
      */
@@ -57,10 +54,11 @@ public class Main extends Application {
 
     /**
      * The method that sets up a new game.
+     *
      * @param primaryStage the primary stage for this application, onto which
-     * the application scene can be set.
-     * Applications may create other stages, if needed, but they will not be
-     * primary stages.
+     *                     the application scene can be set.
+     *                     Applications may create other stages, if needed, but they will not be
+     *                     primary stages.
      * @throws Exception if the game were to crash
      */
     @Override
@@ -79,25 +77,16 @@ public class Main extends Application {
         String userSeed = getParameters().getNamed().get("seed");
 
         List<Tile> tiles = new ArrayList<>(Tiles.TILES);
-        // TODO remove before final
-        // Trigger shaman
-/*
-        tiles = tiles.stream().filter(t -> !(t.kind() == Tile.Kind.MENHIR && t.id() != 88))
-                .collect(Collectors.toList());
-*/
-/*
-        tiles = tiles.stream()
-                .filter(t -> !(t.kind() == Tile.Kind.MENHIR && t.id() != 87))
-                .filter(t -> t.id() >= 56)
-                .collect(Collectors.toList());
-*/
-        if (userSeed == null)
+
+        if (userSeed == null) {
             Collections.shuffle(tiles, RandomGeneratorFactory.getDefault().create());
+            System.out.println("Playing with randomly generated seed.");
+        }
         else {
             long seed = Long.parseUnsignedLong(userSeed);
             Collections.shuffle(tiles, RandomGeneratorFactory.getDefault()
                     .create(seed));
-            System.out.println(STR."seed by user is: \{seed}");
+            System.out.println(STR."Playing with seed: \{seed}");
         }
 
         Map<Tile.Kind, List<Tile>> tilesByKind = tiles.stream()
@@ -322,12 +311,5 @@ public class Main extends Application {
         primaryStage.show();
         oGameState.set(oGameState.get().withStartingTilePlaced());
 
-        // TODO remove before final
-        if (userSeed != null && userSeed.equals("2024"))
-            for (String action : ACTIONS_2024) {
-                oGameState.set(ActionEncoder.applyAction(oGameState.get(), action).state());
-
-                addAction(observableActions, action);
-            }
     }
 }

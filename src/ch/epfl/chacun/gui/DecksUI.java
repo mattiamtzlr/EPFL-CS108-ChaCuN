@@ -64,7 +64,7 @@ public final class DecksUI {
 
         ImageView tileFace = new ImageView();
         tileFace.imageProperty()
-            .bind(observableTileToPlace.map(ttp -> ImageLoader.largeForTileId(ttp.id())));
+                .bind(observableTileToPlace.map(ttp -> ImageLoader.largeForTileId(ttp.id())));
         tileFace.setFitWidth(ImageLoader.LARGE_TILE_FIT_SIZE);
         tileFace.setFitHeight(ImageLoader.LARGE_TILE_FIT_SIZE);
 

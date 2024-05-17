@@ -14,8 +14,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-import static javafx.application.Platform.runLater;
-
 /**
  * UI Class that manages the display of messages during a game of ChaCuN
  *
@@ -23,13 +21,15 @@ import static javafx.application.Platform.runLater;
  * @author Leoluca Bernardi (374107)
  */
 public final class MessageBoardUI {
-    private MessageBoardUI() {}
+    private MessageBoardUI() {
+    }
 
     /**
      * Method that creates the node where messages are displayed
+     *
      * @param observableMessages the messages to display
-     * @param relevantTileIds a set where the ids of tiles that should be highlighted are added in
-     *                        the method.
+     * @param relevantTileIds    a set where the ids of tiles that should be highlighted are added in
+     *                           the method.
      * @return The node for the JavaFX tree
      */
     public static Node create(ObservableValue<List<MessageBoard.Message>> observableMessages,
@@ -47,8 +47,8 @@ public final class MessageBoardUI {
                 (o, oldMessageList, newMessageList) -> {
 
                     List<MessageBoard.Message> newMessages = newMessageList.stream()
-                        .filter(m -> !oldMessageList.contains(m))
-                        .toList();
+                            .filter(m -> !oldMessageList.contains(m))
+                            .toList();
 
                     for (MessageBoard.Message message : newMessages) {
                         Text newText = new Text(message.text());
