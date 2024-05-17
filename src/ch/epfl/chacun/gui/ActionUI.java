@@ -50,7 +50,7 @@ public final class ActionUI {
                             size - ((size > 3) ? 4 : size), size);
 
                     for (int i = 0; i < recentActions.size(); i++) {
-                        int index = oA.size() - recentActions.size() + i;
+                        int index = oA.size() - recentActions.size() + i + 1;
                         text.add(FMT."%2d\{index}:\{recentActions.get(i)}");
                     }
                     return text.toString();
