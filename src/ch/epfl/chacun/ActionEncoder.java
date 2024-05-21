@@ -11,9 +11,43 @@ import java.util.List;
  * @author Leoluca Bernardi (374107)
  */
 public final class ActionEncoder {
+    /**
+     * Amount of bits that the position (of a placed tile in the fringe) encoding is shifted by
+     */
     private static final int POS_SHIFT = 2;
+    /**
+     * Amount of bits that the occupant kind encoding is shifted by
+     */
     private static final int OCC_KIND_SHIFT = 4;
-    private static final int NO_OCCUPANT = 31; // 11111
+    /**
+     * Encoding corresponding to no occupant being chosen for any occupant action
+     */
+    private static final int NO_OCCUPANT = 0b11111;
+    /**
+     * Length (in characters) of the encoded actions relating to placing a tile
+     */
+    private static final int PLACE_ACTION_LENGTH = 2;
+    /**
+     * Length (in characters) of the encoded actions relating to occupant actions
+     */
+    private static final int OCC_ACTION_LENGTH = 1;
+    /**
+     * Number of bits used to encode the position of a placed tile in the fringe
+     */
+    private static final int POS_BITS = 8;
+    /**
+     * Number of bits used to encode the rotation of a placed tile in the fringe
+     */
+    private static final int ROTATION_BITS = 2;
+    /**
+     * Number of bits used to encode the zone id of an occupant
+     */
+    private static final int ZONE_ID_BITS = 4;
+
+    /**
+     * Maximum length (in characters) of any encoded action, primarily used by ActionUI.
+     */
+    public static final int MAX_ACTION_LENGTH = Math.max(PLACE_ACTION_LENGTH, OCC_ACTION_LENGTH);
 
     /**
      * Pairing of a GameState object with the last action that was applied to it.
@@ -21,11 +55,9 @@ public final class ActionEncoder {
      * @param state the state to be part of the pair.
      * @param encodedAction the action to be part of the pair in base 32.
      */
-    public record StateAction(GameState state, String encodedAction) {
-    }
+    public record StateAction(GameState state, String encodedAction) {}
 
-    private ActionEncoder() {
-    }
+    private ActionEncoder() {}
 
     private static List<Pos> getFringeSorted(GameState state) {
         // Returns a list of fringe positions sorted first ascending by x then by y.
@@ -110,11 +142,11 @@ public final class ActionEncoder {
 
             switch (state.nextAction()) {
                 case PLACE_TILE -> {
-                    Preconditions.checkArgument(encodedAction.length() == 2);
-                    int rotationIndex = decoded & ((1 << 2) - 1);
+                    Preconditions.checkArgument(encodedAction.length() == PLACE_ACTION_LENGTH);
+                    int rotationIndex = decoded & ((1 << ROTATION_BITS) - 1);
                     Rotation rotation = Rotation.values()[rotationIndex];
 
-                    int fringeIndex = (decoded >> POS_SHIFT) & ((1 << 8) - 1);
+                    int fringeIndex = (decoded >> POS_SHIFT) & ((1 << POS_BITS) - 1);
                     Pos pos = getFringeSorted(state).get(fringeIndex);
 
                     PlacedTile tileToPlace = new PlacedTile(
@@ -124,12 +156,12 @@ public final class ActionEncoder {
                     return withPlacedTile(state, tileToPlace);
                 }
                 case OCCUPY_TILE -> {
-                    Preconditions.checkArgument(encodedAction.length() == 1);
+                    Preconditions.checkArgument(encodedAction.length() == OCC_ACTION_LENGTH);
 
                     if (decoded == NO_OCCUPANT)
                         return withNewOccupant(state, null);
 
-                    int localZoneId = decoded & ((1 << 4) - 1);
+                    int localZoneId = decoded & ((1 << ZONE_ID_BITS) - 1);
                     int kindIndex = decoded >> OCC_KIND_SHIFT;
                     Occupant.Kind kind = Occupant.Kind.values()[kindIndex];
 
@@ -141,7 +173,7 @@ public final class ActionEncoder {
                     return withNewOccupant(state, occupant);
                 }
                 case RETAKE_PAWN -> {
-                    Preconditions.checkArgument(encodedAction.length() == 1);
+                    Preconditions.checkArgument(encodedAction.length() == OCC_ACTION_LENGTH);
 
                     if (decoded == NO_OCCUPANT)
                         return withOccupantRemoved(state, null);

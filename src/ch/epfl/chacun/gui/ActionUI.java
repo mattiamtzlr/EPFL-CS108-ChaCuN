@@ -15,6 +15,7 @@ import java.util.StringJoiner;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static ch.epfl.chacun.ActionEncoder.MAX_ACTION_LENGTH;
 import static java.util.FormatProcessor.FMT;
 
 /**
@@ -25,8 +26,7 @@ import static java.util.FormatProcessor.FMT;
  * @author Leoluca Bernardi (374107)
  */
 public final class ActionUI {
-    private ActionUI() {
-    }
+    private ActionUI() {}
 
     /**
      * Create method for the actions user interface. This is where a user will enter the
@@ -65,7 +65,7 @@ public final class ActionUI {
                             .mapToObj(Character::toString)
                             .map(String::toUpperCase)
                             .filter(Base32::isValid)
-                            .filter(_ -> actionInput.getText().length() <= 1)
+                            .filter(_ -> actionInput.getText().length() < MAX_ACTION_LENGTH)
                             .collect(Collectors.joining()));
                     return change;
 
