@@ -3,9 +3,7 @@ package ch.epfl.chacun.gui;
 import ch.epfl.chacun.*;
 import javafx.application.Application;
 import javafx.beans.binding.Bindings;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleObjectProperty;
-import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.*;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.layout.BorderPane;
@@ -14,7 +12,6 @@ import javafx.stage.Stage;
 
 import java.util.*;
 import java.util.function.Consumer;
-import java.util.random.RandomGenerator;
 import java.util.random.RandomGeneratorFactory;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -46,7 +43,7 @@ public class Main extends Application {
      * @param observableActions the list to add the action to
      * @param action            the action to be added
      */
-    private void addAction(SimpleObjectProperty<List<String>> observableActions, String action) {
+    private void addAction(ObjectProperty<List<String>> observableActions, String action) {
         List<String> newActions = new ArrayList<>(observableActions.get());
         newActions.add(action);
         observableActions.set(newActions);
@@ -64,13 +61,13 @@ public class Main extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
 
-        //--------------------------------------------------------------------- Setting up the game
+        //------------------------ Setting up the initial values of the game -----------------------
+
         primaryStage.setTitle("ChaCuN");
         primaryStage.setWidth(1440);
         primaryStage.setHeight(1080);
 
         List<String> playerNames = getParameters().getUnnamed();
-        System.out.println(STR."playing with \{playerNames}");
         Preconditions.checkArgument(2 <= playerNames.size() && playerNames.size() <= 5);
         List<PlayerColor> colors = PlayerColor.ALL.subList(0, playerNames.size());
 
@@ -80,13 +77,11 @@ public class Main extends Application {
 
         if (userSeed == null) {
             Collections.shuffle(tiles, RandomGeneratorFactory.getDefault().create());
-            System.out.println("Playing with randomly generated seed.");
         }
         else {
             long seed = Long.parseUnsignedLong(userSeed);
             Collections.shuffle(tiles, RandomGeneratorFactory.getDefault()
                     .create(seed));
-            System.out.println(STR."Playing with seed: \{seed}");
         }
 
         Map<Tile.Kind, List<Tile>> tilesByKind = tiles.stream()
@@ -108,34 +103,35 @@ public class Main extends Application {
         String cancelRetakeText = textMaker.clickToUnoccupy();
 
 
-        //------------------------------------------ Instantiating Observable Values and Properties
-        SimpleObjectProperty<GameState> oGameState = new SimpleObjectProperty<>(
+        //--------------------- Instantiating Observable Values and Properties ---------------------
+
+        ObjectProperty<GameState> oGameState = new SimpleObjectProperty<>(
                 GameState.initial(colors, tileDecks, textMaker));
 
-        SimpleObjectProperty<List<String>> observableActions =
+        ObjectProperty<List<String>> observableActions =
                 new SimpleObjectProperty<>(Collections.emptyList());
 
-        SimpleObjectProperty<Set<Integer>> tileIds =
+        ObjectProperty<Set<Integer>> tileIds =
                 new SimpleObjectProperty<>(Collections.emptySet());
 
-        SimpleObjectProperty<Rotation> tileToPlaceRotationP =
+        ObjectProperty<Rotation> tileToPlaceRotationP =
                 new SimpleObjectProperty<>(Rotation.NONE);
 
-        SimpleObjectProperty<Set<Occupant>> visibleOccupantsP =
+        ObjectProperty<Set<Occupant>> visibleOccupantsP =
                 new SimpleObjectProperty<>(Collections.emptySet());
 
 
-        SimpleObjectProperty<Set<Integer>> highlightedTilesP =
+        ObjectProperty<Set<Integer>> highlightedTilesP =
                 new SimpleObjectProperty<>(Collections.emptySet());
 
-        SimpleObjectProperty<String> altText = new SimpleObjectProperty<>("");
-        SimpleBooleanProperty isCancelableAction = new SimpleBooleanProperty(false);
-        SimpleBooleanProperty isRetakeAction = new SimpleBooleanProperty(false);
-        SimpleStringProperty cancelText = new SimpleStringProperty();
+        ObjectProperty<String> altText = new SimpleObjectProperty<>("");
+        BooleanProperty isCancelableAction = new SimpleBooleanProperty(false);
+        BooleanProperty isRetakeAction = new SimpleBooleanProperty(false);
+        StringProperty cancelText = new SimpleStringProperty();
 
-        //------------------------------------------------------------------- Connecting Properties
+        //--------------------------------- Connecting Properties ----------------------------------
+
         highlightedTilesP.bind(tileIds);
-
 
         visibleOccupantsP.bind(oGameState.map(g -> {
             switch (g.nextAction()) {
@@ -169,7 +165,8 @@ public class Main extends Application {
                 .otherwise(""));
 
 
-        //-------------------------------------------------------------------------- Event Handlers
+        //------------------------------------- Event Handlers -------------------------------------
+
         // ··········································· Event handler for canceling occupant actions
         Consumer<Occupant> cancelOccupyHandler = (_ -> {
             switch (oGameState.get().nextAction()) {
@@ -264,7 +261,7 @@ public class Main extends Application {
             }
         };
 
-        //============================================================== Putting the scene together
+        //----------------------------------- Creating the Scene -----------------------------------
 
         Node actionsUI = ActionUI.create(
                 observableActions, actionHandler
@@ -287,6 +284,7 @@ public class Main extends Application {
 
         VBox bottomBox = new VBox(actionsUI, decksUI);
         bottomBox.setPrefWidth(ImageLoader.LARGE_TILE_FIT_SIZE);
+
         BorderPane rightPane = new BorderPane(
                 messageBoardUI, playersUI, null, bottomBox, null
         );
@@ -309,7 +307,7 @@ public class Main extends Application {
         primaryStage.setScene(new Scene(root));
 
         primaryStage.show();
-        oGameState.set(oGameState.get().withStartingTilePlaced());
 
+        oGameState.set(oGameState.get().withStartingTilePlaced());
     }
 }

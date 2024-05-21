@@ -11,6 +11,7 @@ public final class Base32 {
      * Constant that contains the base 32 alphabet.
      */
     public static final String ALPHABET = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+    private static final int ALPHABET_LEN = ALPHABET.length();
     private Base32(){}
 
     /**
@@ -28,7 +29,7 @@ public final class Base32 {
      * @return encoded integer in base 32, one character.
      */
     public static String encodeBits5(int plain) {
-        Preconditions.checkArgument(plain < 32 && plain >= 0);
+        Preconditions.checkArgument(plain < ALPHABET.length() && plain >= 0);
         return Character.toString(ALPHABET.charAt(plain));
     }
 
