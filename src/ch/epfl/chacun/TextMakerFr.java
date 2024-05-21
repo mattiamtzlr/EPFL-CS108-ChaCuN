@@ -52,8 +52,8 @@ public final class TextMakerFr implements TextMaker {
         return sjComma.toString().isEmpty()
                 ? playerStrings.getLast()
                 : sjAnd.add(sjComma.toString())
-                .add(playerStrings.getLast())
-                .toString();
+                    .add(playerStrings.getLast())
+                    .toString();
     }
 
     /**
@@ -85,8 +85,8 @@ public final class TextMakerFr implements TextMaker {
         return sjComma.toString().isEmpty()
                 ? strings.getLast()
                 : sjAnd.add(sjComma.toString())
-                .add(strings.getLast())
-                .toString();
+                    .add(strings.getLast())
+                    .toString();
     }
 
     /**

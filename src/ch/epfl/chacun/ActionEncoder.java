@@ -45,7 +45,7 @@ public final class ActionEncoder {
     private static final int ZONE_ID_BITS = 4;
 
     /**
-     * Maximum length (in characters) of any encoded action, primarily used by ActionUI.
+     * Maximum length (in characters) of any encoded action, primarily used by other classes.
      */
     public static final int MAX_ACTION_LENGTH = Math.max(PLACE_ACTION_LENGTH, OCC_ACTION_LENGTH);
 
@@ -86,7 +86,7 @@ public final class ActionEncoder {
 
         String encoding = Base32.encodeBits10(
             getFringeSorted(state).indexOf(tile.pos()) << POS_SHIFT
-                | tile.rotation().ordinal()
+            | tile.rotation().ordinal()
         );
         return new StateAction(state.withPlacedTile(tile), encoding);
     }
@@ -99,31 +99,28 @@ public final class ActionEncoder {
      * was applied to it and the encoding of the withNewOccupant Action.
      */
     public static StateAction withNewOccupant(GameState state, Occupant occupant) {
-        String encoding;
-        if (occupant != null)
-            encoding = Base32.encodeBits5(
-                occupant.kind().ordinal() << OCC_KIND_SHIFT
-                    | Zone.localId(occupant.zoneId()));
+        String encoding = occupant != null
+                ? Base32.encodeBits5(
+                    occupant.kind().ordinal() << OCC_KIND_SHIFT
+                    | Zone.localId(occupant.zoneId()))
 
-        else
-            encoding = Base32.encodeBits5(NO_OCCUPANT);
+                : Base32.encodeBits5(NO_OCCUPANT);
 
         return new StateAction(state.withNewOccupant(occupant), encoding);
     }
 
     /**
      * Method that handles the action of removal of an occupant.
-     * @param state the current state.
+     *
+     * @param state    the current state.
      * @param occupant the occupant to be removed from the game.
      * @return a new StateAction pair containing the GameState after withOccupantRemoved
      * was applied to it and the encoding of the withOccupantRemoved Action.
      */
     public static StateAction withOccupantRemoved(GameState state, Occupant occupant) {
-        String encoding;
-        if (occupant != null) {
-            encoding = Base32.encodeBits5(getOccupantsSorted(state).indexOf(occupant));
-        } else
-            encoding = Base32.encodeBits5(NO_OCCUPANT);
+        String encoding = occupant != null
+                ? Base32.encodeBits5(getOccupantsSorted(state).indexOf(occupant))
+                : Base32.encodeBits5(NO_OCCUPANT);
 
         return new StateAction(state.withOccupantRemoved(occupant), encoding);
     }
@@ -177,7 +174,7 @@ public final class ActionEncoder {
 
                     if (decoded == NO_OCCUPANT)
                         return withOccupantRemoved(state, null);
-                    
+
                     Occupant occupant = getOccupantsSorted(state).get(decoded);
                     Preconditions.checkArgument(
                         state.board().tileWithId(Zone.tileId(occupant.zoneId())).placer()
@@ -190,6 +187,8 @@ public final class ActionEncoder {
             }
 
         } catch (IllegalArgumentException | IndexOutOfBoundsException e) {
+            /* FYI: this is not for debugging, it is quite useful as a player to have an
+             * indication of an illegal action */
             System.out.println(STR."""
                     Warning: Illegal Action: '\{encodedAction}' for current state\
                      \{state.nextAction()}\

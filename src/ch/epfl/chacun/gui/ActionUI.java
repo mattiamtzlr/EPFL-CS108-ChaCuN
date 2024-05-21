@@ -26,6 +26,9 @@ import static java.util.FormatProcessor.FMT;
  * @author Leoluca Bernardi (374107)
  */
 public final class ActionUI {
+
+    private static final int ACTION_INPUT_WIDTH = 60;
+
     private ActionUI() {}
 
     /**
@@ -44,16 +47,16 @@ public final class ActionUI {
         Text actionHistory = new Text();
         actionHistory.textProperty().bind(
                 observableActions.map(oA -> {
-                    StringJoiner text = new StringJoiner(", ");
+                    StringJoiner textJoiner = new StringJoiner(", ");
                     int size = oA.size();
                     List<String> recentActions = oA.subList(
                             size - ((size > 3) ? 4 : size), size);
 
                     for (int i = 0; i < recentActions.size(); i++) {
                         int index = oA.size() - recentActions.size() + i + 1;
-                        text.add(FMT."%2d\{index}:\{recentActions.get(i)}");
+                        textJoiner.add(FMT."%2d\{index}:\{recentActions.get(i)}");
                     }
-                    return text.toString();
+                    return textJoiner.toString();
                 }));
 
         // TextField for user input
@@ -70,6 +73,7 @@ public final class ActionUI {
                     return change;
 
                 }));
+
         actionInput.setOnAction(_ -> {
             if (!actionInput.getText().isEmpty()) {
                 actionHandler.accept(String.valueOf(actionInput.getText()));
@@ -78,7 +82,7 @@ public final class ActionUI {
         });
 
         actionHistory.setTextAlignment(TextAlignment.CENTER);
-        actionInput.setPrefWidth(60);
+        actionInput.setPrefWidth(ACTION_INPUT_WIDTH);
 
         HBox actionInputBox = new HBox(actionHistory, actionInput);
 

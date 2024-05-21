@@ -97,7 +97,8 @@ public final class BoardUI {
             ObservableValue<Set<Integer>> observableHighlightedTiles,
             Consumer<Rotation> rotationHandler,
             Consumer<Pos> positionHandler,
-            Consumer<Occupant> occupantHandler) {
+            Consumer<Occupant> occupantHandler
+    ) {
 
         // empty background
         WritableImage emptyTileImage = new WritableImage(1, 1);
@@ -117,7 +118,7 @@ public final class BoardUI {
             return Collections.emptySet();
         });
 
-        // Two for loops to create each Group
+        // Two for loops to create a Group for each board square
         for (int x = -boardSize; x <= boardSize; x++) {
             for (int y = -boardSize; y <= boardSize; y++) {
 
@@ -146,52 +147,52 @@ public final class BoardUI {
                 ObservableValue<Boolean> isHovered = boardSquare.hoverProperty();
 
                 ObservableValue<CellData> cellData = Bindings.createObjectBinding(
-                        () -> {
-                            Image image = emptyTileImage;
-                            if (currentTile.getValue() != null)
-                                image = cachedImageLoader.get(currentTile.getValue().id());
+                    () -> {
+                        Image image = emptyTileImage;
+                        if (currentTile.getValue() != null)
+                            image = cachedImageLoader.get(currentTile.getValue().id());
 
-                            else if (isHovered.getValue() && tileToPlace.getValue() != null
-                                    && fringe.getValue().contains(currentPos))
+                        else if (isHovered.getValue() && tileToPlace.getValue() != null
+                                && fringe.getValue().contains(currentPos))
 
-                                image = cachedImageLoader.get(tileToPlace.getValue().id());
-
-
-                            int rotation = 0;
-                            if (currentTile.getValue() != null)
-                                rotation = currentTile.getValue().rotation().degreesCW();
-
-                            else if (tileToPlace.getValue() != null)
-                                rotation = tileToPlace.getValue().rotation().degreesCW();
+                            image = cachedImageLoader.get(tileToPlace.getValue().id());
 
 
-                            Color color = Color.TRANSPARENT;
-                            if (fringe.getValue().contains(currentPos)) {
-                                if (tileToPlace.getValue() != null
-                                        && isHovered.getValue()
-                                        && !observableGameState.getValue().board()
+                        int rotation = 0;
+                        if (currentTile.getValue() != null)
+                            rotation = currentTile.getValue().rotation().degreesCW();
+
+                        else if (tileToPlace.getValue() != null)
+                            rotation = tileToPlace.getValue().rotation().degreesCW();
+
+
+                        Color color = Color.TRANSPARENT;
+                        if (fringe.getValue().contains(currentPos)) {
+                            if (tileToPlace.getValue() != null
+                                    && isHovered.getValue()
+                                    && !observableGameState.getValue().board()
                                         .canAddTile(tileToPlace.getValue()))
-                                    color = Color.WHITE;
+                                color = Color.WHITE;
 
 
-                                else if (!isHovered.getValue())
-                                    color = ColorMap.fillColor(observableGameState
-                                            .map(GameState::currentPlayer).getValue());
+                            else if (!isHovered.getValue())
+                                color = ColorMap.fillColor(observableGameState
+                                        .map(GameState::currentPlayer).getValue());
 
-                            } else if (currentTile.getValue() != null
-                                    && !observableHighlightedTiles.getValue().isEmpty()
-                                    && !observableHighlightedTiles.getValue()
+                        } else if (currentTile.getValue() != null
+                                && !observableHighlightedTiles.getValue().isEmpty()
+                                && !observableHighlightedTiles.getValue()
                                     .contains(currentTile.getValue().id()))
-                                color = Color.BLACK;
+                            color = Color.BLACK;
 
-                            return new CellData(image, rotation, color);
-                        },
-                        currentTile,
-                        observableGameState,
-                        tileToPlace,
-                        isHovered,
-                        observableHighlightedTiles,
-                        fringe
+                        return new CellData(image, rotation, color);
+                    },
+                    currentTile,
+                    observableGameState,
+                    tileToPlace,
+                    isHovered,
+                    observableHighlightedTiles,
+                    fringe
                  );
 
                 boardSquare.setOnMouseClicked(e -> {
@@ -212,54 +213,60 @@ public final class BoardUI {
 
                 // Listener pointing to the correct tile on the board
                 currentTile.addListener((_, oldTile, newTile) -> {
-                        if (oldTile == null && newTile != null) {
+                    if (oldTile == null && newTile != null) {
 
-                            // construct markers for all cancelled animals
-                            newTile.meadowZones().stream()
-                                    .map(Zone.Meadow::animals)
-                                    .flatMap(Collection::stream)
-                                    .forEach(a -> {
-                                        ObservableValue<Boolean> isVisible =
-                                                observableGameState.map(gs -> gs.board()
-                                                        .cancelledAnimals().contains(a));
+                        // construct markers for all cancelled animals
+                        newTile.meadowZones().stream()
+                                .map(Zone.Meadow::animals)
+                                .flatMap(Collection::stream)
+                                .forEach(a -> {
+                                    ObservableValue<Boolean> isVisible =
+                                            observableGameState.map(gs -> gs.board()
+                                                    .cancelledAnimals().contains(a));
 
-                                        ImageView cancelMarker = new ImageView();
-                                        cancelMarker.setFitWidth(ImageLoader.MARKER_FIT_SIZE);
-                                        cancelMarker.setFitHeight(ImageLoader.MARKER_FIT_SIZE);
-                                        cancelMarker.getStyleClass().add("marker");
-                                        cancelMarker.setId(STR."marker_\{a.id()}");
-                                        cancelMarker.visibleProperty().bind(isVisible);
+                                    ImageView cancelMarker = new ImageView();
 
-                                        boardSquare.getChildren().add(cancelMarker);
+                                    cancelMarker.setFitWidth(ImageLoader.MARKER_FIT_SIZE);
+                                    cancelMarker.setFitHeight(ImageLoader.MARKER_FIT_SIZE);
+
+                                    cancelMarker.getStyleClass().add("marker");
+                                    cancelMarker.setId(STR."marker_\{a.id()}");
+                                    cancelMarker.visibleProperty().bind(isVisible);
+
+                                    boardSquare.getChildren().add(cancelMarker);
+                                });
+
+                        // construct svg's for all visible occupants
+                        newTile.potentialOccupants()
+                            .forEach(
+                                o -> {
+                                    Node svgPath = switch (o.kind()) {
+                                        case HUT -> Icon.newFor(newTile.placer(), HUT);
+                                        case PAWN -> Icon.newFor(newTile.placer(), PAWN);
+                                    };
+
+                                    ObservableValue<Boolean> isVisible =
+                                            observableOccupants.map(s -> s.contains(o));
+
+                                    svgPath.visibleProperty().bind(isVisible);
+
+                                    svgPath.setId(o.kind().equals(HUT)
+                                            ? STR."hut_\{o.zoneId()}"
+                                            : STR."pawn_\{o.zoneId()}"
+                                    );
+
+                                    svgPath.rotateProperty()
+                                            .set(newTile.rotation().negated().degreesCW());
+
+                                    svgPath.setOnMouseClicked(e -> {
+                                        if (e.isStillSincePress())
+                                            occupantHandler.accept(o);
                                     });
 
-                            // construct svg's for all visible occupants
-                            newTile.potentialOccupants()
-                                .forEach(
-                                    o -> {
-                                        Node svgPath = switch (o.kind()) {
-                                            case HUT -> Icon.newFor(newTile.placer(), HUT);
-                                            case PAWN -> Icon.newFor(newTile.placer(), PAWN);
-                                        };
-
-                                        ObservableValue<Boolean> isVisible =
-                                                observableOccupants.map(s -> s.contains(o));
-                                        svgPath.visibleProperty().bind(isVisible);
-                                        svgPath.setId(o.kind().equals(HUT)
-                                                ? STR."hut_\{o.zoneId()}"
-                                                : STR."pawn_\{o.zoneId()}"
-                                        );
-                                        svgPath.rotateProperty()
-                                                .set(newTile.rotation().negated().degreesCW());
-                                        svgPath.setOnMouseClicked(e -> {
-                                            if (e.isStillSincePress())
-                                                occupantHandler.accept(o);
-                                        });
-
-                                        boardSquare.getChildren().add(svgPath);
-                                    }
-                                );
-                        }
+                                    boardSquare.getChildren().add(svgPath);
+                                }
+                            );
+                    }
                 });
 
                 tileFace.getValue().setFitHeight(ImageLoader.NORMAL_TILE_FIT_SIZE);
