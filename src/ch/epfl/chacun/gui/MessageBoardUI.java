@@ -28,8 +28,8 @@ public final class MessageBoardUI {
      * Method that creates the node where messages are displayed
      *
      * @param observableMessages the messages to display
-     * @param relevantTileIds    a set where the ids of tiles that should be highlighted are added in
-     *                           the method.
+     * @param relevantTileIds    a set where the ids of tiles that should be highlighted are added
+     *                           in the method.
      * @return The node for the JavaFX tree
      */
     public static Node create(ObservableValue<List<MessageBoard.Message>> observableMessages,
@@ -44,7 +44,7 @@ public final class MessageBoardUI {
         scrollableMessages.setAlignment(Pos.TOP_LEFT);
 
         observableMessages.addListener(
-                (o, oldMessageList, newMessageList) -> {
+                (_, oldMessageList, newMessageList) -> {
 
                     List<MessageBoard.Message> newMessages = newMessageList.stream()
                             .filter(m -> !oldMessageList.contains(m))
@@ -59,7 +59,6 @@ public final class MessageBoardUI {
                                 _ -> relevantTileIds.setValue(Collections.emptySet()));
 
                         scrollableMessages.getChildren().add(newText);
-
 
                         messageBoardScrollPane.layout();
                         messageBoardScrollPane.setVvalue(1);

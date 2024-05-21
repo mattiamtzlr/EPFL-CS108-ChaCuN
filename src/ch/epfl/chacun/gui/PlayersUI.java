@@ -24,6 +24,11 @@ import java.util.Objects;
  * @author Leoluca Bernardi (374107)
  */
 public final class PlayersUI {
+
+    private static final int CIRCLE_RADIUS = 5;
+    private static final double LOW_OPACITY = 0.1;
+    private static final int HIGH_OPACITY = 1;
+
     private PlayersUI() {
     }
 
@@ -55,7 +60,7 @@ public final class PlayersUI {
         // Construct TextFlow instance for each player
         for (PlayerColor color : players) {
             Circle circle = new Circle();
-            circle.setRadius(5);
+            circle.setRadius(CIRCLE_RADIUS);
             circle.setFill(ColorMap.fillColor(color));
 
             // Observable value containing the text with the points for each player color
@@ -86,7 +91,7 @@ public final class PlayersUI {
                 int index = i;
                 ObservableValue<Double> opacity = observableGameState.map(
                         gs -> index < gs.freeOccupantsCount(color, Occupant.Kind.HUT)
-                                ? 1 : 0.1
+                                ? HIGH_OPACITY : LOW_OPACITY
                 );
 
                 hutSVG.opacityProperty().bind(opacity);
@@ -104,7 +109,7 @@ public final class PlayersUI {
                 int index = i;
                 ObservableValue<Double> opacity = observableGameState.map(
                         gs -> index < gs.freeOccupantsCount(color, Occupant.Kind.PAWN)
-                                ? 1 : 0.1
+                                ? HIGH_OPACITY : LOW_OPACITY
                 );
 
                 pawnSVG.opacityProperty().bind(opacity);
