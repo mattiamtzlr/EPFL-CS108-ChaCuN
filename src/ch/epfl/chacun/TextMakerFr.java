@@ -20,7 +20,7 @@ public final class TextMakerFr implements TextMaker {
     | line. See the playerClosedForestWithMenhir method for an example.                            |
     ========================================== IMPORTANT ======================================== */
 
-    Map<PlayerColor, String> playerNames;
+    private final Map<PlayerColor, String> playerNames;
     private static final Map<Animal.Kind, String> ANIMAL_NAMES = Map.of(
             MAMMOTH, "mammouth",
             AUROCHS, "auroch",
