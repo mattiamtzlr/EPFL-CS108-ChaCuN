@@ -65,6 +65,9 @@ public sealed interface Zone {
         return null;
     }
 
+    /**
+     * Enum representing the possible special powers in the game.
+     */
     enum SpecialPower {
         SHAMAN, LOGBOAT, HUNTING_TRAP, PIT_TRAP, WILD_FIRE, RAFT
     }

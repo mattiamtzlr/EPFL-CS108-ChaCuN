@@ -21,8 +21,7 @@ import java.util.Set;
  * @author Leoluca Bernardi (374107)
  */
 public final class MessageBoardUI {
-    private MessageBoardUI() {
-    }
+    private MessageBoardUI() {}
 
     /**
      * Method that creates the node where messages are displayed
@@ -44,26 +43,26 @@ public final class MessageBoardUI {
         scrollableMessages.setAlignment(Pos.TOP_LEFT);
 
         observableMessages.addListener(
-                (_, oldMessageList, newMessageList) -> {
+            (_, oldMessageList, newMessageList) -> {
 
-                    List<MessageBoard.Message> newMessages = newMessageList.stream()
-                            .filter(m -> !oldMessageList.contains(m))
-                            .toList();
+                List<MessageBoard.Message> newMessages = newMessageList.stream()
+                    .filter(m -> !oldMessageList.contains(m))
+                    .toList();
 
-                    for (MessageBoard.Message message : newMessages) {
-                        Text newText = new Text(message.text());
-                        newText.setWrappingWidth(ImageLoader.LARGE_TILE_FIT_SIZE);
-                        newText.setOnMouseEntered(
-                                _ -> relevantTileIds.setValue(message.tileIds()));
-                        newText.setOnMouseExited(
-                                _ -> relevantTileIds.setValue(Collections.emptySet()));
+                for (MessageBoard.Message message : newMessages) {
+                    Text newText = new Text(message.text());
+                    newText.setWrappingWidth(ImageLoader.LARGE_TILE_FIT_SIZE);
+                    newText.setOnMouseEntered(
+                        _ -> relevantTileIds.setValue(message.tileIds()));
+                    newText.setOnMouseExited(
+                        _ -> relevantTileIds.setValue(Collections.emptySet()));
 
-                        scrollableMessages.getChildren().add(newText);
+                    scrollableMessages.getChildren().add(newText);
 
-                        messageBoardScrollPane.layout();
-                        messageBoardScrollPane.setVvalue(1);
-                    }
-                });
+                    messageBoardScrollPane.layout();
+                    messageBoardScrollPane.setVvalue(1);
+                }
+            });
 
 
         return messageBoardScrollPane;

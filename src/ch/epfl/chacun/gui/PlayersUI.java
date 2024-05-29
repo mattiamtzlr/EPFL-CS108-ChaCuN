@@ -24,13 +24,11 @@ import java.util.Objects;
  * @author Leoluca Bernardi (374107)
  */
 public final class PlayersUI {
-
     private static final int CIRCLE_RADIUS = 5;
     private static final double LOW_OPACITY = 0.1;
     private static final int HIGH_OPACITY = 1;
 
-    private PlayersUI() {
-    }
+    private PlayersUI() {}
 
     /**
      * Creates the players interface using the given game state (observable) and text maker
@@ -42,20 +40,20 @@ public final class PlayersUI {
      */
     public static Node create(ObservableValue<GameState> observableGameState, TextMaker textMaker) {
         List<PlayerColor> players = observableGameState.getValue().players().stream()
-                .sorted()
-                .toList();
+            .sorted()
+            .toList();
 
         // Observable current player
         ObservableValue<PlayerColor> observableCurrentPlayer =
-                observableGameState.map(GameState::currentPlayer);
+            observableGameState.map(GameState::currentPlayer);
 
 
         // Observable points map
         ObservableValue<Map<PlayerColor, Integer>> observablePoints =
-                observableGameState.map(gs -> gs.messageBoard().points());
+            observableGameState.map(gs -> gs.messageBoard().points());
 
         // TextFlow array to add to vbox later
-        TextFlow[] textFlows = new TextFlow[PlayerColor.ALL.size()];
+        TextFlow[] textFlows = new TextFlow[players.size()];
 
         // Construct TextFlow instance for each player
         for (PlayerColor color : players) {
@@ -65,20 +63,18 @@ public final class PlayersUI {
 
             // Observable value containing the text with the points for each player color
             ObservableValue<String> observablePointsText =
-                    observablePoints.map(map -> {
-                        int points = map.getOrDefault(color, 0);
+                observablePoints.map(map -> {
+                    int points = map.getOrDefault(color, 0);
 
-                        return STR."""
-                         \{textMaker.playerName(color)} : \{textMaker.points(points)}
-                        """;
-                    });
+                    return STR." \{textMaker.playerName(color)} : \{textMaker.points(points)}\n";
+                });
 
             Text pointsText = new Text();
             pointsText.textProperty().bind(observablePointsText);
 
             TextFlow textFlow = new TextFlow(
-                    circle,
-                    pointsText
+                circle,
+                pointsText
             );
 
             textFlow.getStyleClass().add("player");
@@ -90,12 +86,11 @@ public final class PlayersUI {
                 // to use in lambda
                 int index = i;
                 ObservableValue<Double> opacity = observableGameState.map(
-                        gs -> index < gs.freeOccupantsCount(color, Occupant.Kind.HUT)
-                                ? HIGH_OPACITY : LOW_OPACITY
+                    gs -> index < gs.freeOccupantsCount(color, Occupant.Kind.HUT)
+                        ? HIGH_OPACITY : LOW_OPACITY
                 );
 
                 hutSVG.opacityProperty().bind(opacity);
-
                 textFlow.getChildren().add(hutSVG);
             }
 
@@ -108,12 +103,11 @@ public final class PlayersUI {
                 // to use in lambda
                 int index = i;
                 ObservableValue<Double> opacity = observableGameState.map(
-                        gs -> index < gs.freeOccupantsCount(color, Occupant.Kind.PAWN)
-                                ? HIGH_OPACITY : LOW_OPACITY
+                    gs -> index < gs.freeOccupantsCount(color, Occupant.Kind.PAWN)
+                        ? HIGH_OPACITY : LOW_OPACITY
                 );
 
                 pawnSVG.opacityProperty().bind(opacity);
-
                 textFlow.getChildren().add(pawnSVG);
             }
 
@@ -129,11 +123,7 @@ public final class PlayersUI {
         });
 
         // remove null values, as not all players might be present.
-        VBox vBox = new VBox(
-                Arrays.stream(textFlows)
-                        .filter(Objects::nonNull)
-                        .toArray(TextFlow[]::new)
-        );
+        VBox vBox = new VBox(textFlows);
         vBox.getStylesheets().add("players.css");
         vBox.setId("players");
         return vBox;

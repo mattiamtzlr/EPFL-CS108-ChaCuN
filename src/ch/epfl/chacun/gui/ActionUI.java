@@ -27,6 +27,9 @@ import static java.util.FormatProcessor.FMT;
  */
 public final class ActionUI {
 
+    /**
+     * Width of the action input to prevent it from constantly changing size.
+     */
     private static final int ACTION_INPUT_WIDTH = 60;
 
     private ActionUI() {}
@@ -40,39 +43,40 @@ public final class ActionUI {
      * @return a node for the javafx scene.
      */
     public static Node create(
-            ObservableValue<List<String>> observableActions,
-            Consumer<String> actionHandler) {
+        ObservableValue<List<String>> observableActions,
+        Consumer<String> actionHandler
+    ) {
 
         // Text representing the last four actions.
         Text actionHistory = new Text();
         actionHistory.textProperty().bind(
-                observableActions.map(oA -> {
-                    StringJoiner textJoiner = new StringJoiner(", ");
-                    int size = oA.size();
-                    List<String> recentActions = oA.subList(
-                            size - ((size > 3) ? 4 : size), size);
+            observableActions.map(oA -> {
+                StringJoiner textJoiner = new StringJoiner(", ");
+                int size = oA.size();
+                List<String> recentActions = oA.subList(
+                    size - ((size > 3) ? 4 : size), size);
 
-                    for (int i = 0; i < recentActions.size(); i++) {
-                        int index = oA.size() - recentActions.size() + i + 1;
-                        textJoiner.add(FMT."%2d\{index}:\{recentActions.get(i)}");
-                    }
-                    return textJoiner.toString();
-                }));
+                for (int i = 0; i < recentActions.size(); i++) {
+                    int index = oA.size() - recentActions.size() + i + 1;
+                    textJoiner.add(FMT."%2d\{index}:\{recentActions.get(i)}");
+                }
+                return textJoiner.toString();
+            }));
 
         // TextField for user input
         TextField actionInput = new TextField();
         actionInput.setId("action-field");
         actionInput.setTextFormatter(new TextFormatter<>(
-                change -> {
-                    change.setText(change.getText().chars()
-                            .mapToObj(Character::toString)
-                            .map(String::toUpperCase)
-                            .filter(Base32::isValid)
-                            .filter(_ -> actionInput.getText().length() < MAX_ACTION_LENGTH)
-                            .collect(Collectors.joining()));
-                    return change;
+            change -> {
+                change.setText(change.getText().chars()
+                    .mapToObj(Character::toString)
+                    .map(String::toUpperCase)
+                    .filter(Base32::isValid)
+                    .filter(_ -> actionInput.getText().length() < MAX_ACTION_LENGTH)
+                    .collect(Collectors.joining()));
+                return change;
 
-                }));
+            }));
 
         actionInput.setOnAction(_ -> {
             if (!actionInput.getText().isEmpty()) {

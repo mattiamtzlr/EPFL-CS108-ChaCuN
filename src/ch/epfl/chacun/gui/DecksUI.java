@@ -20,8 +20,7 @@ import java.util.function.Consumer;
  * @author Leoluca Bernardi (374107)
  */
 public final class DecksUI {
-    private DecksUI() {
-    }
+    private DecksUI() {}
 
     /**
      * Creates a new UI for the tile decks with the given parameters below.
@@ -43,11 +42,11 @@ public final class DecksUI {
      * @return the UI for the tile decks as a node.
      */
     public static Node create(
-            ObservableValue<Tile> observableTileToPlace,
-            ObservableValue<Integer> observableNormalTilesLeft,
-            ObservableValue<Integer> observableMenhirTilesLeft,
-            ObservableValue<String> observableAltText,
-            Consumer<Occupant> skipPawnAction
+        ObservableValue<Tile> observableTileToPlace,
+        ObservableValue<Integer> observableNormalTilesLeft,
+        ObservableValue<Integer> observableMenhirTilesLeft,
+        ObservableValue<String> observableAltText,
+        Consumer<Occupant> skipPawnAction
     ) {
         // -------------------------------- Tile to place: either the face of a tile or the alt text
         Text altText = new Text();
@@ -64,7 +63,7 @@ public final class DecksUI {
 
         ImageView tileFace = new ImageView();
         tileFace.imageProperty()
-                .bind(observableTileToPlace.map(ttp -> ImageLoader.largeForTileId(ttp.id())));
+            .bind(observableTileToPlace.map(ttp -> ImageLoader.largeForTileId(ttp.id())));
         tileFace.setFitWidth(ImageLoader.LARGE_TILE_FIT_SIZE);
         tileFace.setFitHeight(ImageLoader.LARGE_TILE_FIT_SIZE);
 

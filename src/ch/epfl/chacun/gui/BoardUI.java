@@ -28,16 +28,15 @@ import static ch.epfl.chacun.Occupant.Kind.PAWN;
  * @author Leoluca Bernardi (374107)
  */
 public final class BoardUI {
-    private BoardUI() {
-    }
+    private BoardUI() {}
 
+    /**
+     * Helper class that handles image caching and loading, only uses NORMAL sized images, as
+     * only they are used in this UI.
+     */
     private static class CachedImageLoader {
         private final Map<Integer, Image> cache;
 
-        /**
-         * Helper class that handles image caching and loading, only uses NORMAL sized images, as
-         * only they are used in this UI.
-         */
         private CachedImageLoader() {
             this.cache = new HashMap<>();
         }
@@ -90,21 +89,21 @@ public final class BoardUI {
      * @return the UI of the game area / board.
      */
     public static Node create(
-            int boardSize,
-            ObservableValue<GameState> observableGameState,
-            ObservableValue<Rotation> observableRotation,
-            ObservableValue<Set<Occupant>> observableOccupants,
-            ObservableValue<Set<Integer>> observableHighlightedTiles,
-            Consumer<Rotation> rotationHandler,
-            Consumer<Pos> positionHandler,
-            Consumer<Occupant> occupantHandler
+        int boardSize,
+        ObservableValue<GameState> observableGameState,
+        ObservableValue<Rotation> observableRotation,
+        ObservableValue<Set<Occupant>> observableOccupants,
+        ObservableValue<Set<Integer>> observableHighlightedTiles,
+        Consumer<Rotation> rotationHandler,
+        Consumer<Pos> positionHandler,
+        Consumer<Occupant> occupantHandler
     ) {
 
         // empty background
         WritableImage emptyTileImage = new WritableImage(1, 1);
         emptyTileImage
-                .getPixelWriter()
-                .setColor(0, 0, Color.gray(0.98));
+            .getPixelWriter()
+            .setColor(0, 0, Color.gray(0.98));
 
         // Grid Pane
         GridPane boardPane = new GridPane();
@@ -129,19 +128,19 @@ public final class BoardUI {
                 Group boardSquare = new Group(tileFace.getValue());
 
                 ObservableValue<PlacedTile> currentTile = observableGameState
-                        .map(gs -> gs.board().tileAt(currentPos));
+                    .map(gs -> gs.board().tileAt(currentPos));
 
                 ObservableValue<PlacedTile> tileToPlace = Bindings.createObjectBinding(
-                        () -> observableGameState.getValue().tileToPlace() != null
-                                ? new PlacedTile(
-                                    observableGameState.getValue().tileToPlace(),
-                                    observableGameState.getValue().currentPlayer(),
-                                    observableRotation.getValue(),
-                                    currentPos
-                                )
-                                : null,
-                        observableGameState,
-                        observableRotation
+                    () -> observableGameState.getValue().tileToPlace() != null
+                        ? new PlacedTile(
+                            observableGameState.getValue().tileToPlace(),
+                            observableGameState.getValue().currentPlayer(),
+                            observableRotation.getValue(),
+                            currentPos
+                        )
+                        : null,
+                    observableGameState,
+                    observableRotation
                 );
 
                 ObservableValue<Boolean> isHovered = boardSquare.hoverProperty();
@@ -177,7 +176,7 @@ public final class BoardUI {
 
                             else if (!isHovered.getValue())
                                 color = ColorMap.fillColor(observableGameState
-                                        .map(GameState::currentPlayer).getValue());
+                                    .map(GameState::currentPlayer).getValue());
 
                         } else if (currentTile.getValue() != null
                                 && !observableHighlightedTiles.getValue().isEmpty()
@@ -193,7 +192,7 @@ public final class BoardUI {
                     isHovered,
                     observableHighlightedTiles,
                     fringe
-                 );
+                );
 
                 boardSquare.setOnMouseClicked(e -> {
                     if (fringe.getValue().contains(currentPos))
@@ -217,24 +216,24 @@ public final class BoardUI {
 
                         // construct markers for all cancelled animals
                         newTile.meadowZones().stream()
-                                .map(Zone.Meadow::animals)
-                                .flatMap(Collection::stream)
-                                .forEach(a -> {
-                                    ObservableValue<Boolean> isVisible =
-                                            observableGameState.map(gs -> gs.board()
-                                                    .cancelledAnimals().contains(a));
+                            .map(Zone.Meadow::animals)
+                            .flatMap(Collection::stream)
+                            .forEach(a -> {
+                                ObservableValue<Boolean> isVisible =
+                                    observableGameState.map(gs -> gs.board()
+                                        .cancelledAnimals().contains(a));
 
-                                    ImageView cancelMarker = new ImageView();
+                                ImageView cancelMarker = new ImageView();
 
-                                    cancelMarker.setFitWidth(ImageLoader.MARKER_FIT_SIZE);
-                                    cancelMarker.setFitHeight(ImageLoader.MARKER_FIT_SIZE);
+                                cancelMarker.setFitWidth(ImageLoader.MARKER_FIT_SIZE);
+                                cancelMarker.setFitHeight(ImageLoader.MARKER_FIT_SIZE);
 
-                                    cancelMarker.getStyleClass().add("marker");
-                                    cancelMarker.setId(STR."marker_\{a.id()}");
-                                    cancelMarker.visibleProperty().bind(isVisible);
+                                cancelMarker.getStyleClass().add("marker");
+                                cancelMarker.setId(STR."marker_\{a.id()}");
+                                cancelMarker.visibleProperty().bind(isVisible);
 
-                                    boardSquare.getChildren().add(cancelMarker);
-                                });
+                                boardSquare.getChildren().add(cancelMarker);
+                            });
 
                         // construct svg's for all visible occupants
                         newTile.potentialOccupants()
@@ -246,17 +245,17 @@ public final class BoardUI {
                                     };
 
                                     ObservableValue<Boolean> isVisible =
-                                            observableOccupants.map(s -> s.contains(o));
+                                        observableOccupants.map(s -> s.contains(o));
 
                                     svgPath.visibleProperty().bind(isVisible);
 
                                     svgPath.setId(o.kind().equals(HUT)
-                                            ? STR."hut_\{o.zoneId()}"
-                                            : STR."pawn_\{o.zoneId()}"
+                                        ? STR."hut_\{o.zoneId()}"
+                                        : STR."pawn_\{o.zoneId()}"
                                     );
 
                                     svgPath.rotateProperty()
-                                            .set(newTile.rotation().negated().degreesCW());
+                                        .set(newTile.rotation().negated().degreesCW());
 
                                     svgPath.setOnMouseClicked(e -> {
                                         if (e.isStillSincePress())
@@ -286,7 +285,7 @@ public final class BoardUI {
                 boardSquare.setEffect(overlay);
                 boardSquare.rotateProperty().bind(cellData.map(CellData::rotation));
 
-                //      Group
+                // Group
                 boardPane.add(boardSquare, x + boardSize, y + boardSize);
 
             }
